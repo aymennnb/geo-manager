@@ -24,6 +24,7 @@ function Add({ auth }) {
             <form onSubmit={handleSubmit}>
                 <label>Photo pour ce site</label>
                 <input 
+                  className="form-control"
                   type="file" 
                   onChange={e => setData('image', e.target.files[0])} 
                 />

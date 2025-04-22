@@ -9,7 +9,7 @@ function IndexSites({auth,sites}) {
         address:'',
         page: sites.current_page
     })
-
+        
     const handleFilter = (e) => setData(e.target.name,e.target.value)
 
     useEffect(() => {
@@ -57,7 +57,7 @@ function IndexSites({auth,sites}) {
                 <tbody>
                     {sites && sites.data.map((site) => (
                         <tr key={site.id}>
-                            <td><img src={'storage/' + site.image} style={{width: '70px'}} alt={site.name} /></td>
+                            <td><img src={'storage/' + site.image} style={{width: '150px'}} alt={site.name} /></td>
                             <td>{site.name}</td>
                             {/* <td>{site.email}</td>
                             <td>{site.phone}</td>

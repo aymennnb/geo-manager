@@ -1,13 +1,15 @@
 import NavLink from "@/Components/NavLink";
 import React from 'react'
+export default function Authenticated({user,header,children}) { {/*{user*/}
 
-export default function Authenticated({user,header,children}) {
-  return (
+    return (
     <div className="container-fluid">
             <div className="row">
                 <div className="col-md-2 bg-light vh-100 d-flex flex-column">
                     <div className="sidebar p-3">
-                        <h5 className="border-bottom pb-2 mb-3">Menu</h5>
+                        <h5 className="border-bottom pb-2 mb-3">
+                        <div className="text-center text-2xl font-bold text-orange-600 mb-2">M-AUTOMOTIV</div>
+                        </h5>
                         <ul className="nav flex-column">
                             <li className="nav-item">
                                 <NavLink className="nav-link" href={route('dashboard')} active={route().current('dashboard')}>
@@ -17,6 +19,16 @@ export default function Authenticated({user,header,children}) {
                             <li className="nav-item">
                                 <NavLink className="nav-link" href={route('sites')} active={route().current('sites')}>
                                     Sites
+                                </NavLink>
+                            </li>
+                            <li className="nav-item">
+                                <NavLink className="nav-link" href={route('documents')} active={route().current('documents')}>
+                                    Documents
+                                </NavLink>
+                            </li>
+                            <li className="nav-item">
+                                <NavLink className="nav-link" href={'#'}>
+                                    Utilisateurs
                                 </NavLink>
                             </li>
                         </ul>

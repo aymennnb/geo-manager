@@ -7,11 +7,12 @@ use App\Http\Requests\SiteUpdateRequest;
 use App\Models\Sites;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class SitesController extends Controller
 {
     public function index(Request $request)
-    {   
+    {
         $query = Sites::select('id','image','name','email','phone','web','address','latitude','longitude');
         if (request()->has('name')){
             $query->where('name','like','%'.$request->name .'%');
@@ -26,7 +27,7 @@ class SitesController extends Controller
         ]);
     }
     public function create(SitesRequest $request)
-    {   
+    {
         $validated = $request->validated();
         $sites = new Sites($validated);
         $sites->name = $request->name;
@@ -39,14 +40,14 @@ class SitesController extends Controller
         $imagePath = $request->file('image')->store('sitesImages', 'public');
         $sites->image = $imagePath;
         $sites->save();
-        
+
         return redirect('sites')->with(['success'=>'Sites created successfully']);
     }
 
     public function edit($id)
     {
         $site = Sites::findOrFail($id);
-        
+
         return inertia('Sites/EditSite',compact('site'));
     }
 
@@ -87,13 +88,21 @@ class SitesController extends Controller
         if (!$item) {
             return redirect('sites')->with(['error' => 'Site not found.']);
         }
-        
+
         if ($item->image && Storage::disk('public')->exists($item->image)) {
             Storage::disk('public')->delete($item->image);
         }
-    
+
         $item->delete();
-    
+
         return redirect('sites')->with(['success' => 'Site deleted successfully.']);
+    }
+    public function map()
+    {
+        $sitesMaps = Sites::select('id', 'name', 'latitude', 'longitude')->get();
+
+        return Inertia::render('Dashboard', [
+            'sitesMaps' => $sitesMaps
+        ]);
     }
 }

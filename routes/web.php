@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DocumentsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SitesController;
 use Illuminate\Foundation\Application;
@@ -15,14 +16,19 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::middleware(['auth', 'CheckRole:admin'])->get('/admin-only', function () {
+    return 'Bienvenue, ADMIN !';
+});
+Route::middleware(['auth', 'CheckRole:user'])->get('/user-only', function () {
+    return 'Bienvenue, USER !';
+});
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth','verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/dashboard', [SitesController::class, 'map'])->name('dashboard');
 
     Route::prefix('sites')->controller(SitesController::class)->group(function(){
         Route::get('/','index')->name('sites');
@@ -33,6 +39,13 @@ Route::middleware('auth')->group(function () {
         Route::get('details/{id}','show');
         Route::delete('delete/{id}','delete');
     });
+
+    Route::prefix('documents')->controller(DocumentsController::class)->group(function(){
+        Route::get('/','index')->name('documents');
+        Route::inertia('add','Documents/AddDocuments')->name('documents.add');
+        Route::post('create','create')->name('documents.create');
+    });
+
 });
 
 require __DIR__.'/auth.php';
