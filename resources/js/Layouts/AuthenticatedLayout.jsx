@@ -16,21 +16,27 @@ export default function Authenticated({user,header,children}) { {/*{user*/}
                                     Maps
                                 </NavLink>
                             </li>
-                            <li className="nav-item">
-                                <NavLink className="nav-link" href={route('sites')} active={route().current('sites')}>
-                                    Sites
-                                </NavLink>
-                            </li>
-                            <li className="nav-item">
-                                <NavLink className="nav-link" href={route('documents')} active={route().current('documents')}>
-                                    Documents
-                                </NavLink>
-                            </li>
-                            <li className="nav-item">
-                                <NavLink className="nav-link" href={'#'}>
-                                    Utilisateurs
-                                </NavLink>
-                            </li>
+                            {(user.role === 'admin' || user.role === 'manager') && (
+                                <>
+                                    <li className="nav-item">
+                                        <NavLink className="nav-link" href={route('sites')} active={route().current('sites')}>
+                                            Sites
+                                        </NavLink>
+                                    </li>
+                                    <li className="nav-item">
+                                        <NavLink className="nav-link" href={route('documents')} active={route().current('documents')}>
+                                            Documents
+                                        </NavLink>
+                                    </li>
+                                </>
+                            )}
+                            {user.role === 'admin' && (
+                                <li className="nav-item">
+                                    <NavLink className="nav-link" href={route('utilisateurs')} active={route().current('utilisateurs')}>
+                                        Utilisateurs
+                                    </NavLink>
+                                </li>
+                            )}
                         </ul>
                     </div>
                 </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\SitesRequest;
 use App\Http\Requests\SiteUpdateRequest;
+use App\Models\Documents;
 use App\Models\Sites;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
@@ -14,6 +15,8 @@ class SitesController extends Controller
     public function index(Request $request)
     {
         $query = Sites::select('id','image','name','email','phone','web','address','latitude','longitude');
+        $addresses = Sites::select('address')->distinct()->get();
+
         if (request()->has('name')){
             $query->where('name','like','%'.$request->name .'%');
         }
@@ -23,7 +26,8 @@ class SitesController extends Controller
         $sites = $query->paginate(5);
 
         return inertia('Sites/IndexSites',[
-            'sites'=> $sites
+            'sites'=> $sites,
+            'addresses'=>$addresses
         ]);
     }
     public function create(SitesRequest $request)
@@ -62,22 +66,27 @@ class SitesController extends Controller
         $item->latitude = $request->latitude;
         $item->longitude = $request->longitude;
 
-        if ($request->has('image') && $request->image != null) {
+        if ($request->hasFile('image')) {
+            if ($item->file && Storage::disk('public')->exists($item->file)) {
+                Storage::disk('public')->delete($item->file);
+            }
+
             $imagePath = $request->file('image')->store('sitesImages', 'public');
-            $item->image = $imagePath;
+            $item->file = $imagePath;
         }
 
-        $item->update();
-
+        $item->save();
         return redirect('sites')->with(['success' => 'Site updated successfully.']);
     }
 
     public function show($id)
     {
         $site = Sites::where('id',$id)->first();
+        $documents = Documents::all();
 
         return inertia('Sites/Details',[
-            'site'=> $site
+            'site'=> $site,
+            'documents'=>$documents
         ]);
     }
 

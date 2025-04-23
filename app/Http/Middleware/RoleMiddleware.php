@@ -23,9 +23,17 @@ class RoleMiddleware
         if (!Auth::check()) {
             return redirect()->route('login');
         }
+
+        $user = Auth::user();
+        $allowedRoles = explode(',', $roles);
+
         if (in_array(Auth::user()->role, $allowedRoles)) {
             return $next($request);
         }
-        return redirect()->route('unauthorized');
+        return match ($user->role) {
+            'admin' => redirect('error')->with('error', 'Vous n\'êtes pas autorisé à accéder à cette page.'),
+            'user' => redirect('error')->with('error', 'Vous n\'êtes pas autorisé à accéder à cette page.'),
+            'manager' => redirect('error')->with('error', 'Vous n\'êtes pas autorisé à accéder à cette page.'),
+        };
     }
 }

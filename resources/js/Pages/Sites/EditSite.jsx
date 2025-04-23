@@ -14,7 +14,7 @@ function EditSite({auth,site}) {
         longitude: site.longitude,
         image: null,
     });
-    
+
     const handleSubmit = (e) => {
         e.preventDefault();
         post(route("sites.update"));
@@ -27,9 +27,9 @@ function EditSite({auth,site}) {
                     <img src={'../../storage/'+ site.image} style={{width:'200px'}} alt={site.name} />
                 </div>
                 <label>Photo pour ce site</label>
-                <input 
-                  type="file" 
-                  onChange={e => setData('image', e.target.files[0])} 
+                <input
+                  type="file"
+                  onChange={e => setData('image', e.target.files[0])}
                 />
                 {errors.image && <div className="text-danger">{errors.image}</div>}
                 <label htmlFor="name" className="form-label">
@@ -111,8 +111,8 @@ function EditSite({auth,site}) {
                     onChange={(e) => setData("longitude", e.target.value)}
                 />
                 {errors.longitude && <div className="text-danger">{errors.longitude}</div>}
-                <button className="btn btn-success" type="submit">
-                    save
+                <button className="btn btn-warning" type="submit">
+                    Mettre à jour
                 </button>
             </form>
         </Authenticated>

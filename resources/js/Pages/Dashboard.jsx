@@ -8,6 +8,7 @@ export default function Dashboard({ auth,sitesMaps }) {
     // const { isLoaded, loadError } = useLoadScript({
     //     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
     // });
+
     const position = { lat: 33.60344061525949,lng: -7.5352409240222435 };
 
     // const sitess = [

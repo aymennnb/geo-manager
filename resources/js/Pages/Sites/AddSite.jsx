@@ -2,7 +2,7 @@ import Authenticated from "@/Layouts/AuthenticatedLayout";
 import { Head, useForm } from "@inertiajs/react";
 import React from "react";
 
-function Add({ auth }) {
+function Add({auth}) {
     const { data, setData, post, errors } = useForm({
         name: "",
         web: "",
@@ -13,7 +13,7 @@ function Add({ auth }) {
         longitude: "",
         image: null,
     });
-    
+
     const handleSubmit = (e) => {
         e.preventDefault();
         post(route("sites.create"));
@@ -23,10 +23,10 @@ function Add({ auth }) {
             <Head title="nouveau Site" />
             <form onSubmit={handleSubmit}>
                 <label>Photo pour ce site</label>
-                <input 
+                <input
                   className="form-control"
-                  type="file" 
-                  onChange={e => setData('image', e.target.files[0])} 
+                  type="file"
+                  onChange={e => setData('image', e.target.files[0])}
                 />
                 {errors.image && <div className="text-danger">{errors.image}</div>}
                 <label htmlFor="name" className="form-label">
