@@ -3,7 +3,7 @@ import { Head, useForm } from "@inertiajs/react";
 import React from "react";
 
 function Add({auth}) {
-    const { data, setData, post, errors } = useForm({
+    const { data, setData,processing, post, errors } = useForm({
         name: "",
         web: "",
         email: "",
@@ -108,8 +108,8 @@ function Add({auth}) {
                     onChange={(e) => setData("longitude", e.target.value)}
                 />
                 {errors.longitude && <div className="text-danger">{errors.longitude}</div>}
-                <button className="btn btn-success" type="submit">
-                    Ajouter
+                <button className="btn btn-success" type="submit" disabled={processing}>
+                    {processing ? "Enregistrement..." : "Ajouter"}
                 </button>
             </form>
         </Authenticated>

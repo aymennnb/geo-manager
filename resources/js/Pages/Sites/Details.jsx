@@ -59,7 +59,7 @@ function Details({ auth,site,documents }) {
                                 )}
                             </p>
                             <p>
-                                <strong>Date de dernière mise a jour : </strong>
+                                <strong>Date du dernière mise a jour : </strong>
                                 {new Date(site.updated_at).toLocaleString(
                                     "fr-FR",
                                     {
@@ -76,7 +76,7 @@ function Details({ auth,site,documents }) {
                 </div>
             </div>
             <div className="mt-5">
-                <h4 className="mb-3 text-secondary">Documents liés</h4>
+                <h4 className="mb-3 text-secondary">Documents liés a ce site</h4>
                 {documents && documents.filter((doc) => doc.site_id === site.id).length > 0 ? (
                     <ul className="list-group">
                         {documents
@@ -102,7 +102,7 @@ function Details({ auth,site,documents }) {
                             ))}
                     </ul>
                 ) : (
-                    <p className="text-muted">Aucun document lié à ce site.</p>
+                    <p className="text-muted">Aucun document lié à ce site pour le moment.</p>
                 )}
             </div>
         </Authenticated>

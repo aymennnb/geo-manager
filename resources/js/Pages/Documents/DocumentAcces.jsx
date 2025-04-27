@@ -1,0 +1,113 @@
+import React, { useState, useEffect } from "react";
+import { Head, useForm } from "@inertiajs/react";
+import Authenticated from "@/Layouts/AuthenticatedLayout";
+
+export default function DocumentAcces({ auth, users, documentId, documentAccesses }) {
+    // Initialiser useForm avec les données requises
+    const { data, setData, post, processing, errors } = useForm({
+        document_id: documentId,
+        users: documentAccesses || []
+    });
+
+    // Gérer la sélection des checkboxes
+    const handleSelect = (e) => {
+        const userId = parseInt(e.target.value, 10);
+        const isChecked = e.target.checked;
+
+        // Mettre à jour le champ "users" dans les données du formulaire
+        if (isChecked) {
+            setData("users", [...data.users, userId]);
+        } else {
+            setData("users", data.users.filter(id => id !== userId));
+        }
+    };
+
+    // Soumission du formulaire
+    const handleSubmit = (e) => {
+        e.preventDefault();
+
+        if (data.users.length === 0) {
+            alert("Veuillez sélectionner au moins un utilisateur.");
+            return;
+        }
+
+        // Envoyer les données via useForm
+        post(route("access.update"));
+    };
+
+    return (
+        <Authenticated user={auth.user} header={<h2>Gestion des accès au document</h2>}>
+            <Head title="Gestion des accès au document" />
+
+            <div className="py-6">
+                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                        <div className="p-6">
+                            <h3 className="text-lg font-medium mb-4">Sélectionner les utilisateurs</h3>
+
+                            {/* Affichage des utilisateurs sélectionnés */}
+                            <div className="mb-4">
+                                <label className="block mb-2">Utilisateurs sélectionnés ({data.users.length}):</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {data.users.length > 0 ? (
+                                        data.users.map((userId) => {
+                                            const user = users.find(u => u.id === userId);
+                                            return user ? (
+                                                <div key={userId} className="bg-blue-100 text-blue-800 px-3 py-1 rounded">
+                                                    {user.name}
+                                                </div>
+                                            ) : null;
+                                        })
+                                    ) : (
+                                        <p className="text-gray-500">Aucun utilisateur sélectionné</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            <form onSubmit={handleSubmit}>
+                                <div className="border rounded p-4 mb-4">
+                                    {users.map((user) => (
+                                        <div key={user.id} className="checkbox-container mb-2">
+                                            <input
+                                                type="checkbox"
+                                                name="users"
+                                                id={`user-${user.id}`}
+                                                value={user.id}
+                                                checked={data.users.includes(user.id)}
+                                                onChange={handleSelect}
+                                                className="mr-2"
+                                            />
+                                            <label htmlFor={`user-${user.id}`}>{user.name}</label>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {errors.users && (
+                                    <div className="text-red-500 mb-4">{errors.users}</div>
+                                )}
+
+                                <div className="flex justify-end">
+                                    <button
+                                        type="submit"
+                                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                        disabled={processing}
+                                    >
+                                        {processing ? "Enregistrement..." : "Enregistrer les modifications"}
+                                    </button>
+                                </div>
+                            </form>
+
+                            {/* Affichage des données pour débogage */}
+                            {/*{import.meta.env.DEV && (*/}
+                            {/*    <div className="mt-4 p-2 bg-gray-100 rounded">*/}
+                            {/*        <p>Données du formulaire:</p>*/}
+                            {/*        <pre>{JSON.stringify(data, null, 2)}</pre>*/}
+                            {/*    </div>*/}
+                            {/*)}*/}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Authenticated>
+    );
+}

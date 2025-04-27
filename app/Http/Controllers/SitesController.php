@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\SitesRequest;
 use App\Http\Requests\SiteUpdateRequest;
+use App\Models\Alerts;
 use App\Models\Documents;
 use App\Models\Sites;
 use Illuminate\Support\Facades\Storage;
@@ -45,6 +46,14 @@ class SitesController extends Controller
         $sites->image = $imagePath;
         $sites->save();
 
+        Alerts::create([
+            'user_id' => auth()->user()->id,
+            'role' => auth()->user()->role,
+            'action' => 'add',
+            'type' => 'site',
+            'message' => "a ajouté un site avec le nom {$sites->name} et l'ID {$sites->id}.",
+        ]);
+
         return redirect('sites')->with(['success'=>'Sites created successfully']);
     }
 
@@ -76,6 +85,15 @@ class SitesController extends Controller
         }
 
         $item->save();
+
+        Alerts::create([
+            'user_id' => auth()->user()->id,
+            'role' => auth()->user()->role,
+            'action' => 'update',
+            'type' => 'site',
+            'message' => "a mis à jour le site avec le nom {$item->name} et l'ID {$item->id}.",
+        ]);
+
         return redirect('sites')->with(['success' => 'Site updated successfully.']);
     }
 
@@ -103,6 +121,14 @@ class SitesController extends Controller
         }
 
         $item->delete();
+
+        Alerts::create([
+            'user_id' => auth()->user()->id,
+            'role' => auth()->user()->role,
+            'action' => 'delete',
+            'type' => 'site',
+            'message' => "a supprimé le site avec le nom {$item->name} et l'ID {$item->id}.",
+        ]);
 
         return redirect('sites')->with(['success' => 'Site deleted successfully.']);
     }

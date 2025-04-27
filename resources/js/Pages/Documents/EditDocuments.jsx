@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import Authenticated from '@/Layouts/AuthenticatedLayout';
 
@@ -10,11 +10,39 @@ export default function EditDocuments({ auth, document, sites }) {
         uploaded_by: document.uploaded_by,
         description: document.description,
         file_path: null,
+        // Données pour l'alerte
+        role: auth.user.role,
+        user_id: auth.user.id,
+        action: '',
+        type: 'document',
+        elem_id: document.id,
     });
+
+    // Utilisation de useEffect pour mettre à jour les attributs d'alert
+    useEffect(() => {
+        setData('action', 'update');
+    }, [data.title, data.site_id, auth.user.role]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route("documents.update"));
+
+        post(route("documents.update"), {
+            data,
+            preserveScroll: true,
+            onSuccess: () => {
+                // Suppression de l'appel à l'alerte
+                // post(route('alert.create'), {
+                //     role: data.role,
+                //     user_id: data.user_id,
+                //     action: data.action,
+                //     type: data.type,
+                //     elem_id: data.elem_id,
+                // });
+            },
+            onError: () => {
+                console.error('Erreur lors de la mise à jour du document');
+            }
+        });
     };
 
     return (
@@ -22,55 +50,56 @@ export default function EditDocuments({ auth, document, sites }) {
             <Head title="Modifier le document" />
 
             <form onSubmit={handleSubmit} encType="multipart/form-data" className="p-4 bg-white rounded shadow-sm">
+                {/* Formulaire pour l'aperçu du document */}
                 <div className="mb-3">
-                    <div className="mb-3">
-                        <label className="form-label">Aperçu du document</label>
-                        {document.file_path ? (
-                            <>
-                                {document.file_path.match(/\.(pdf)$/i) ? (
-                                    <div>
-                                        <iframe
-                                            src={`/storage/${document.file_path}`}
-                                            width="100%"
-                                            height="500px"
-                                            title="Aperçu PDF"
-                                            className="border"
-                                        />
-                                    </div>
-                                ) : document.file_path.match(/\.(jpg|jpeg|png)$/i) ? (
-                                    <img
+                    <label className="form-label">Aperçu du document</label>
+                    {document.file_path ? (
+                        <>
+                            {document.file_path.match(/\.(pdf)$/i) ? (
+                                <div>
+                                    <iframe
                                         src={`/storage/${document.file_path}`}
-                                        alt="Aperçu image"
-                                        className="img-fluid rounded shadow"
-                                        style={{ maxHeight: '300px' }}
+                                        width="100%"
+                                        height="500px"
+                                        title="Aperçu PDF"
+                                        className="border"
                                     />
-                                ) : document.file_path.match(/\.(doc|docx|xls|csv|xlsx)$/i) ? (
-                                    <a
-                                        href={`/storage/${document.file_path}`}
-                                        className="btn btn-outline-primary flex w-50"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >
-                                        Télécharger et ouvrir le document
-                                    </a>
-                                ) : (
-                                    <div className="text-muted">Format non pris en charge</div>
-                                )}
-                            </>
-                        ) : (
-                            <div className="text-muted">Aucun fichier disponible</div>
-                        )}
-                    </div>
-
-                    <label className="form-label">Document (nouveau fichier)</label>
-                    <input
-                        type="file"
-                        className="form-control"
-                        onChange={(e) => setData('file_path', e.target.files[0])}
-                    />
-                    {errors.file_path && <div className="text-danger">{errors.file_path}</div>}
+                                </div>
+                            ) : document.file_path.match(/\.(jpg|jpeg|png)$/i) ? (
+                                <img
+                                    src={`/storage/${document.file_path}`}
+                                    alt="Aperçu image"
+                                    className="img-fluid rounded shadow"
+                                    style={{ maxHeight: '300px' }}
+                                />
+                            ) : document.file_path.match(/\.(doc|docx|xls|csv|xlsx)$/i) ? (
+                                <a
+                                    href={`/storage/${document.file_path}`}
+                                    className="btn btn-outline-primary flex w-50"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Télécharger et ouvrir le document
+                                </a>
+                            ) : (
+                                <div className="text-muted">Format non pris en charge</div>
+                            )}
+                        </>
+                    ) : (
+                        <div className="text-muted">Aucun fichier disponible</div>
+                    )}
                 </div>
 
+                {/* Sélecteur de fichier */}
+                <label className="form-label">Document (nouveau fichier)</label>
+                <input
+                    type="file"
+                    className="form-control"
+                    onChange={(e) => setData('file_path', e.target.files[0])}
+                />
+                {errors.file_path && <div className="text-danger">{errors.file_path}</div>}
+
+                {/* Sélecteur de site */}
                 <div className="mb-3">
                     <label className="form-label">Affecter un site</label>
                     <select
@@ -86,6 +115,7 @@ export default function EditDocuments({ auth, document, sites }) {
                     {errors.site_id && <div className="text-danger">{errors.site_id}</div>}
                 </div>
 
+                {/* Titre */}
                 <div className="mb-3">
                     <label className="form-label">Titre</label>
                     <input
@@ -97,6 +127,7 @@ export default function EditDocuments({ auth, document, sites }) {
                     {errors.title && <div className="text-danger">{errors.title}</div>}
                 </div>
 
+                {/* Description */}
                 <div className="mb-3">
                     <label className="form-label">Description</label>
                     <textarea
@@ -107,8 +138,8 @@ export default function EditDocuments({ auth, document, sites }) {
                     {errors.description && <div className="text-danger">{errors.description}</div>}
                 </div>
 
-                <button className="btn btn-warning" type="submit">
-                    Mettre à jour
+                <button className="btn btn-warning" type="submit" disabled={processing}>
+                    {processing ? "Enregistrement..." : "Mettre à jour"}
                 </button>
             </form>
         </Authenticated>

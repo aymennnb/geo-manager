@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AlertController;
+use App\Http\Controllers\DocumentAccessController;
 use App\Http\Controllers\DocumentsController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProfileController;
@@ -48,12 +50,24 @@ Route::middleware(['auth','verified'])->group(function () {
         Route::post('update', 'update')->name('documents.update');
         Route::get('details/{id}','show');
         Route::delete('delete/{id}', 'delete')->name('document.destroy');
+        Route::get('access/{id}', 'recover')->name('access.recover');
+        Route::post('accesschange', 'updateAccess')->name('access.update');
     });
 
     Route::prefix('utilisateurs')->controller(UserController::class)->group(function(){
         Route::get('/','index')->name('utilisateurs');
         Route::inertia('add','Utilisateurs/AddUser')->name('user.add');
         Route::post('create','create')->name('user.create');
+        Route::post('update-role','updateRole')->name('users.updateRole');
+        Route::post('reset-password/{id}','resetPassword')->name('users.resetPassword');
+        Route::get('edit/{id}','edit');
+        Route::post('update','update')->name('utilisateurs.update');
+        Route::delete('delete/{id}','delete')->name('utilisateurs.destroy');
+    });
+
+    Route::prefix('alerts')->controller(AlertController::class)->group(function(){
+        Route::get('/','index')->name('alerts');
+        Route::post('create','create')->name('alert.create');
     });
 
 });

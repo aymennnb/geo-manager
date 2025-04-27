@@ -3,7 +3,7 @@ import { Head, useForm } from "@inertiajs/react";
 import React from "react";
 
 function EditSite({auth,site}) {
-    const { data, setData, post, errors } = useForm({
+    const { data, setData,processing, post, errors } = useForm({
         id: site.id,
         name: site.name,
         web: site.web,
@@ -111,8 +111,8 @@ function EditSite({auth,site}) {
                     onChange={(e) => setData("longitude", e.target.value)}
                 />
                 {errors.longitude && <div className="text-danger">{errors.longitude}</div>}
-                <button className="btn btn-warning" type="submit">
-                    Mettre à jour
+                <button className="btn btn-warning" type="submit" disabled={processing}>
+                    {processing ? "Enregistrement..." : "Mettre à jour"}
                 </button>
             </form>
         </Authenticated>
