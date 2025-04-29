@@ -33,6 +33,10 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
                             <h3 className="text-lg font-medium text-gray-900">Liste des alertes</h3>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-6 gap-6 mb-6">
+                            {/*<div className="flex flex-col w-full">*/}
+                            {/*    <label htmlFor="roleFilter" className="form-label">Chercher sur :</label>*/}
+                            {/*    <input type="text"/>*/}
+                            {/*</div>*/}
                             <div className="flex flex-col w-full">
                                 <label htmlFor="roleFilter" className="form-label">Filtrer par rôle :</label>
                                 <select
@@ -48,7 +52,6 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
                                     <option value="user">Utilisateur</option>
                                 </select>
                             </div>
-
                             <div className="flex flex-col w-full">
                                 <label htmlFor="actionFilter" className="form-label">Filtrer par action :</label>
                                 <select
@@ -62,6 +65,8 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
                                     <option value="add">Ajouter</option>
                                     <option value="edit">Éditer</option>
                                     <option value="delete">Supprimer</option>
+                                    <option value="reset">Réinitialiser</option>
+                                    <option value="update_role">Changer de rôle</option>
                                 </select>
                             </div>
 

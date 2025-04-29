@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import Authenticated from '@/Layouts/AuthenticatedLayout';
 
-export default function EditDocuments({ auth, document, sites }) {
+export default function EditDocuments({ auth, document, sites, setShowEditForm }) {
     const { data, setData, post, processing, errors } = useForm({
         id: document.id,
         title: document.title,
@@ -10,34 +10,20 @@ export default function EditDocuments({ auth, document, sites }) {
         uploaded_by: document.uploaded_by,
         description: document.description,
         file_path: null,
-        // Données pour l'alerte
         role: auth.user.role,
         user_id: auth.user.id,
-        action: '',
+        action: 'update',
         type: 'document',
         elem_id: document.id,
     });
 
-    // Utilisation de useEffect pour mettre à jour les attributs d'alert
-    useEffect(() => {
-        setData('action', 'update');
-    }, [data.title, data.site_id, auth.user.role]);
-
     const handleSubmit = (e) => {
         e.preventDefault();
-
         post(route("documents.update"), {
             data,
             preserveScroll: true,
             onSuccess: () => {
-                // Suppression de l'appel à l'alerte
-                // post(route('alert.create'), {
-                //     role: data.role,
-                //     user_id: data.user_id,
-                //     action: data.action,
-                //     type: data.type,
-                //     elem_id: data.elem_id,
-                // });
+                // Actions on success
             },
             onError: () => {
                 console.error('Erreur lors de la mise à jour du document');
@@ -46,102 +32,152 @@ export default function EditDocuments({ auth, document, sites }) {
     };
 
     return (
-        <Authenticated user={auth.user} header={<h2>Modifier le document</h2>}>
-            <Head title="Modifier le document" />
+        <div>
+            <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                    <div className="p-6 bg-white border-b border-gray-200">
+                        <form onSubmit={handleSubmit} encType="multipart/form-data">
+                            {/* Aperçu du document */}
+                            <div className="mb-6">
+                                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="file_path">
+                                    Aperçu du document
+                                </label>
+                                {document.file_path ? (
+                                    <>
+                                        {document.file_path.match(/\.(pdf)$/i) ? (
+                                            <div className="mt-2">
+                                                <iframe src={`/storage/${document.file_path}`} width="100%" height="500px" title="Aperçu PDF" className="border rounded-lg" />
+                                            </div>
+                                        ) : document.file_path.match(/\.(jpg|jpeg|png)$/i) ? (
+                                            <img src={`/storage/${document.file_path}`} alt="Aperçu image" className="mt-2 max-w-full rounded-lg shadow-lg" />
+                                        ) : document.file_path.match(/\.(doc|docx|xls|csv|xlsx)$/i) ? (
+                                            <a href={`/storage/${document.file_path}`} className="mt-2 text-blue-600 hover:text-blue-800" target="_blank" rel="noopener noreferrer">
+                                                Télécharger et ouvrir le document
+                                            </a>
+                                        ) : (
+                                            <div className="mt-2 text-sm text-gray-500">Format non pris en charge</div>
+                                        )}
+                                    </>
+                                ) : (
+                                    <div className="mt-2 text-sm text-gray-500">Aucun fichier disponible</div>
+                                )}
+                            </div>
 
-            <form onSubmit={handleSubmit} encType="multipart/form-data" className="p-4 bg-white rounded shadow-sm">
-                {/* Formulaire pour l'aperçu du document */}
-                <div className="mb-3">
-                    <label className="form-label">Aperçu du document</label>
-                    {document.file_path ? (
-                        <>
-                            {document.file_path.match(/\.(pdf)$/i) ? (
-                                <div>
-                                    <iframe
-                                        src={`/storage/${document.file_path}`}
-                                        width="100%"
-                                        height="500px"
-                                        title="Aperçu PDF"
-                                        className="border"
-                                    />
-                                </div>
-                            ) : document.file_path.match(/\.(jpg|jpeg|png)$/i) ? (
-                                <img
-                                    src={`/storage/${document.file_path}`}
-                                    alt="Aperçu image"
-                                    className="img-fluid rounded shadow"
-                                    style={{ maxHeight: '300px' }}
+                            {/* Sélecteur de fichier */}
+                            <div className="mb-6">
+                                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="file_path">
+                                    Document (nouveau fichier)
+                                </label>
+                                <input
+                                    id="file_path"
+                                    type="file"
+                                    className="w-full px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    onChange={(e) => setData('file_path', e.target.files[0])}
                                 />
-                            ) : document.file_path.match(/\.(doc|docx|xls|csv|xlsx)$/i) ? (
-                                <a
-                                    href={`/storage/${document.file_path}`}
-                                    className="btn btn-outline-primary flex w-50"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                {errors.file_path && (
+                                    <p className="mt-2 text-sm text-red-600">
+                                        {errors.file_path}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Sélecteur de site */}
+                            <div className="mb-6 flex space-x-4">
+                                <div className="w-1/2">
+                                    <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="site_id">
+                                        Affecter un site
+                                    </label>
+                                    <select
+                                        id="site_id"
+                                        className="w-full px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        value={data.site_id}
+                                        onChange={(e) => setData("site_id", e.target.value)}
+                                    >
+                                        <option value="">Sélectionner un site</option>
+                                        {sites && sites.length > 0 ? sites.map((site) => (
+                                            <option key={site.id} value={site.id}>
+                                                {site.name}
+                                            </option>
+                                        )) : (
+                                            <option disabled>Aucun site disponible</option>
+                                        )}
+                                    </select>
+                                    {errors.site_id && (
+                                        <p className="mt-2 text-sm text-red-600">
+                                            {errors.site_id}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Titre */}
+                                <div className="w-1/2">
+                                    <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="title">
+                                        Titre
+                                    </label>
+                                    <input
+                                        id="title"
+                                        type="text"
+                                        className="w-full px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        value={data.title}
+                                        onChange={(e) => setData("title", e.target.value)}
+                                        placeholder="Entrez le titre du document"
+                                    />
+                                    {errors.title && (
+                                        <p className="mt-2 text-sm text-red-600">
+                                            {errors.title}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Description */}
+                            <div className="mb-6">
+                                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="description">
+                                    Description
+                                </label>
+                                <textarea
+                                    id="description"
+                                    rows="4"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    value={data.description}
+                                    onChange={(e) => setData("description", e.target.value)}
+                                    placeholder="Décrivez ce document"
+                                />
+                                {errors.description && (
+                                    <p className="mt-2 text-sm text-red-600">
+                                        {errors.description}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Boutons */}
+                            <div className="flex items-center justify-end space-x-2">
+                                <button
+                                    onClick={() => setShowEditForm(false)}
+                                    className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition"
                                 >
-                                    Télécharger et ouvrir le document
-                                </a>
-                            ) : (
-                                <div className="text-muted">Format non pris en charge</div>
-                            )}
-                        </>
-                    ) : (
-                        <div className="text-muted">Aucun fichier disponible</div>
-                    )}
+                                    Annuler
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={processing}
+                                    className={`px-4 py-2 bg-yellow-100 text-yellow-600 rounded-md hover:text-yellow-900 focus:outline-none focus:ring-2 focus:ring-offset-2  transition-colors ${
+                                        processing ? "opacity-75 cursor-not-allowed" : ""
+                                    }`}
+                                >
+                                    {processing ? "Enregistrement..." : "Mettre à jour le document"}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-
-                {/* Sélecteur de fichier */}
-                <label className="form-label">Document (nouveau fichier)</label>
-                <input
-                    type="file"
-                    className="form-control"
-                    onChange={(e) => setData('file_path', e.target.files[0])}
-                />
-                {errors.file_path && <div className="text-danger">{errors.file_path}</div>}
-
-                {/* Sélecteur de site */}
-                <div className="mb-3">
-                    <label className="form-label">Affecter un site</label>
-                    <select
-                        className="form-control"
-                        value={data.site_id}
-                        onChange={(e) => setData("site_id", e.target.value)}
-                    >
-                        <option value="">Sélectionner un site</option>
-                        {sites.map((site) => (
-                            <option key={site.id} value={site.id}>{site.name}</option>
-                        ))}
-                    </select>
-                    {errors.site_id && <div className="text-danger">{errors.site_id}</div>}
-                </div>
-
-                {/* Titre */}
-                <div className="mb-3">
-                    <label className="form-label">Titre</label>
-                    <input
-                        type="text"
-                        className="form-control"
-                        value={data.title}
-                        onChange={(e) => setData("title", e.target.value)}
-                    />
-                    {errors.title && <div className="text-danger">{errors.title}</div>}
-                </div>
-
-                {/* Description */}
-                <div className="mb-3">
-                    <label className="form-label">Description</label>
-                    <textarea
-                        className="form-control"
-                        value={data.description}
-                        onChange={(e) => setData("description", e.target.value)}
-                    />
-                    {errors.description && <div className="text-danger">{errors.description}</div>}
-                </div>
-
-                <button className="btn btn-warning" type="submit" disabled={processing}>
-                    {processing ? "Enregistrement..." : "Mettre à jour"}
-                </button>
-            </form>
-        </Authenticated>
+                {import.meta.env.DEV && (
+                    <div className="mt-4 p-2 bg-gray-100 rounded">
+                        <p>Données du formulaire :</p>
+                        <pre>{JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                )}
+            </div>
+        </div>
     );
 }

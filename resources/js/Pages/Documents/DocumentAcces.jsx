@@ -2,19 +2,16 @@ import React, { useState, useEffect } from "react";
 import { Head, useForm } from "@inertiajs/react";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 
-export default function DocumentAcces({ auth, users, documentId, documentAccesses }) {
-    // Initialiser useForm avec les données requises
+export default function DocumentAcces({ auth, users, documentId, documentAccesses,setShowAccesModel }) {
     const { data, setData, post, processing, errors } = useForm({
         document_id: documentId,
-        users: documentAccesses || []
+        users: (documentAccesses || []).map(id => parseInt(id, 10))
     });
 
-    // Gérer la sélection des checkboxes
     const handleSelect = (e) => {
         const userId = parseInt(e.target.value, 10);
         const isChecked = e.target.checked;
 
-        // Mettre à jour le champ "users" dans les données du formulaire
         if (isChecked) {
             setData("users", [...data.users, userId]);
         } else {
@@ -22,7 +19,6 @@ export default function DocumentAcces({ auth, users, documentId, documentAccesse
         }
     };
 
-    // Soumission du formulaire
     const handleSubmit = (e) => {
         e.preventDefault();
 
@@ -30,21 +26,15 @@ export default function DocumentAcces({ auth, users, documentId, documentAccesse
             alert("Veuillez sélectionner au moins un utilisateur.");
             return;
         }
-
-        // Envoyer les données via useForm
         post(route("access.update"));
     };
 
     return (
-        <Authenticated user={auth.user} header={<h2>Gestion des accès au document</h2>}>
-            <Head title="Gestion des accès au document" />
-
-            <div className="py-6">
+        <div>
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6">
                             <h3 className="text-lg font-medium mb-4">Sélectionner les utilisateurs</h3>
-
                             {/* Affichage des utilisateurs sélectionnés */}
                             <div className="mb-4">
                                 <label className="block mb-2">Utilisateurs sélectionnés ({data.users.length}):</label>
@@ -86,7 +76,13 @@ export default function DocumentAcces({ auth, users, documentId, documentAccesse
                                     <div className="text-red-500 mb-4">{errors.users}</div>
                                 )}
 
-                                <div className="flex justify-end">
+                                <div className="flex justify-end space-x-2">
+                                    <button
+                                        onClick={() => setShowAccesModel(false)}
+                                        className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition"
+                                    >
+                                        Annuler
+                                    </button>
                                     <button
                                         type="submit"
                                         className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
@@ -97,17 +93,16 @@ export default function DocumentAcces({ auth, users, documentId, documentAccesse
                                 </div>
                             </form>
 
-                            {/* Affichage des données pour débogage */}
-                            {/*{import.meta.env.DEV && (*/}
-                            {/*    <div className="mt-4 p-2 bg-gray-100 rounded">*/}
-                            {/*        <p>Données du formulaire:</p>*/}
-                            {/*        <pre>{JSON.stringify(data, null, 2)}</pre>*/}
-                            {/*    </div>*/}
-                            {/*)}*/}
+                             Affichage des données pour débogage
+                            {import.meta.env.DEV && (
+                                <div className="mt-4 p-2 bg-gray-100 rounded">
+                                    <p>Données du formulaire:</p>
+                                    <pre>{JSON.stringify(data, null, 2)}</pre>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
             </div>
-        </Authenticated>
     );
 }

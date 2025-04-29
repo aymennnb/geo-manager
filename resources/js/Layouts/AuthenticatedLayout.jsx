@@ -7,7 +7,6 @@ export default function Authenticated({ user, header, children }) {
     const dropdownRef = useRef();
 
 
-    // Fermer dropdown si on clique ailleurs
     useEffect(() => {
         function handleClickOutside(event) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -49,7 +48,7 @@ export default function Authenticated({ user, header, children }) {
                                 Utilisateurs
                             </NavLink>
                             <NavLink href={route("alerts")} active={route().current("alerts")}>
-                                Alertes
+                                Journaux
                             </NavLink>
                         </>
                     )}
@@ -109,9 +108,7 @@ export default function Authenticated({ user, header, children }) {
                         </NavLink>
                         <NavLink
                             className="text-sm text-red-500 border border-red-500 px-3 py-1 rounded hover:bg-red-50"
-                            href={route("logout")}
-                            method="post"
-                            as="button"
+                            href={route('logout')} method="post" as="button"
                         >
                             Déconnexion
                         </NavLink>

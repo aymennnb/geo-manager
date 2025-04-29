@@ -1,8 +1,7 @@
-import React from "react";
-import { Head, useForm } from "@inertiajs/react";
-import Authenticated from "@/Layouts/AuthenticatedLayout";
+import React from 'react';
+import { useForm } from '@inertiajs/react';
 
-export default function EditUser({ auth, user }) {
+export default function EditUser({ auth, user, setShowEditForm }) {
     const { data, setData, post, processing, errors } = useForm({
         id: user.id,
         name: user.name,
@@ -12,82 +11,95 @@ export default function EditUser({ auth, user }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route("utilisateurs.update"));
+        post(route("utilisateurs.update"), {
+            preserveScroll: true,
+            onSuccess: () => {
+                if (setShowEditForm) setShowEditForm(false);
+            },
+            onError: () => {
+                console.error("Erreur lors de la mise à jour de l'utilisateur");
+            }
+        });
     };
 
     return (
-        <Authenticated user={auth.user} header={<h2 className="mb-4">Modifier un utilisateur</h2>}>
-            <Head title="Modifier un utilisateur" />
-
-            <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="p-6 bg-white border-b border-gray-200">
-
-                            <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-lg font-medium text-gray-900">Modifier les informations de l'utilisateur</h3>
-                            </div>
-
-                            <form onSubmit={handleSubmit} className="p-4 bg-white rounded shadow-sm space-y-4">
-                                <div className="mb-3">
-                                    <label className="form-label fw-bold">Nom</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        value={data.name}
-                                        onChange={(e) => setData("name", e.target.value)}
-                                    />
-                                    {errors.name && <div className="text-red-500 mt-1">{errors.name}</div>}
-                                </div>
-
-                                <div className="mb-3">
-                                    <label className="form-label fw-bold">Email</label>
-                                    <input
-                                        type="email"
-                                        className="form-control"
-                                        value={data.email}
-                                        onChange={(e) => setData("email", e.target.value)}
-                                    />
-                                    {errors.email && <div className="text-red-500 mt-1">{errors.email}</div>}
-                                </div>
-
-                                <div className="mb-3">
-                                    <label className="form-label fw-bold">Rôle</label>
-                                    <select
-                                        className="form-control"
-                                        value={data.role}
-                                        onChange={(e) => setData("role", e.target.value)}
-                                    >
-                                        <option value="admin">Admin</option>
-                                        <option value="manager">Manager</option>
-                                        <option value="user">Utilisateur</option>
-                                    </select>
-                                    {errors.role && <div className="text-red-500 mt-1">{errors.role}</div>}
-                                </div>
-
-                                <div className="flex justify-end space-x-4">
-                                    <button
-                                        type="submit"
-                                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-                                        disabled={processing}
-                                    >
-                                        {processing ? "Enregistrement..." : "Mettre à jour"}
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={() => window.history.back()}
-                                        className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition"
-                                    >
-                                        Annuler
-                                    </button>
-                                </div>
-                            </form>
-
+        <div className="max-w-4xl mx-auto sm:px-6 lg:px-8">
+            <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div className="p-6 bg-white border-b border-gray-200">
+                    <form onSubmit={handleSubmit}>
+                        <div className="mb-6">
+                            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
+                                Nom
+                            </label>
+                            <input
+                                id="name"
+                                type="text"
+                                className="w-full px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                value={data.name}
+                                onChange={(e) => setData("name", e.target.value)}
+                            />
+                            {errors.name && <p className="mt-2 text-sm text-red-600">{errors.name}</p>}
                         </div>
-                    </div>
+
+                        <div className="mb-6">
+                            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
+                                Email
+                            </label>
+                            <input
+                                id="email"
+                                type="email"
+                                className="w-full px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                value={data.email}
+                                onChange={(e) => setData("email", e.target.value)}
+                            />
+                            {errors.email && <p className="mt-2 text-sm text-red-600">{errors.email}</p>}
+                        </div>
+
+                        <div className="mb-6">
+                            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="role">
+                                Rôle
+                            </label>
+                            <select
+                                id="role"
+                                className="w-full px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                value={data.role}
+                                onChange={(e) => setData("role", e.target.value)}
+                            >
+                                <option value="admin">Admin</option>
+                                <option value="manager">Manager</option>
+                                <option value="user">Utilisateur</option>
+                            </select>
+                            {errors.role && <p className="mt-2 text-sm text-red-600">{errors.role}</p>}
+                        </div>
+
+                        <div className="flex justify-end space-x-4">
+                            <button
+                                type="button"
+                                onClick={() => setShowEditForm(false)}
+                                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition"
+                            >
+                                Annuler
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={processing}
+                                className={`px-4 py-2 bg-yellow-100 text-yellow-600 rounded-md hover:text-yellow-900 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors ${
+                                    processing ? "opacity-75 cursor-not-allowed" : ""
+                                }`}
+                            >
+                                {processing ? "Enregistrement..." : "Mettre à jour"}
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
-        </Authenticated>
+
+            {import.meta.env.DEV && (
+                <div className="mt-4 p-2 bg-gray-100 rounded">
+                    <p>Données de formulaire :</p>
+                    <pre>{JSON.stringify(data, null, 2)}</pre>
+                </div>
+            )}
+        </div>
     );
 }

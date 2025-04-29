@@ -3,15 +3,66 @@ import { Head, useForm } from "@inertiajs/react";
 import React, { useState } from "react";
 import AddDocuments from "@/Pages/Documents/AddDocuments";
 import AddUser from "@/Pages/Utilisateurs/AddUser.jsx";
+import ConfirmSupprimeDocument from "@/Components/ConfirmSupprimeDocument";
+import DocumentAcces from "@/Pages/Documents/DocumentAcces";
+import EditDocuments from "@/Pages/Documents/EditDocuments";
+import ModalWrapper from "@/Components/ModalWrapper";
 
-function IndexDocuments({ auth, documents, sites, users }) {
+function IndexDocuments({ auth, documents, sites, users,documentId }) {
     const { delete: destroy } = useForm();
-    const [showAddForm, setShowAddForm] = useState(false); // <<< ici on contrôle l'affichage
 
-    const deleteDocument = (docId) => {
-        if (confirm("Voulez-vous vraiment supprimer ce document ?")) {
-            destroy(`/documents/delete/${docId}`);
+    const [showAddForm, setShowAddForm] = useState(false);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [documentToDelete, setDocumentToDelete] = useState(null);
+    const [selectedDocuments, setSelectedDocuments] = useState([]);
+    const [showAccessModal, setShowAccessModal] = useState(false);
+
+    const [currentDocumentAccess, setCurrentDocumentAccess] = useState(null);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [documentToEdit, setDocumentToEdit] = useState(null);
+
+    const openEditModal = (document) => {
+        setDocumentToEdit(document);
+        setShowEditModal(true);
+    };
+
+    const openAccessModal = (documentId) => {
+        const doc = documents.find((d) => d.id === documentId);
+        if (doc) {
+            setCurrentDocumentAccess({
+                documentId: doc.id,
+                documentAccesses: doc.users || [],
+            });
+            setShowAccessModal(true);
         }
+    };
+
+    const handleSelectUser = (documentId) => {
+        setSelectedDocuments((prevSelected) => {
+            if (prevSelected.includes(documentId)) {
+                return prevSelected.filter((id) => id !== documentId);
+            } else {
+                return [...prevSelected, documentId];
+            }
+        });
+    };
+
+    const deleteDocument = (doc) => {
+        setDocumentToDelete(doc);
+        setShowConfirmModal(true);
+    };
+
+    const confirmDelete = () => {
+        if (documentToDelete) {
+            destroy(`/documents/delete/${documentToDelete.id}`);
+            setShowConfirmModal(false);
+            setDocumentToDelete(null);
+        }
+    };
+
+    const cancelDelete = () => {
+        setShowConfirmModal(false);
+        setDocumentToDelete(null);
     };
 
     return (
@@ -24,51 +75,40 @@ function IndexDocuments({ auth, documents, sites, users }) {
                         <div className="p-6 bg-white border-b border-gray-200">
 
                             <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-lg font-medium text-gray-900">
-                                    {showAddForm ? "Ajouter un document" : "Liste des documents"}
-                                </h3>
-
-                                {/* Bouton Ajouter ou Retour */}
-                                {showAddForm ? (
-                                    <button
-                                        onClick={() => setShowAddForm(false)}
-                                        className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition"
-                                    >
-                                        Retour
-                                    </button>
-                                ) : (
+                                <h3 className="text-lg font-medium text-gray-900">Liste des documents</h3>
+                                <div className="flex space-x-3">
+                                    {selectedDocuments.length > 0 && (
+                                        <>
+                                            <button
+                                                // onClick={() => handleDocsDelete()}
+                                                disabled={selectedDocuments.length === 0}
+                                                className="px-4 py-2 bg-red-100 text-red-600 rounded-md hover:text-red-900 transition"
+                                            >
+                                                Supprimer
+                                            </button><button
+                                                // onClick={() => handleChangeAccess()}
+                                                disabled={selectedDocuments.length === 0}
+                                                className="px-4 py-2 bg-green-100 text-green-600 rounded-md hover:text-green-900 transition"
+                                            >
+                                            Accès
+                                            </button>
+                                        </>
+                                    )}
                                     <button
                                         onClick={() => setShowAddForm(true)}
                                         className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
                                     >
                                         Ajouter un Document
                                     </button>
-                                )}
+                                </div>
                             </div>
-
-                            {showAddForm &&
-                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                                    <div style={{width:'60%'}} className="bg-white p-4 rounded-lg w-7/10 sm:w-7/10 shadow-lg flex flex-col space-y-4">
-                                        <div className="flex justify-between items-center">
-                                            <h3 className="text-lg font-medium text-gray-900">Ajouter un document</h3>
-                                            <button
-                                                onClick={() => setShowAddForm(false)}
-                                                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition"
-                                            >
-                                                Retour
-                                            </button>
-                                        </div>
-                                        <div style={{width:'100%'}} className="flex justify-center">
-                                            <AddDocuments auth={auth} sites={sites} />
-                                        </div>
-                                    </div>
-                                </div>}
-
                                 <div className="overflow-x-auto bg-white rounded-lg shadow overflow-y-auto">
                                     <table className="border-collapse table-auto w-full whitespace-nowrap">
                                         <thead>
                                         <tr className="text-left bg-gray-50">
                                             <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
+
+                                            </th><th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Titre
                                             </th>
                                             <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -86,6 +126,13 @@ function IndexDocuments({ auth, documents, sites, users }) {
                                         {documents && documents.length > 0 ? (
                                             documents.map((document) => (
                                                 <tr key={document.id} className="hover:bg-gray-50">
+                                                    <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-900">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={selectedDocuments.includes(document.id)}
+                                                            onChange={() => handleSelectUser(document.id)}
+                                                        />
+                                                    </td>
                                                     <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-900">
                                                         {document.title || "Sans titre"}
                                                     </td>
@@ -109,20 +156,23 @@ function IndexDocuments({ auth, documents, sites, users }) {
                                                             >
                                                                 Détails
                                                             </a>
-                                                            <a
-                                                                href={`/documents/edit/${document.id}`}
+                                                            <button
+                                                                onClick={() => openEditModal(document)}
                                                                 className="text-yellow-600 hover:text-yellow-900 px-2 py-1 rounded bg-yellow-100"
                                                             >
                                                                 Modifier
-                                                            </a>
-                                                            <a
-                                                                href={`/documents/access/${document.id}`}
+                                                            </button>
+                                                            <button
+                                                                onClick={() => openAccessModal(document.id)}
                                                                 className="text-green-600 hover:text-green-900 px-2 py-1 rounded bg-green-100"
                                                             >
                                                                 Accès
-                                                            </a>
+                                                            </button>
                                                             <button
-                                                                onClick={() => deleteDocument(document.id)}
+                                                                onClick={() => deleteDocument({
+                                                                    id: document.id,
+                                                                    title: document.title,
+                                                                    siteName: sites.find((site) => site.id === document.site_id)?.name                                                                })}
                                                                 className="text-red-600 hover:text-red-900 px-2 py-1 rounded bg-red-100"
                                                             >
                                                                 Supprimer
@@ -143,8 +193,36 @@ function IndexDocuments({ auth, documents, sites, users }) {
                                 </div>
                         </div>
                     </div>
+                    {import.meta.env.DEV && (
+                        <div className="mt-4 p-2 bg-gray-100 rounded">
+                            <p>IDs des documents sélectionnés :</p>
+                            <pre>{JSON.stringify(selectedDocuments, null, 2)}</pre>
+                        </div>
+                    )}
                 </div>
             </div>
+            {showEditModal && documentToEdit && (
+                <ModalWrapper title="Modifier le document" onClose={() => setShowEditModal(false)}>
+                    <EditDocuments auth={auth} document={documentToEdit} sites={sites} setShowEditForm={setShowEditModal}/>
+                </ModalWrapper>
+            )}
+            {showAddForm && (
+                <ModalWrapper title="Ajouter un document" onClose={() => setShowAddForm(false)}>
+                    <AddDocuments auth={auth} sites={sites} setShowAddForm={setShowAddForm} />
+                </ModalWrapper>
+            )}
+            {showAccessModal && currentDocumentAccess && (
+                <ModalWrapper title="Gérer les accès" onClose={() => setShowAccessModal(false)} width="60%">
+                    <DocumentAcces auth={auth} users={users} documentId={currentDocumentAccess.documentId} documentAccesses={currentDocumentAccess.documentAccesses} setShowAccesModel={setShowAccessModal}/>
+                </ModalWrapper>
+            )}
+            {showConfirmModal && (
+                <ConfirmSupprimeDocument
+                    documentToDelete={documentToDelete}
+                    confirmDelete={confirmDelete}
+                    cancelDelete={cancelDelete}
+                />
+            )}
         </Authenticated>
     );
 }

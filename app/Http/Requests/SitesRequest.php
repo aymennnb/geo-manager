@@ -22,7 +22,7 @@ class SitesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'      => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255', 'unique:sites,name'],
             'web'       => ['nullable', 'url', 'max:255'],
             'email'     => ['required', 'email', 'max:255'],
             'phone'     => ['required', 'string', 'max:20'],

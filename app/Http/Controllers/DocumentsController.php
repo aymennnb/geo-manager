@@ -23,7 +23,7 @@ class DocumentsController extends Controller
         return Inertia::render('Documents/IndexDocuments', [
             'documents' => $documents,
             'sites' => $sites,
-            'users' => $users
+            'users' => $users,
         ]);
     }
 
@@ -148,13 +148,13 @@ class DocumentsController extends Controller
     {
         $users = User::select('id', 'name')->get();
         $documentAccesses = DocumentsAccess::where('document_id', $id)->pluck('user_id')->toArray();
-
         return Inertia::render('Documents/DocumentAcces', [
             'documentId' => $id,
             'users' => $users,
             'documentAccesses' => $documentAccesses
         ]);
     }
+
 
     public function updateAccess(Request $request)
     {
