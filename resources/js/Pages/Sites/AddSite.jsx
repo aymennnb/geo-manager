@@ -16,7 +16,11 @@ export default function AddSite({ auth, setShowAddForm }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route("sites.create"));
+        post(route("sites.create"),{
+            onSuccess: () => {
+                setShowAddForm(false);
+            }
+        });
     };
 
     return (
@@ -46,6 +50,7 @@ export default function AddSite({ auth, setShowAddForm }) {
                                             id="name"
                                             type="text"
                                             value={data.name}
+                                            placeholder="Nom du site"
                                             onChange={(e) => setData("name", e.target.value)}
                                             className="w-full border rounded px-3 py-1"
                                         />
@@ -97,6 +102,7 @@ export default function AddSite({ auth, setShowAddForm }) {
                                         id="address"
                                         type="text"
                                         value={data.address}
+                                        placeholder="Adresse complète"
                                         onChange={(e) => setData("address", e.target.value)}
                                         className="w-full border rounded px-3 py-1"
                                     />
@@ -110,6 +116,7 @@ export default function AddSite({ auth, setShowAddForm }) {
                                             id="latitude"
                                             type="number"
                                             step="any"
+                                            placeholder="Latitude (ex. 33.5731)"
                                             value={data.latitude}
                                             onChange={(e) => setData("latitude", e.target.value)}
                                             className="w-full border rounded px-3 py-1"
@@ -123,6 +130,7 @@ export default function AddSite({ auth, setShowAddForm }) {
                                             id="longitude"
                                             type="number"
                                             step="any"
+                                            placeholder="Longitude (ex. -7.5898)"
                                             value={data.longitude}
                                             onChange={(e) => setData("longitude", e.target.value)}
                                             className="w-full border rounded px-3 py-1"

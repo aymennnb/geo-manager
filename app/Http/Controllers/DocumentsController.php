@@ -20,10 +20,13 @@ class DocumentsController extends Controller
         $documents = Documents::select('id', 'title', 'description', 'file_path', 'site_id', 'uploaded_by', 'created_at', 'updated_at')->get();
         $sites = Sites::select('id', 'name')->get();
         $users = User::select('id', 'name')->get();
+        $documentAccess = DocumentsAccess::with('user') // Charger les utilisateurs associés
+        ->get();
         return Inertia::render('Documents/IndexDocuments', [
             'documents' => $documents,
             'sites' => $sites,
             'users' => $users,
+            'DocumentAccess'=> $documentAccess
         ]);
     }
 
@@ -147,7 +150,11 @@ class DocumentsController extends Controller
     public function recover($id)
     {
         $users = User::select('id', 'name')->get();
-        $documentAccesses = DocumentsAccess::where('document_id', $id)->pluck('user_id')->toArray();
+        $documentAccesses = DocumentsAccess::where('document_id', $id)
+            ->join('users', 'users.id', '=', 'documents_accesses.user_id')
+            ->select('users.id', 'users.name')
+            ->get();
+
         return Inertia::render('Documents/DocumentAcces', [
             'documentId' => $id,
             'users' => $users,
@@ -202,8 +209,26 @@ class DocumentsController extends Controller
                 'message' => "a retiré l'accès au document {$document->title} avec l'id {$documentId} à l'utilisateur {$user->name} qui a l'id {$user->id}."
             ]);
         }
-
-        // Message global de succès
         return redirect()->route('documents')->with('success', 'Les accès ont été mis à jour.');
     }
+
+    public function DocsDelete(Request $request)
+    {
+        $documentIds = $request->input('document_ids');
+
+        if (is_array($documentIds) && count($documentIds) > 0) {
+            $documents = Documents::whereIn('id', $documentIds)->get();
+            foreach ($documents as $document) {
+                if ($document->file_path && Storage::disk('public')->exists($document->file_path)) {
+                    Storage::disk('public')->delete($document->file_path);
+                }
+                $document->delete();
+            }
+            return response()->json(['message' => 'Documents supprimés avec succès.']);
+        }
+
+        return response()->json(['message' => 'Aucun document sélectionné pour la suppression.'], 400);
+    }
+
+
 }

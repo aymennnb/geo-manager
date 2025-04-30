@@ -2,11 +2,17 @@ import React, { useState, useEffect } from "react";
 import { Head, useForm } from "@inertiajs/react";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 
-export default function DocumentAcces({ auth, users, documentId, documentAccesses,setShowAccesModel }) {
+export default function DocumentAcces({ auth, users,documentId,usersWithAccess, documentAccesses,setShowAccesModel }) {
     const { data, setData, post, processing, errors } = useForm({
         document_id: documentId,
-        users: (documentAccesses || []).map(id => parseInt(id, 10))
+        users: usersWithAccess
     });
+
+    useEffect(() => {
+        if (documentAccesses) {
+            setData("users", documentAccesses.map((u) => u.id));
+        }
+    }, [documentAccesses]);
 
     const handleSelect = (e) => {
         const userId = parseInt(e.target.value, 10);
@@ -26,7 +32,12 @@ export default function DocumentAcces({ auth, users, documentId, documentAccesse
             alert("Veuillez sélectionner au moins un utilisateur.");
             return;
         }
-        post(route("access.update"));
+        post(route("access.update"), {
+            onSuccess: () => {
+                alert("Accès mis à jour avec succès.");
+                setShowAccesModel(false);
+            },
+        });
     };
 
     return (
@@ -76,8 +87,13 @@ export default function DocumentAcces({ auth, users, documentId, documentAccesse
                                     <div className="text-red-500 mb-4">{errors.users}</div>
                                 )}
 
-                                <div className="flex justify-end space-x-2">
+                                <div className="flex justify-end space-x-2 mb-3">
                                     <button
+                                        onClick={() => setShowAccesModel(false)}
+                                        className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition"
+                                    >
+                                        Restaurer l accès
+                                    </button><button
                                         onClick={() => setShowAccesModel(false)}
                                         className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition"
                                     >

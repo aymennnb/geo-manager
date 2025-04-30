@@ -11,8 +11,11 @@ export default function AddUser({ auth, setShowAddForm }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route("user.create"));
-        setShowAddForm(false);
+        post(route("user.create"),{
+            onSuccess:()=>{
+                setShowAddForm(false);
+            }
+        });
     };
 
     return (

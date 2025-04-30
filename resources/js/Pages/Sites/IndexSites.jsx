@@ -4,7 +4,9 @@ import React, { useState, useEffect } from "react";
 import Pagination from "@/Components/Pagination";
 import ConfirmDeleteSite from "@/Components/ConfirmDeleteSite";
 import AddSite from "@/Pages/Sites/AddSite"
-import AddUser from "@/Pages/Utilisateurs/AddUser.jsx";
+import EditSite from "@/Pages/Sites/EditSite"
+import ModalWrapper from "@/Components/ModalWrapper";
+
 
 function IndexSites({ auth, sites }) {
     const { data, setData, get, delete: destroy } = useForm({
@@ -17,6 +19,9 @@ function IndexSites({ auth, sites }) {
 
     const [siteToDelete, setSiteToDelete] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [siteToEdit, setsiteToEdit] = useState(null);
 
     // const handleFilter = (e) => setData(e.target.name, e.target.value);
 
@@ -73,32 +78,13 @@ function IndexSites({ auth, sites }) {
                                     Ajouter un Site
                             </button>
                         </div>
-
-                        {showAddForm && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 overflow-y-auto">
-                                <div
-                                    style={{ width: '60%', maxHeight: '90vh' }}
-                                    className="bg-white p-4 rounded-lg shadow-lg overflow-y-auto"
-                                >
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h3 className="text-lg font-medium text-gray-900">Ajouter un nouveau site</h3>
-                                        <button
-                                            onClick={() => setShowAddForm(false)}
-                                            className="text-3xl text-gray-600 hover:text-gray-900 p-2 rounded-full">&times;
-                                        </button>
-                                    </div>
-                                    <AddSite auth={auth} setShowAddForm={setShowAddForm} />
-                                </div>
-                            </div>
-                        )}
-
-
-                        {/* Tableau des sites */}
                                 <div className="overflow-x-auto bg-white rounded-lg shadow overflow-y-auto">
                                     <table className="border-collapse table-auto w-full whitespace-nowrap">
                                         <thead>
                                         <tr className="text-left bg-gray-50">
                                             <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
+
+                                            </th><th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Image
                                             </th>
                                             <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -122,6 +108,9 @@ function IndexSites({ auth, sites }) {
                                         {sites.data && sites.data.length > 0 ? (
                                             sites.data.map((site) => (
                                                 <tr key={site.id} className="hover:bg-gray-50">
+                                                    <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-900">
+                                                        <input type="checkbox"/>
+                                                    </td>
                                                     <td className="px-2 py-1 whitespace-nowrap text-sm text-gray-900">
                                                         <img src={`/storage/${site.image}`} alt={site.name} />
                                                     </td>
@@ -145,12 +134,15 @@ function IndexSites({ auth, sites }) {
                                                             >
                                                                 Détails
                                                             </Link>
-                                                            <Link
-                                                                href={`/sites/edit/${site.id}`}
+                                                            <button
+                                                                onClick={() => {
+                                                                    setShowEditModal(true);
+                                                                    setsiteToEdit(site);
+                                                                }}
                                                                 className="text-yellow-600 hover:text-yellow-900 px-2 py-1 rounded bg-yellow-100"
                                                             >
                                                                 Modifier
-                                                            </Link>
+                                                            </button>
                                                             <button
                                                                 onClick={() => handleDeleteClick(site)}
                                                                 className="text-red-600 hover:text-red-900 px-2 py-1 rounded bg-red-100"
@@ -173,6 +165,16 @@ function IndexSites({ auth, sites }) {
                                 </div>
                                 <Pagination links={sites.links} currentPage={sites.current_page} setCurrentPage={(page) => setData('page', page)} />
                     </div>
+                    {showEditModal && (
+                        <ModalWrapper title="Modifier le site" onClose={() => setShowEditModal(false)}>
+                            <EditSite auth={auth} siteToEdit={siteToEdit} setShowEditModal={setShowEditModal} />
+                        </ModalWrapper>
+                    )}
+                    {showAddForm && (
+                        <ModalWrapper title="Ajouter un nouveau site" onClose={() => setShowAddForm(false)}>
+                            <AddSite auth={auth} setShowAddForm={setShowAddForm} />
+                        </ModalWrapper>
+                    )}
                     {isModalOpen && (
                         <ConfirmDeleteSite
                             onConfirm={confirmDelete}

@@ -52,6 +52,7 @@ Route::middleware(['auth','verified'])->group(function () {
         Route::delete('delete/{id}', 'delete')->name('document.destroy');
         Route::get('access/{id}', 'recover')->name('access.recover');
         Route::post('accesschange', 'updateAccess')->name('access.update');
+        Route::post('Docs-delete', 'DocsDelete')->name('documents.DocsDelete');
     });
 
     Route::prefix('utilisateurs')->controller(UserController::class)->group(function(){
