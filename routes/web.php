@@ -40,6 +40,7 @@ Route::middleware(['auth','verified'])->group(function () {
         Route::post('update', 'update')->name('sites.update');
         Route::get('details/{id}','show');
         Route::delete('delete/{id}','delete');
+        Route::post('Sites-delete', 'SitesDelete')->name('sites.SitesDelete');
     });
 
     Route::prefix('documents')->controller(DocumentsController::class)->group(function(){
@@ -53,6 +54,7 @@ Route::middleware(['auth','verified'])->group(function () {
         Route::get('access/{id}', 'recover')->name('access.recover');
         Route::post('accesschange', 'updateAccess')->name('access.update');
         Route::post('Docs-delete', 'DocsDelete')->name('documents.DocsDelete');
+        Route::post('Docs-access', 'DocsAccess')->name('documents.DocsAccess');
     });
 
     Route::prefix('utilisateurs')->controller(UserController::class)->group(function(){
@@ -64,6 +66,8 @@ Route::middleware(['auth','verified'])->group(function () {
         Route::get('edit/{id}','edit');
         Route::post('update','update')->name('utilisateurs.update');
         Route::delete('delete/{id}','delete')->name('utilisateurs.destroy');
+        Route::post('Users-delete', 'UsersDelete')->name('utilisateurs.UsersDelete');
+        Route::post('Users-change-Role', 'changeGroupRole')->name('utilisateurs.changeGroupRole');
     });
 
     Route::prefix('alerts')->controller(AlertController::class)->group(function(){

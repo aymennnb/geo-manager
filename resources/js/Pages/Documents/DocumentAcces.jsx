@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Head, useForm } from "@inertiajs/react";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
+import toast from "react-hot-toast";
 
 export default function DocumentAcces({ auth, users,documentId,usersWithAccess, documentAccesses,setShowAccesModel }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -27,14 +28,8 @@ export default function DocumentAcces({ auth, users,documentId,usersWithAccess, 
 
     const handleSubmit = (e) => {
         e.preventDefault();
-
-        if (data.users.length === 0) {
-            alert("Veuillez sélectionner au moins un utilisateur.");
-            return;
-        }
         post(route("access.update"), {
             onSuccess: () => {
-                alert("Accès mis à jour avec succès.");
                 setShowAccesModel(false);
             },
         });
@@ -48,7 +43,7 @@ export default function DocumentAcces({ auth, users,documentId,usersWithAccess, 
                             <h3 className="text-lg font-medium mb-4">Sélectionner les utilisateurs</h3>
                             {/* Affichage des utilisateurs sélectionnés */}
                             <div className="mb-4">
-                                <label className="block mb-2">Utilisateurs sélectionnés ({data.users.length}):</label>
+                                <label className="block mb-2">Utilisateurs sélectionnés pour le document avec l'id <b>{data.document_id}</b> ({data.users.length}) :</label>
                                 <div className="flex flex-wrap gap-2">
                                     {data.users.length > 0 ? (
                                         data.users.map((userId) => {
@@ -89,11 +84,13 @@ export default function DocumentAcces({ auth, users,documentId,usersWithAccess, 
 
                                 <div className="flex justify-end space-x-2 mb-3">
                                     <button
-                                        onClick={() => setShowAccesModel(false)}
+                                        type="button"
+                                        onClick={() => setData("users", [])}
                                         className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition"
                                     >
                                         Restaurer l accès
-                                    </button><button
+                                    </button>
+                                    <button
                                         onClick={() => setShowAccesModel(false)}
                                         className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition"
                                     >

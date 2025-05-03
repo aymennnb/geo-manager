@@ -15,20 +15,21 @@ class SitesController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Sites::select('id','image','name','email','phone','web','address','latitude','longitude');
+        $query = Sites::select('id','image','name','email','phone','web','address','latitude','longitude','created_at','updated_at');
         $addresses = Sites::select('address')->distinct()->get();
-
+        $documents = Documents::all();
         if (request()->has('name')){
             $query->where('name','like','%'.$request->name .'%');
         }
         if (request()->has('address')){
             $query->where('address','like','%'.$request->address .'%');
         }
-        $sites = $query->paginate(5);
+        $sites = $query->paginate(10);
 
         return inertia('Sites/IndexSites',[
             'sites'=> $sites,
-            'addresses'=>$addresses
+            'addresses'=>$addresses,
+            'documents'=>$documents
         ]);
     }
     public function create(SitesRequest $request)
@@ -54,7 +55,7 @@ class SitesController extends Controller
             'message' => "a ajouté un site avec le nom {$sites->name} et l'ID {$sites->id}.",
         ]);
 
-        return redirect('sites')->with(['success'=>'Sites created successfully']);
+        return redirect('sites')->with(['success' => "Le site {$sites->name} a été créé."]);
     }
 
     public function edit($id)
@@ -94,7 +95,7 @@ class SitesController extends Controller
             'message' => "a mis à jour le site avec le nom {$item->name} et l'ID {$item->id}.",
         ]);
 
-        return redirect('sites')->with(['success' => 'Site updated successfully.']);
+        return redirect('sites')->with(['success' => "Le site {$item->name} a été mis à jour."]);
     }
 
     public function show($id)
@@ -130,14 +131,49 @@ class SitesController extends Controller
             'message' => "a supprimé le site avec le nom {$item->name} et l'ID {$item->id}.",
         ]);
 
-        return redirect('sites')->with(['success' => 'Site deleted successfully.']);
+        return redirect('sites')->with(['success' => "Le site {$item->name} a été supprimé."]);
     }
     public function map()
     {
-        $sitesMaps = Sites::select('id', 'name', 'latitude', 'longitude')->get();
+        $sitesMaps = Sites::select('id','image','name','email','phone','web','address','latitude','longitude','created_at','updated_at')->get();
 
         return Inertia::render('Dashboard', [
             'sitesMaps' => $sitesMaps
         ]);
+    }
+
+    public function SitesDelete(Request $request)
+    {
+        $ids = $request->input('sites_ids', []);
+
+        if (empty($ids)) {
+            return back()->with(['error'=> 'Aucun site sélectionné.']);
+        }
+
+        foreach ($ids as $id) {
+            $site = Sites::find($id);
+
+            if (!$site) {
+                continue;
+            }
+
+            if ($site->image && Storage::disk('public')->exists($site->image)) {
+                Storage::disk('public')->delete($site->image);
+            }
+
+            $siteName = $site->name;
+            $siteId = $site->id;
+            $site->delete();
+
+            Alerts::create([
+                'user_id' => auth()->id(),
+                'role' => auth()->user()->role,
+                'action' => 'delete',
+                'type' => 'site',
+                'message' => "a supprimé le site avec le nom {$siteName} et l'id {$siteId}.",
+            ]);
+        }
+
+        return back()->with(['success'=> 'Les sites sélectionnés ont été supprimés.']);
     }
 }

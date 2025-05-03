@@ -1,14 +1,18 @@
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 import { Head, useForm } from "@inertiajs/react";
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import AddDocuments from "@/Pages/Documents/AddDocuments";
 import AddUser from "@/Pages/Utilisateurs/AddUser.jsx";
 import ConfirmSupprimeDocument from "@/Components/ConfirmSupprimeDocument";
 import DocumentAcces from "@/Pages/Documents/DocumentAcces";
 import EditDocuments from "@/Pages/Documents/EditDocuments";
+import DetailsDocument from "@/pages/Documents/DetailsDocument";
+import DocumentsAccesGroup from '@/pages/Documents/DocumentsAccesGroup';
+import ConfirmSuppDOcs from '@/Components/ConfirmSuppDOcs';
 import ModalWrapper from "@/Components/ModalWrapper";
+import toast from 'react-hot-toast';
 
-function IndexDocuments({ auth, documents, sites, users,DocumentAccess }) {
+function IndexDocuments({ auth, documents, sites, users,DocumentAccess,flash  }) {
     const { data, setData, delete: destroy, post } = useForm({
         document_ids: []
     });
@@ -22,6 +26,20 @@ function IndexDocuments({ auth, documents, sites, users,DocumentAccess }) {
     const [currentDocumentAccess, setCurrentDocumentAccess] = useState(null);
     const [showEditModal, setShowEditModal] = useState(false);
     const [documentToEdit, setDocumentToEdit] = useState(null);
+
+    const [documentDetail,setdocumentDetail] = useState([]);
+    const [showDetailModal,setshowDetailModal] = useState(false);
+
+    const [showAccessGroup, setShowAccessGroup] = useState(false);
+
+    const [showConfirmGroupModal, setShowConfirmGroupModal] = useState(false);
+
+    const [docsToDelete, setDocsToDelete] = useState([]);
+
+    const openDetailModal = (document) => {
+        setdocumentDetail(document);
+        setshowDetailModal(true);
+    };
 
     const openEditModal = (document) => {
         setDocumentToEdit(document);
@@ -42,7 +60,7 @@ function IndexDocuments({ auth, documents, sites, users,DocumentAccess }) {
     };
 
 
-    const handleSelectUser = (documentId) => {
+    const handleSelectDoc = (documentId) => {
         if (data.document_ids.includes(documentId)) {
             setData("document_ids", data.document_ids.filter((id) => id !== documentId));
         } else {
@@ -50,15 +68,30 @@ function IndexDocuments({ auth, documents, sites, users,DocumentAccess }) {
         }
     };
 
+    const confirmDocsGroupDelete = () => {
+        post(route("documents.DocsDelete"), {
+            onSuccess: (page) => {
+                setData("document_ids", []);
+                setShowConfirmGroupModal(false);
+            },
+        });
+    };
+
     const handleDocsDelete = () => {
-        if (window.confirm("Êtes-vous sûr de vouloir supprimer ces documents ?")) {
-            post(route("documents.DocsDelete"), {
-                onSuccess: () => {
-                    setData("document_ids", []);
-                    alert("Documents supprimés avec succès.");
-                },
-            });
-        }
+        const selectedDocs = documents
+            .filter((doc) => data.document_ids.includes(doc.id))
+            .map((doc) => ({ id: doc.id, name: doc.title }));
+
+        setDocsToDelete(selectedDocs);
+        setShowConfirmGroupModal(true);
+    };
+
+    const cancelGroupDelete = () => {
+        setShowConfirmGroupModal(false);
+    };
+
+    const handleChangeAccess = () => {
+        setShowAccessGroup(true);
     };
 
 
@@ -80,11 +113,18 @@ function IndexDocuments({ auth, documents, sites, users,DocumentAccess }) {
         setDocumentToDelete(null);
     };
 
+    useEffect(() => {
+        if (flash.message.success) {
+            toast.success(flash.message.success);
+        }
+        if (flash.message.error) {
+            toast.error(flash.message.error);
+        }
+    }, [flash]);
+
     return (
         <Authenticated user={auth.user} header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Documents</h2>}>
             <Head title="Documents" />
-
-            <div>
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6 bg-white border-b border-gray-200">
@@ -102,7 +142,7 @@ function IndexDocuments({ auth, documents, sites, users,DocumentAccess }) {
                                                 Supprimer
                                             </button>
                                             <button
-                                                // onClick={() => handleChangeAccess()}
+                                                onClick={handleChangeAccess}
                                                 disabled={data.document_ids.length === 0}
                                                 className="px-4 py-2 bg-green-100 text-green-600 rounded-md hover:text-green-900 transition"
                                             >
@@ -146,7 +186,7 @@ function IndexDocuments({ auth, documents, sites, users,DocumentAccess }) {
                                                     <input
                                                         type="checkbox"
                                                         checked={data.document_ids.includes(document.id)}
-                                                        onChange={() => handleSelectUser(document.id)}
+                                                        onChange={() => handleSelectDoc(document.id)}
                                                     />
                                                 </td>
                                                 <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-900">
@@ -166,12 +206,12 @@ function IndexDocuments({ auth, documents, sites, users,DocumentAccess }) {
                                                 </td>
                                                 <td className="px-6 py-3 whitespace-nowrap text-right text-sm font-medium">
                                                     <div className="flex space-x-2">
-                                                        <a
-                                                            href={`/documents/details/${document.id}`}
+                                                        <button
+                                                            onClick={() => openDetailModal(document)}
                                                             className="text-blue-600 hover:text-blue-900 px-2 py-1 rounded bg-blue-100"
                                                         >
                                                             Détails
-                                                        </a>
+                                                        </button>
                                                         <button
                                                             onClick={() => openEditModal(document)}
                                                             className="text-yellow-600 hover:text-yellow-900 px-2 py-1 rounded bg-yellow-100"
@@ -217,8 +257,17 @@ function IndexDocuments({ auth, documents, sites, users,DocumentAccess }) {
                             <pre>{JSON.stringify(currentDocumentAccess, null, 2)}</pre>
                         </div>
                     )}
-                </div>
             </div>
+            {showAccessGroup && (
+                <ModalWrapper title="Gérer les accès" onClose={() => setShowAccessGroup(false)}>
+                    <DocumentsAccesGroup documentIds={data.document_ids} users={users} setShowAccessGroup={setShowAccessGroup} />
+                </ModalWrapper>
+            )}
+            {showDetailModal && documentDetail && (
+                <ModalWrapper title="Détails du document" onClose={() => setshowDetailModal(false)}>
+                    <DetailsDocument auth={auth} document={documentDetail} users={users} sites={sites} setshowDetailModal={setshowDetailModal} />
+                </ModalWrapper>
+            )}
             {showEditModal && documentToEdit && (
                 <ModalWrapper title="Modifier le document" onClose={() => setShowEditModal(false)}>
                     <EditDocuments auth={auth} document={documentToEdit} sites={sites} setShowEditForm={setShowEditModal} />
@@ -245,6 +294,13 @@ function IndexDocuments({ auth, documents, sites, users,DocumentAccess }) {
                     documentToDelete={documentToDelete}
                     confirmDelete={confirmDelete}
                     cancelDelete={cancelDelete}
+                />
+            )}
+            {showConfirmGroupModal && (
+                <ConfirmSuppDOcs
+                    DOcsToDelete={docsToDelete}
+                    onConfirm={confirmDocsGroupDelete}
+                    onCancel={cancelGroupDelete}
                 />
             )}
         </Authenticated>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import NavLink from "@/Components/NavLink";
+import { Toaster } from "react-hot-toast";
 
 export default function Authenticated({ user, header, children }) {
     const [showDropdown, setShowDropdown] = useState(false);
@@ -97,6 +98,13 @@ export default function Authenticated({ user, header, children }) {
             {/* Main content */}
             <div className="flex-1 flex flex-col overflow-hidden">
                 {/* Header */}
+                <Toaster position="top-right" reverseOrder={false} toastOptions={{
+                    autoClose: 7000, // 5000 ms = 5 secondes
+                    pauseOnHover: true, // Mettre en pause lorsque l'utilisateur survole
+                    draggable: true, // Permettre le glissement du toast
+                    pauseOnFocusLoss: true, // Mettre en pause si l'application perd le focus
+                }}
+                />
                 <header className="bg-white border-b border-gray-200 px-6 py-4 shadow-sm flex justify-between items-center">
                     <h2 className="text-lg font-semibold text-gray-700">{header}</h2>
                     <div className="flex items-center gap-3">

@@ -8,18 +8,22 @@ import EditUser from "@/Pages/Utilisateurs/EditUser.jsx";
 import ConfirmResetPassword from "@/components/ConfirmResetPassword";
 import ConfirmSupprimeUser from "@/components/ConfirmSupprimeUser";
 import ChangeRoleConfirm from "@/components/ChangeRoleConfirm";
+import ConfirmSuppUsers from "@/Components/ConfirmSuppUsers";
+import ConfirmChangeGroupRole from "@/Components/ConfirmChangeGroupRole";
 import ModalWrapper from "@/Components/ModalWrapper";
+import toast from 'react-hot-toast';
 
 
-export default function IndexUsers({ auth, users }) {
+export default function IndexUsers({ auth, users, flash }) {
     const { data, setData, post, processing, errors, delete: destroy } = useForm({
+        users_ids:[],
         user_id: "",
         role: "",
         name_user: "",
+        role_group:""
     });
 
     const [showAddForm, setShowAddForm] = useState(false);
-    // const [showAddFormModif, setShowAddFormModif] = useState(false);
     const [showConfirmDelete, setShowConfirmDelete] = useState(false);
     const [userToDelete, setUserToDelete] = useState(null);
     const [showConfirmReset, setShowConfirmReset] = useState(false);
@@ -27,9 +31,15 @@ export default function IndexUsers({ auth, users }) {
     const [showConfirmChangeRole, setShowConfirmChangeRole] = useState(false);
     const [userToChangeRole, setUserToChangeRole] = useState(null);
     const [confirmedChange, setConfirmedChange] = useState(false);
-    const [selectedUsers, setSelectedUsers] = useState([]);
     const [userToEdit, setUserToEdit] = useState(null);
     const [showEditForm, setShowEditForm] = useState(false);
+
+    const [UsersToDelete,setUsersToDelete] = useState([]);
+    const [showConfirmGroupModal, setShowConfirmGroupModal] = useState(false);
+
+    const [selectedRole, setSelectedRole] = useState('');
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [usersToChange, setUsersToChange] = useState([]);
 
     const openEditUser = (user) => {
         setUserToEdit(user);
@@ -37,7 +47,6 @@ export default function IndexUsers({ auth, users }) {
     };
 
     const handleRoleChange = (userId, userName, currentRole, newRole) => {
-        // D'abord préparer les données pour confirmation
         setUserToChangeRole({
             id: userId,
             userName: userName,
@@ -49,63 +58,43 @@ export default function IndexUsers({ auth, users }) {
 
     const confirmChangeRole = () => {
         if (userToChangeRole) {
-            // Après confirmation, mettre à jour les data pour déclencher le useEffect
             setData({
+                ...data,
                 user_id: userToChangeRole.id,
                 role: userToChangeRole.newRole,
             });
             setConfirmedChange(true);
-            setShowConfirmChangeRole(false);
-            setUserToChangeRole(null);
         }
     };
+
+    useEffect(() => {
+        if (confirmedChange && data.user_id && data.role) {
+            post(route("users.updateRole"), {
+                onSuccess: () => {
+                    setShowConfirmChangeRole(false);
+                    setUserToChangeRole(null);
+                    setConfirmedChange(false);
+                    setData(prevData => ({
+                        ...prevData,
+                        user_id: "",
+                        role: "",
+                    }));
+                },
+            });
+        }
+    }, [confirmedChange, data.user_id, data.role]);
 
     const cancelChangeRole = () => {
         setShowConfirmChangeRole(false);
         setUserToChangeRole(null);
     };
 
-    useEffect(() => {
-        if (confirmedChange && data.user_id && data.role) {
-            post(route("users.updateRole"), {
-                user_id: data.user_id,
-                role: data.role,
-                preserveScroll: true,
-            });
-
-            // Réinitialiser après
-            setConfirmedChange(false);
-            setData({
-                user_id: "",
-                role: "",
-            });
+    const handleSelectUser = (documentId) => {
+        if (data.users_ids.includes(documentId)) {
+            setData("users_ids", data.users_ids.filter((id) => id !== documentId));
+        } else {
+            setData("users_ids", [...data.users_ids, documentId]);
         }
-    }, [confirmedChange]);
-
-
-
-
-    // const handleEditClick = (userId) => {
-    //     const selectedUser = users.find((user) => user.id === userId);
-    //     setShowAddFormModif(true);
-    //     setData({
-    //         ...data,
-    //         id: selectedUser.id,
-    //         name: selectedUser.name,
-    //         email: selectedUser.email,
-    //         role: selectedUser.role,
-    //     });
-    // };
-
-
-    const handleSelectUser = (userId) => {
-        setSelectedUsers((prevSelected) => {
-            if (prevSelected.includes(userId)) {
-                return prevSelected.filter((id) => id !== userId);
-            } else {
-                return [...prevSelected, userId];
-            }
-        });
     };
 
     const openResetPasswordConfirmation = (userId, userName) => {
@@ -113,37 +102,39 @@ export default function IndexUsers({ auth, users }) {
         setShowConfirmReset(true); // Met à jour l'état pour afficher le modal
     };
 
-    // useEffect(() => {
-    //     if (data.user_id && data.role) {
-    //         post(route("users.updateRole"), {
-    //             user_id: data.user_id,
-    //             role: data.role,
-    //             preserveScroll: true,
-    //         });
-    //     }
-    // }, [data]);
+    const handleUsersDelete = () => {
+        const selectedusers = users
+            .filter((user) => data.users_ids.includes(user.id))
+            .map((user) => ({ id: user.id, name: user.name }));
 
-    // const handleRoleChange = (userId, newRole, userName) => {
-    //     if (confirm(`Voulez-vous vraiment changer le rôle de ${userName} en ${newRole} ?`)) {
-    //         setData({
-    //             ...data,
-    //             user_id: userId,
-    //             role: newRole,
-    //             name_user: userName,
-    //         });
-    //     }
-    // };
+        setUsersToDelete(selectedusers);
+        setShowConfirmGroupModal(true);
+    };
+
+    const confirmUsersGroupDelete = () => {
+        post(route("utilisateurs.UsersDelete"), {
+            onSuccess: () => {
+                setData("users_ids", []);
+                setShowConfirmGroupModal(false);
+            },
+        });
+    };
+
+    const cancelGroupDelete = () => {
+        setShowConfirmGroupModal(false);
+    };
+
 
     const resetPassword = () => {
         post(route('users.resetPassword', userToReset.id), {
             preserveScroll: true,
         });
-        setShowConfirmReset(false);  // Ferme la fenêtre de confirmation après la réinitialisation
+        setShowConfirmReset(false);
     };
 
     const askResetPassword = (userId, userName) => {
         setUserToReset({ id: userId, name: userName });
-        setShowConfirmReset(true); // Affiche le modal
+        setShowConfirmReset(true);
     };
 
     const deleteUser = (userId, userRole,userName) => {
@@ -164,6 +155,42 @@ export default function IndexUsers({ auth, users }) {
         setUserToDelete(null);
     };
 
+    const handleUsersRoleChange = (e) => {
+        const role = e.target.value;
+        if (!role) {
+            toast.error('Veuillez choisir un rôle avant de continuer.');
+            return;
+        }
+        setData('role_group',role);
+        const selectedUsers = users.filter((u) => data.users_ids.includes(u.id));
+        setUsersToChange(selectedUsers);
+        setShowConfirmModal(true);
+    };
+
+    const confirmRoleChange = () => {
+        post(route('utilisateurs.changeGroupRole'), {
+            onSuccess: () => {
+                setData(prevData => ({
+                    ...prevData,
+                    users_ids: []
+                }));
+                setShowConfirmModal(false);
+            },
+            onError: () => {
+                toast.error("Une erreur est survenue lors de la modification du rôle.");
+            }
+        });
+    };
+
+    useEffect(() => {
+        if (flash.message.success) {
+            toast.success(flash.message.success);
+        }
+        if (flash.message.error) {
+            toast.error(flash.message.error);
+        }
+    }, [flash]);
+
 
     return (
         <Authenticated user={auth.user} header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Utilisateurs</h2>}>
@@ -172,33 +199,26 @@ export default function IndexUsers({ auth, users }) {
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6 bg-white border-b border-gray-200">
-
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="mr-1 text-lg font-medium text-gray-900">
                                     Liste des utilisateurs
                                 </h3>
                                 <div className="flex space-x-3">
-                                    {selectedUsers.length > 0 && (
+                                    {data.users_ids.length > 0 && (
                                         <>
                                             <button
-                                                // onClick={() => handleBatchDelete()}
-                                                disabled={selectedUsers.length === 0}
+                                                onClick={handleUsersDelete}
+                                                disabled={data.users_ids.length === 0}
                                                 className="px-4 py-2 bg-red-100 text-red-600 rounded-md hover:text-red-900 transition"
                                             >
                                                 Supprimer
                                             </button>
-                                            <button
-                                                // onClick={() => handleBatchResetPassword()}
-                                                disabled={selectedUsers.length === 0}
-                                                className="px-4 py-2 bg-indigo-100 text-indigo-600 rounded-md hover:text-indigo-900 transition"
-                                            >
-                                                Réinitialiser
-                                            </button>
-                                            <select style={{height:"36px"}}
+                                            <select
+                                                style={{ height: "36px" }}
                                                 className="border w-48 border-gray-300 rounded-[7px] py-1"
-                                                // onChange={(e) => handleRoleChanges()}
+                                                onChange={handleUsersRoleChange}
                                             >
-                                                <option value="" >Changer le rôle</option>
+                                                <option value="">-- choisir un role --</option>
                                                 <option value="admin">Admin</option>
                                                 <option value="manager">Manager</option>
                                                 <option value="user">Utilisateur</option>
@@ -262,7 +282,7 @@ export default function IndexUsers({ auth, users }) {
                                                 <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-900">
                                                     <input
                                                         type="checkbox"
-                                                        checked={selectedUsers.includes(user.id)}
+                                                        checked={data.users_ids.includes(user.id)}
                                                         onChange={() => handleSelectUser(user.id)}
                                                     />
                                                 </td>
@@ -332,7 +352,7 @@ export default function IndexUsers({ auth, users }) {
                     {import.meta.env.DEV && (
                         <div className="mt-4 p-2 bg-gray-100 rounded">
                             <p>IDs des utilisateurs sélectionnés :</p>
-                            <pre>{JSON.stringify(selectedUsers, null, 2)}</pre>
+                            <pre>{JSON.stringify(data, null, 2)}</pre>
                         </div>
                     )}
                 </div>
@@ -357,7 +377,6 @@ export default function IndexUsers({ auth, users }) {
                     cancelChangeRole={cancelChangeRole}
                 />
             )}
-
             {/* Div de confirmation du réinitialisation du mot de passe */}
             {showConfirmReset && (
                 <ConfirmResetPassword
@@ -372,6 +391,21 @@ export default function IndexUsers({ auth, users }) {
                     userToDelete={userToDelete}
                     confirmDelete={confirmDelete}
                     cancelDelete={cancelDelete}
+                />
+            )}
+            {showConfirmGroupModal && (
+                <ConfirmSuppUsers
+                    UsersToDelete={UsersToDelete}
+                    onConfirm={confirmUsersGroupDelete}
+                    onCancel={cancelGroupDelete}
+                />
+            )}
+            {showConfirmModal && (
+                <ConfirmChangeGroupRole
+                    usersToChange={usersToChange}
+                    newRole={data.role_group}
+                    onConfirm={confirmRoleChange}
+                    onCancel={() => setShowConfirmModal(false)}
                 />
             )}
         </Authenticated>

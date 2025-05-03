@@ -45,7 +45,8 @@ function EditSite({ auth, siteToEdit, setShowEditModal }) {
                     </div>
 
                     {/* Nom */}
-                    <div>
+                    <div className="mb-6 flex gap-4">
+                        <div className="w-1/2">
                         <label className="block text-gray-700 text-sm font-bold mb-2">Nom du site</label>
                         <input
                             type="text"
@@ -57,7 +58,7 @@ function EditSite({ auth, siteToEdit, setShowEditModal }) {
                     </div>
 
                     {/* Web */}
-                    <div>
+                        <div className="w-1/2">
                         <label className="block text-gray-700 text-sm font-bold mb-2">Site Web</label>
                         <input
                             type="url"
@@ -67,9 +68,11 @@ function EditSite({ auth, siteToEdit, setShowEditModal }) {
                         />
                         {errors.web && <p className="mt-2 text-sm text-red-600">{errors.web}</p>}
                     </div>
+                    </div>
 
                     {/* Email */}
-                    <div>
+                    <div className="mb-6 flex gap-4">
+                        <div className="w-1/2">
                         <label className="block text-gray-700 text-sm font-bold mb-2">Email</label>
                         <input
                             type="email"
@@ -81,7 +84,7 @@ function EditSite({ auth, siteToEdit, setShowEditModal }) {
                     </div>
 
                     {/* Téléphone */}
-                    <div>
+                        <div className="w-1/2">
                         <label className="block text-gray-700 text-sm font-bold mb-2">Téléphone</label>
                         <input
                             type="tel"
@@ -90,6 +93,7 @@ function EditSite({ auth, siteToEdit, setShowEditModal }) {
                             className="w-full px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500"
                         />
                         {errors.phone && <p className="mt-2 text-sm text-red-600">{errors.phone}</p>}
+                    </div>
                     </div>
 
                     {/* Adresse */}
@@ -105,7 +109,8 @@ function EditSite({ auth, siteToEdit, setShowEditModal }) {
                     </div>
 
                     {/* Latitude */}
-                    <div>
+                    <div className="mb-6 flex gap-4">
+                        <div className="w-1/2">
                         <label className="block text-gray-700 text-sm font-bold mb-2">Latitude</label>
                         <input
                             type="number"
@@ -118,7 +123,7 @@ function EditSite({ auth, siteToEdit, setShowEditModal }) {
                     </div>
 
                     {/* Longitude */}
-                    <div>
+                        <div className="w-1/2">
                         <label className="block text-gray-700 text-sm font-bold mb-2">Longitude</label>
                         <input
                             type="number"
@@ -128,6 +133,7 @@ function EditSite({ auth, siteToEdit, setShowEditModal }) {
                             className="w-full px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500"
                         />
                         {errors.longitude && <p className="mt-2 text-sm text-red-600">{errors.longitude}</p>}
+                    </div>
                     </div>
 
                     {/* Boutons */}

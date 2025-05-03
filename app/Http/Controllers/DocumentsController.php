@@ -10,6 +10,7 @@ use App\Models\DocumentsAccess;
 use App\Models\Sites;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -27,7 +28,7 @@ class DocumentsController extends Controller
             'sites' => $sites,
             'users' => $users,
             'DocumentAccess'=> $documentAccess
-        ]);
+        ])->with(['success'=> 'Document ajouté avec succès.']);
     }
 
 
@@ -62,10 +63,7 @@ class DocumentsController extends Controller
             'message' => " a ajouté un document avec le titre {$document->title} et l'ID {$document->id}.",
         ]);
 
-    return response()->json([
-        'message' => 'Document créé et alerte envoyée avec succès.',
-        'id' => $document->id
-    ]);
+        return redirect()->route('documents')->with(['success'=>"Le document {$document->title} a été créé avec succès."]);
     }
 
     public function edit($id)
@@ -107,10 +105,10 @@ class DocumentsController extends Controller
             'role' => auth()->user()->role,
             'action' => 'update',
             'type' => 'document',
-            'message' => " a modifié un document avec le titre {$item->title} et l'ID {$item->id} .",
+            'message' => " a modifié un document avec le titre {$item->title} et l'id {$item->id} .",
         ]);
 
-        return redirect('documents')->with(['success' => 'Document mis à jour avec succès.']);
+        return redirect('documents')->with(['success'=>"Le document {$item->title} a été mis à jour."]);
     }
 
     public  function show($id)
@@ -141,10 +139,10 @@ class DocumentsController extends Controller
             'role' => auth()->user()->role,
             'action' => 'delete',
             'type' => 'document',
-            'message' => " a supprimé un document avec le titre {$documentTitle} et l'ID {$item->id}.",
+            'message' => " a supprimé un document avec le titre {$documentTitle} et l'id {$item->id}.",
         ]);
 
-        return redirect()->route('documents')->with(['success' => 'Document supprimé avec succès.']);
+        return redirect()->route('documents')->with(['success'=>"Le document {$documentTitle} a été supprimé."]);
     }
 
     public function recover($id)
@@ -167,7 +165,7 @@ class DocumentsController extends Controller
     {
         $request->validate([
             'document_id' => 'required|exists:documents,id',
-            'users' => 'required|array|min:1',
+            'users' => 'array',
             'users.*' => 'exists:users,id'
         ]);
 
@@ -175,6 +173,23 @@ class DocumentsController extends Controller
         $document = Documents::find($documentId);
 
         $existingAccess = DocumentsAccess::where('document_id', $documentId)->pluck('user_id')->toArray();
+
+        if (empty($request->users)) {
+            DocumentsAccess::where('document_id', $documentId)->delete();
+
+            foreach ($existingAccess as $userId) {
+                $user = User::find($userId);
+                Alerts::create([
+                    'user_id' => auth()->user()->id,
+                    'role' => auth()->user()->role,
+                    'action' => 'update',
+                    'type' => 'document',
+                    'message' => "a retiré l'accès au document {$document->title} avec l'id {$documentId} à l'utilisateur {$user->name} qui a l'id {$user->id}."
+                ]);
+            }
+
+            return redirect()->route('documents')->with(['success'=>"Les accès au document {$document->title} ont été supprimés."]);
+        }
 
         $usersToAdd = array_diff($request->users, $existingAccess);
         $usersToRemove = array_diff($existingAccess, $request->users);
@@ -195,7 +210,7 @@ class DocumentsController extends Controller
                 'role' => auth()->user()->role,
                 'action' => 'update',
                 'type' => 'document',
-                'message' => "a limité l'accès au document {$document->title} avec L'ID {$documentId} à l'utilisateur qui a l'id {$user->id}."
+                'message' => "a limité l'accès au document {$document->title} avec l'id {$documentId} à l'utilisateur qui a l'id {$user->id}."
             ]);
         }
 
@@ -209,8 +224,10 @@ class DocumentsController extends Controller
                 'message' => "a retiré l'accès au document {$document->title} avec l'id {$documentId} à l'utilisateur {$user->name} qui a l'id {$user->id}."
             ]);
         }
-        return redirect()->route('documents')->with('success', 'Les accès ont été mis à jour.');
+
+        return redirect()->route('documents')->with(['success'=>"Les accès au document {$document->title} ont été mis à jour."]);
     }
+
 
     public function DocsDelete(Request $request)
     {
@@ -224,11 +241,37 @@ class DocumentsController extends Controller
                 }
                 $document->delete();
             }
-            return response()->json(['message' => 'Documents supprimés avec succès.']);
+
+            return redirect()->back()->with(['success'=> 'Les documents sélectionnés ont été supprimés.']);
         }
 
-        return response()->json(['message' => 'Aucun document sélectionné pour la suppression.'], 400);
+        return redirect()->route('documents')->with(['error'=> 'Aucun document sélectionné pour la suppression.']);
     }
 
 
+    public function DocsAccess(Request $request)
+    {
+        $documentIds = $request->input('document_ids');
+        $userIds = $request->input('user_ids');
+
+        if (empty($documentIds) || !is_array($userIds)) {
+            return response()->json(['error' => 'Données manquantes'], 400);
+        }
+
+        foreach ($documentIds as $docId) {
+            DB::table('documents_accesses')
+                ->where('document_id', $docId)
+                ->whereNotIn('user_id', $userIds)
+                ->delete();
+
+            foreach ($userIds as $userId) {
+                DB::table('documents_accesses')->updateOrInsert([
+                    'document_id' => $docId,
+                    'user_id' => $userId,
+                ]);
+            }
+        }
+
+        return redirect()->route('documents')->with(['success' => 'Les accès aux documents sélectionnés ont été mis à jour.']);
+    }
 }

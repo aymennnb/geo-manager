@@ -44,9 +44,7 @@ class UserController extends Controller
             'message' => "a ajouté un nouveau {$user->role} avec le nom {$user->name} et l'ID {$user->id}.",
         ]);
 
-        return redirect()->route('utilisateurs')->with([
-            'success' => 'Utilisateur ajouté avec succès.',
-        ]);
+        return redirect()->route('utilisateurs')->with(['success' => "L'utilisateur {$user->name} a été ajouté avec succès."]);
     }
 
     public function updateRole(Request $request)
@@ -69,7 +67,7 @@ class UserController extends Controller
             'message' => "a changé le rôle d'un acteur avec le nom {$user->name} et l'ID {$user->id} de {$ancien_role} à " . ($request->role === 'admin' ? 'admin' : ($request->role === 'manager' ? 'manager' : 'utilisateur')) . ".",
         ]);
 
-        return redirect('utilisateurs')->with(['success', 'Rôle mis à jour avec succès.']);
+        return redirect('utilisateurs')->with(['success'=> "Le rôle de l'utilisateur {$user->name} a été mis à jour de {$ancien_role} à {$user->role}."]);
     }
 
     public function resetPassword($id)
@@ -88,7 +86,7 @@ class UserController extends Controller
             'message' => " a réinitialisé le mot de passe d'un " . ($user->role === 'admin' ? "admin" : ($user->role === 'manager' ? 'manager' : 'utilisateur')) . " avec le nom {$user ->name} et L'id " . ($user ->id) . ".",
         ]);
 
-        return redirect('utilisateurs')->with(['success' => "Le mot de passe de {$user->name} a été réinitialisé à 12345678 avec succès."]);
+        return redirect('utilisateurs')->with(['success' => "Le mot de passe de {$user->name} a été réinitialisé à la valeur par defaut."]);
     }
 
     public function edit($id)
@@ -120,7 +118,7 @@ class UserController extends Controller
             'message' => " a modifié les informations d'un " . ($item->role === 'admin' ? "admin" : ($item->role === 'manager' ? 'manager' : 'utilisateur')) . " avec le nom " .($item->name). " et L'id " . ($item->id) . ".",
         ]);
 
-        return redirect('utilisateurs')->with(['success' => 'Utilisateur mis à jour avec succès.']);
+        return redirect('utilisateurs')->with(['success' => "L'utilisateur {$item->name} a été mis à jour."]);
     }
 
 
@@ -138,6 +136,59 @@ class UserController extends Controller
 
         $item->delete();
 
-        return redirect('utilisateurs')->with(['success' => 'Utilisateur supprimé avec succès.']);
+        return redirect('utilisateurs')->with(['success' => "L'utilisateur {$item->name} a été supprimé avec succès."]);
+    }
+
+    public function UsersDelete(Request $request)
+    {
+        $userIds = $request->input('users_ids');
+
+        if (is_array($userIds) && count($userIds) > 0) {
+            $users = User::whereIn('id', $userIds)->get();
+
+            foreach ($users as $user) {
+                Alerts::create([
+                    'user_id' => auth()->user()->id,
+                    'role' => auth()->user()->role,
+                    'action' => 'delete',
+                    'type' => 'user',
+                    'message' => " a supprimé un " .
+                        ($user->role === 'admin' ? "admin" :
+                            ($user->role === 'manager' ? 'manager' : 'utilisateur')) .
+                        " avec le nom {$user->name} et l'ID {$user->id}.",
+                ]);
+
+                $user->delete();
+            }
+
+            return redirect()->route('utilisateurs')->with(['success' => 'Les utilisateurs sélectionnés ont été supprimés.']);
+        }
+
+        return redirect()->route('utilisateurs')->with(['error' => 'Aucun utilisateur sélectionné pour la suppression.']);
+    }
+
+    public function changeGroupRole(Request $request)
+    {
+        $request->validate([
+            'users_ids' => 'required|array',
+            'role_group' => 'required|string|in:admin,manager,user',
+        ]);
+
+        $users = User::whereIn('id', $request->users_ids)->get();
+
+        foreach ($users as $user) {
+            $ancien_role = $user->role;
+            $user->update(['role' => $request->role_group]);
+            Alerts::create([
+                'user_id' => auth()->user()->id,
+                'role' => auth()->user()->role,
+                'action' => 'update',
+                'type' => 'user',
+                'message' => "a changé le rôle d'un acteur avec le nom {$user->name} et l'id {$user->id} de {$ancien_role} à " .
+                    ($request->role_group === 'admin' ? 'admin' : ($request->role_group === 'manager' ? 'manager' : 'utilisateur')) . ".",
+            ]);
+        }
+
+        return redirect()->route('utilisateurs')->with(['success' => 'Les rôles des utilisateurs sélectionnés ont été mis à jour.']);
     }
 }

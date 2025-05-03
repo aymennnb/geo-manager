@@ -19,10 +19,10 @@ export default function AddDocuments({ auth, sites ,setShowAddForm}) {
     const handleSubmit = (e) => {
         e.preventDefault();
         post(route('documents.create'), {
-            onSuccess: (response) => {
-                const documentId = response.data.id;
-                setData("elem_id", documentId);
-            }
+            onSuccess: () => {
+                setShowAddForm(false);
+                toast.success("Document ajouté avec succès !");
+            },
         });
     };
 

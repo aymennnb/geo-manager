@@ -23,7 +23,7 @@ export default function EditDocuments({ auth, document, sites, setShowEditForm }
             data,
             preserveScroll: true,
             onSuccess: () => {
-                // Actions on success
+                setShowEditForm(false)
             },
             onError: () => {
                 console.error('Erreur lors de la mise à jour du document');
