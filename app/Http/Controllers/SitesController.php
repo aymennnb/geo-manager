@@ -6,6 +6,7 @@ use App\Http\Requests\SitesRequest;
 use App\Http\Requests\SiteUpdateRequest;
 use App\Models\Alerts;
 use App\Models\Documents;
+use App\Models\DocumentsAccess;
 use App\Models\Sites;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
@@ -15,23 +16,17 @@ class SitesController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Sites::select('id','image','name','email','phone','web','address','latitude','longitude','created_at','updated_at');
+        $sites = Sites::select('id', 'image', 'name', 'email', 'phone', 'web', 'address', 'latitude', 'longitude', 'created_at', 'updated_at')->get();
         $addresses = Sites::select('address')->distinct()->get();
         $documents = Documents::all();
-        if (request()->has('name')){
-            $query->where('name','like','%'.$request->name .'%');
-        }
-        if (request()->has('address')){
-            $query->where('address','like','%'.$request->address .'%');
-        }
-        $sites = $query->paginate(10);
 
-        return inertia('Sites/IndexSites',[
-            'sites'=> $sites,
-            'addresses'=>$addresses,
-            'documents'=>$documents
+        return inertia('Sites/IndexSites', [
+            'sites' => $sites,
+            'addresses' => $addresses,
+            'documents' => $documents
         ]);
     }
+
     public function create(SitesRequest $request)
     {
         $validated = $request->validated();
@@ -136,9 +131,13 @@ class SitesController extends Controller
     public function map()
     {
         $sitesMaps = Sites::select('id','image','name','email','phone','web','address','latitude','longitude','created_at','updated_at')->get();
+        $documents = Documents::all();
+        $documentAccess = DocumentsAccess::select('id','document_id','user_id')->get();
 
         return Inertia::render('Dashboard', [
-            'sitesMaps' => $sitesMaps
+            'sitesMaps' => $sitesMaps,
+            'documents'=>$documents,
+            'documentAccess'=>$documentAccess
         ]);
     }
 

@@ -21,6 +21,7 @@ class DocumentsController extends Controller
         $documents = Documents::select('id', 'title', 'description', 'file_path', 'site_id', 'uploaded_by', 'created_at', 'updated_at')->get();
         $sites = Sites::select('id', 'name')->get();
         $users = User::select('id', 'name')->get();
+//        $users = User::where('role', 'user')->select('id', 'name')->get();
         $documentAccess = DocumentsAccess::with('user') // Charger les utilisateurs associés
         ->get();
         return Inertia::render('Documents/IndexDocuments', [

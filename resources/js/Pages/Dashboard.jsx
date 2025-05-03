@@ -3,8 +3,9 @@ import { Head, usePage } from "@inertiajs/react";
 import { APIProvider, Map, AdvancedMarker, InfoWindow } from "@vis.gl/react-google-maps";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import SIteMap from "@/Components/SIteMap.jsx";
 
-export default function Dashboard({ auth, sitesMaps }) {
+export default function Dashboard({ auth, sitesMaps,documents,documentAccess }) {
     const [selectedSite, setSelectedSite] = useState(null);
     const position = { lat: 33.711000, lng: -7.600000 };
 
@@ -108,45 +109,15 @@ export default function Dashboard({ auth, sitesMaps }) {
                                                     animate={{ x: 0 }}
                                                     exit={{ x: "100%" }}
                                                     transition={{ duration: 0.3 }}
-                                                    className="fixed top-0 right-0 h-full w-full sm:w-96 bg-white shadow-lg z-50 overflow-y-auto"
+                                                    className="fixed top-0 right-0 h-full w-full rounded-tl-lg rounded-tr-lg sm:w-96 bg-white shadow-lg z-50 overflow-y-auto"
                                                 >
-                                                    <div className="p-4 border-b flex justify-between items-center">
-                                                        <h3 className="font-semibold text-lg text-gray-800">
-                                                            {selectedSite.name}
-                                                        </h3>
-                                                        <button
-                                                            onClick={() => setSelectedSite(null)}
-                                                            className="text-gray-500 hover:text-gray-700"
-                                                        >
-                                                            ✕
-                                                        </button>
-                                                    </div>
-                                                    <div className="p-4 space-y-4">
-                                                        {selectedSite.image && (
-                                                            <img
-                                                                src={`/storage/${selectedSite.image}`}
-                                                                alt={selectedSite.name}
-                                                                className="w-full h-48 object-cover rounded"
-                                                            />
-                                                        )}
-                                                        <div className="text-sm text-gray-700 space-y-2">
-                                                            <p><strong>Adresse :</strong><br/> {selectedSite.address || "Non disponible"}</p>
-                                                            {selectedSite.phone && <p><strong>Téléphone :</strong><br/> {selectedSite.phone}</p>}
-                                                            {selectedSite.email && <p><strong>Email :</strong><br/> {selectedSite.email}</p>}
-                                                            {selectedSite.web && (
-                                                                <p>
-                                                                    <strong>Site web :</strong>{" "}<br/>
-                                                                    <a
-                                                                        href={selectedSite.web}
-                                                                        className="text-blue-600 hover:underline"
-                                                                        target="_blank"
-                                                                    >
-                                                                        {selectedSite.web.replace(/^https?:\/\//, "")}
-                                                                    </a>
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    </div>
+                                                    <SIteMap
+                                                        auth={auth}
+                                                        oncancel={() => setSelectedSite(null)}
+                                                        selectedSite={selectedSite}
+                                                        documents={documents}
+                                                        documentAccess={documentAccess}
+                                                    />
                                                 </motion.div>
                                             </>
                                         )}

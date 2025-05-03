@@ -31,7 +31,7 @@ function IndexSites({ auth, sites, documents, flash}) {
 
     const [showSitesDelete, setShowSitesDelete] = useState(false);
 
-    const selectedSitesTodelete = sites.data.filter((site) =>
+    const selectedSitesTodelete = sites.filter((site) =>
         data.sites_ids.includes(site.id)
     );
 
@@ -76,23 +76,6 @@ function IndexSites({ auth, sites, documents, flash}) {
         setIsModalOpen(false);
         setSiteToDelete(null);
     };
-
-    useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            get('sites', {
-                preserveState: true,
-                replace: true,
-                only: ['sites'],
-                data: {
-                    name: data.name,
-                    address: data.address,
-                    // page: data.page
-                }
-            });
-        }, 300);
-
-        return () => clearTimeout(timeoutId);
-    }, [data]);
 
     useEffect(() => {
         if (flash.message.success) {
@@ -158,8 +141,8 @@ function IndexSites({ auth, sites, documents, flash}) {
                                         </tr>
                                         </thead>
                                         <tbody className="bg-white divide-y divide-gray-200">
-                                        {sites.data && sites.data.length > 0 ? (
-                                            sites.data.map((site) => (
+                                        {sites && sites.length > 0 ? (
+                                            sites.map((site) => (
                                                 <tr key={site.id} className="hover:bg-gray-50">
                                                     <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-900">
                                                         <input
@@ -215,7 +198,7 @@ function IndexSites({ auth, sites, documents, flash}) {
                                             ))
                                         ) : (
                                             <tr>
-                                                <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
+                                                <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
                                                     Aucun site trouvé.
                                                 </td>
                                             </tr>

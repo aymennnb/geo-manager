@@ -115,6 +115,18 @@ export default function AddDocuments({ auth, sites ,setShowAddForm}) {
                                     }
                                 </div>
 
+                                <div className="mb-6">
+                                    <label htmlFor="dateExp" className="block text-gray-700 text-sm font-medium mb-2">
+                                        Date d'expiration
+                                    </label>
+                                    <input
+                                        id="dateExp"
+                                        name="dateExp"
+                                        type="date"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                </div>
+
                                 <div className="flex items-center justify-end space-x-2">
                                     <button
                                         onClick={() => setShowAddForm(false)}

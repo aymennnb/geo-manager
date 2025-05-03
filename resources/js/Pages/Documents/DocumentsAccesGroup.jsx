@@ -64,7 +64,8 @@ export default function DocumentsAccesGroup({ documentIds, users, setShowAccessG
 
                     <form onSubmit={handleSubmit}>
                         <div className="border rounded p-4 mb-4 max-h-72 overflow-y-auto">
-                            {users.map((user) => (
+                            {users
+                                .map((user) => (
                                 <div key={user.id} className="checkbox-container mb-2">
                                     <input
                                         type="checkbox"
