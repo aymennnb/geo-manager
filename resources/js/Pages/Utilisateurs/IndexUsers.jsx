@@ -12,6 +12,8 @@ import ConfirmSuppUsers from "@/Components/ConfirmSuppUsers";
 import ConfirmChangeGroupRole from "@/Components/ConfirmChangeGroupRole";
 import ModalWrapper from "@/Components/ModalWrapper";
 import toast from 'react-hot-toast';
+import {FaBackward} from "react-icons/fa6";
+import {TbPlayerTrackNextFilled} from "react-icons/tb";
 
 
 export default function IndexUsers({ auth, users, flash }) {
@@ -20,7 +22,10 @@ export default function IndexUsers({ auth, users, flash }) {
         user_id: "",
         role: "",
         name_user: "",
-        role_group:""
+        role_group:"",
+        searchTerm:"",
+        start_date: "", // Ajout du champ pour la date de début
+        end_date: ""    // Ajout du champ pour la date de fin
     });
 
     const [showAddForm, setShowAddForm] = useState(false);
@@ -40,6 +45,69 @@ export default function IndexUsers({ auth, users, flash }) {
     const [selectedRole, setSelectedRole] = useState('');
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [usersToChange, setUsersToChange] = useState([]);
+
+    // Ajout pour la pagination
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [filteredUsers, setFilteredUsers] = useState([]);
+
+    // Filtrer les utilisateurs en fonction des critères de recherche et dates
+    useEffect(() => {
+        if (!users) return;
+
+        let filtered = users.filter(user =>
+            user.id !== auth.user.id && // Exclure l'utilisateur actuel
+            user.name && user.name.toLowerCase().includes(data.searchTerm.toLowerCase())
+        );
+
+        // Filtrage par date de création
+        if (data.start_date) {
+            const startDate = new Date(data.start_date);
+            filtered = filtered.filter(user => new Date(user.created_at) >= startDate);
+        }
+
+        if (data.end_date) {
+            const endDate = new Date(data.end_date);
+            // Ajuster la fin de la journée pour inclure toute la journée
+            endDate.setHours(23, 59, 59, 999);
+            filtered = filtered.filter(user => new Date(user.created_at) <= endDate);
+        }
+
+        setFilteredUsers(filtered);
+        setCurrentPage(1); // Réinitialiser à la première page lors d'une nouvelle recherche
+    }, [data.searchTerm, data.start_date, data.end_date, users, auth.user.id]);
+
+    // Initialiser filteredUsers avec users au chargement (en excluant l'utilisateur actuel)
+    useEffect(() => {
+        if (users) {
+            setFilteredUsers(users.filter(user => user.id !== auth.user.id));
+        }
+    }, [users, auth.user.id]);
+
+    // Fonction pour obtenir les éléments de la page courante
+    const getCurrentPageItems = () => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        return filteredUsers.slice(startIndex, endIndex);
+    };
+
+    // Fonction pour gérer le changement de page
+    const handlePageChange = (pageNumber) => {
+        if (pageNumber >= 1 && pageNumber <= Math.ceil(filteredUsers.length / itemsPerPage)) {
+            setCurrentPage(pageNumber);
+        }
+    };
+
+    // Gestionnaire pour le champ de recherche et les filtres de date
+    const handleFilterChange = (e) => {
+        const { name, value } = e.target;
+        setData(name, value);
+    };
+
+    // Options pour le nombre d'éléments par page
+    const usersPerPageOptions = [5, 10, 20, 25, 50, 100, 150,200,300,400,600,1000];
+    const totalUsers = filteredUsers.length;
+    const availableOptions = usersPerPageOptions.filter(option => option <= totalUsers || option === usersPerPageOptions[0]);
 
     const openEditUser = (user) => {
         setUserToEdit(user);
@@ -233,32 +301,67 @@ export default function IndexUsers({ auth, users, flash }) {
                                     </button>
                                 </div>
                             </div>
-                            {showConfirmReset && (
-                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                                    <div className="bg-white p-6 rounded-lg shadow-lg w-[450px]">
-                                        <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                                            Confirmer la réinitialisation
-                                        </h2>
-                                        <p className="text-gray-600 mb-6">
-                                            Voulez-vous vraiment réinitialiser le mot de passe de {userToReset?.name} à la valeur par défaut ?
-                                        </p>
-                                        <div className="flex justify-end space-x-4">
-                                            <button
-                                                onClick={() => setShowConfirmReset(false)}
-                                                className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-                                            >
-                                                Annuler
-                                            </button>
-                                            <button
-                                                onClick={() => confirmResetPassword()}
-                                                className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-                                            >
-                                                Confirmer
-                                            </button>
-                                        </div>
-                                    </div>
+                            <div className="flex items-end gap-4 mb-7">
+                                <div className="relative flex-1">
+                                    <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                    <input
+                                        style={{height:'33px'}}
+                                        type="text"
+                                        name="searchTerm"
+                                        value={data.searchTerm}
+                                        onChange={handleFilterChange}
+                                        className="block w-full pl-10 pr-3 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                        placeholder="Rechercher par nom..."
+                                    />
                                 </div>
-                            )}
+
+                                {/* Champ pour la date de début */}
+                                <div className="flex flex-col w-40">
+                                    <label htmlFor="start_date" className="text-xs font-medium text-gray-700 mb-1">Date de début:</label>
+                                    <input
+                                        type="date"
+                                        className="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        id="start_date"
+                                        name="start_date"
+                                        value={data.start_date}
+                                        onChange={handleFilterChange}
+                                    />
+                                </div>
+
+                                {/* Champ pour la date de fin */}
+                                <div className="flex flex-col w-40">
+                                    <label htmlFor="end_date" className="text-xs font-medium text-gray-700 mb-1">Date de fin:</label>
+                                    <input
+                                        type="date"
+                                        className="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        id="end_date"
+                                        name="end_date"
+                                        value={data.end_date}
+                                        onChange={handleFilterChange}
+                                    />
+                                </div>
+
+                                <div className="flex flex-col">
+                                    <label className="text-xs font-medium text-gray-700 mb-1">Par page:</label>
+                                    <select
+                                        id="itemsPerPage"
+                                        className="w-24 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        value={itemsPerPage}
+                                        onChange={(e) => {
+                                            setItemsPerPage(Number(e.target.value));
+                                            setCurrentPage(1); // Réinitialiser à la première page lors du changement d'items par page
+                                        }}
+                                    >
+                                        {availableOptions.map(option => (
+                                            <option key={option} value={option}>
+                                                {option}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
 
                             <div className="overflow-x-auto bg-white rounded-lg shadow overflow-y-auto">
                                 <table className="border-collapse table-auto w-full whitespace-nowrap">
@@ -276,8 +379,8 @@ export default function IndexUsers({ auth, users, flash }) {
                                     </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                    {users && users.length > 0 ? (
-                                        users.filter((user) => user.id !== auth.user.id).map((user) => (
+                                    {getCurrentPageItems().length > 0 ? (
+                                        getCurrentPageItems().map((user) => (
                                             <tr key={user.id} className="hover:bg-gray-50">
                                                 <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-900">
                                                     <input
@@ -339,7 +442,7 @@ export default function IndexUsers({ auth, users, flash }) {
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="8" className="px-6 py-4 text-center text-sm text-gray-500">
+                                            <td colSpan="9" className="px-6 py-4 text-center text-sm text-gray-500">
                                                 Aucun utilisateur trouvé.
                                             </td>
                                         </tr>
@@ -347,6 +450,40 @@ export default function IndexUsers({ auth, users, flash }) {
                                     </tbody>
                                 </table>
                             </div>
+                            {filteredUsers.length > 0 && (
+                                <div className="mt-4 flex items-center justify-between">
+                                    <div className="flex justify-end text-sm text-gray-500">
+                                        {filteredUsers.length} utilisateur(s) trouvé(s)
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <button
+                                            onClick={() => handlePageChange(currentPage - 1)}
+                                            disabled={currentPage === 1}
+                                            className={`px-3 py-1 rounded-md ${
+                                                currentPage === 1
+                                                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                                                    : 'bg-blue-500 text-white hover:bg-blue-600'
+                                            }`}
+                                        >
+                                            <FaBackward/>
+                                        </button>
+                                        <span className="px-3 py-1 bg-gray-100 rounded-md">
+                                            Page {currentPage} sur {Math.ceil(filteredUsers.length / itemsPerPage)}
+                                        </span>
+                                        <button
+                                            onClick={() => handlePageChange(currentPage + 1)}
+                                            disabled={currentPage >= Math.ceil(filteredUsers.length / itemsPerPage)}
+                                            className={`px-3 py-1 rounded-md ${
+                                                currentPage >= Math.ceil(filteredUsers.length / itemsPerPage)
+                                                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                                                    : 'bg-blue-500 text-white hover:bg-blue-600'
+                                            }`}
+                                        >
+                                            <TbPlayerTrackNextFilled/>
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                     {import.meta.env.DEV && (

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import NavLink from "@/Components/NavLink";
 import { Toaster } from "react-hot-toast";
 
+
 export default function Authenticated({ user, header, children }) {
     const [showDropdown, setShowDropdown] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -45,6 +46,9 @@ export default function Authenticated({ user, header, children }) {
 
                     {user.role === "admin" && (
                         <>
+                            {/*<NavLink href={route("utilisateurs")} active={route().current("utilisateurs")}>*/}
+                            {/*    Access*/}
+                            {/*</NavLink>*/}
                             <NavLink href={route("utilisateurs")} active={route().current("utilisateurs")}>
                                 Utilisateurs
                             </NavLink>
@@ -86,7 +90,7 @@ export default function Authenticated({ user, header, children }) {
                                 href={route("logout")}
                                 method="post"
                                 as="button"
-                                className="block w-full text-left  px-4 py-2 hover:bg-gray-100"
+                                className="block px-4 py-2 hover:bg-gray-100"
                             >
                                 <span style={{color:'orange'}}>Déconnexion</span>
                             </NavLink>
@@ -108,18 +112,18 @@ export default function Authenticated({ user, header, children }) {
                 <header className="bg-white border-b border-gray-200 px-6 py-4 shadow-sm flex justify-between items-center">
                     <h2 className="text-lg font-semibold text-gray-700">{header}</h2>
                     <div className="flex items-center gap-3">
-                        <NavLink
-                            className="text-sm text-gray-600 hover:text-blue-600"
-                            href={route("profile.edit")}
-                        >
-                            Profil
-                        </NavLink>
-                        <NavLink
-                            className="text-sm text-red-500 border border-red-500 px-3 py-1 rounded hover:bg-red-50"
-                            href={route('logout')} method="post" as="button"
-                        >
-                            Déconnexion
-                        </NavLink>
+                        {/*<NavLink*/}
+                        {/*    className="text-sm text-gray-600 hover:text-blue-600"*/}
+                        {/*    href={route("profile.edit")}*/}
+                        {/*>*/}
+                        {/*    Profil*/}
+                        {/*</NavLink>*/}
+                        {/*<NavLink*/}
+                        {/*    className="text-sm text-red-500 border border-red-500 px-3 py-1 rounded hover:bg-red-50"*/}
+                        {/*    href={route('logout')} method="post" as="button"*/}
+                        {/*>*/}
+                        {/*    Déconnexion*/}
+                        {/*</NavLink>*/}
                     </div>
                 </header>
 

@@ -67,7 +67,7 @@ export default function SiteMap({ auth, selectedSite, oncancel, documents, docum
                     <img
                         src={`/storage/${selectedSite.image}`}
                         alt={selectedSite.name}
-                        className="w-full h-48 object-cover rounded"
+                        className="w-full h-58 object-cover rounded"
                     />
                 )}
 

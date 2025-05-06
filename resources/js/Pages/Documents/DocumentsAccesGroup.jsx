@@ -8,7 +8,6 @@ export default function DocumentsAccesGroup({ documentIds, users, setShowAccessG
     });
 
     useEffect(() => {
-        // Précharger les accès existants si disponibles
         if (existingAccesses.length > 0) {
             setData("user_ids", existingAccesses.map(user => user.id));
         }

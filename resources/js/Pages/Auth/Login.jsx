@@ -87,7 +87,7 @@ export default function Login({ status, canResetPassword }) {
                         Don't have an account
                     </Link>
                 </div>
-                
+
 
                 <div className="mt-4 flex items-center justify-end">
                     {canResetPassword && (
