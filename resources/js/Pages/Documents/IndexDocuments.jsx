@@ -293,10 +293,10 @@ function IndexDocuments({ auth, documents, sites, users, DocumentAccess, flash }
                                         Description
                                     </th>
                                     <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Site
+                                        date d'expiration
                                     </th>
                                     <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Création
+                                        Site
                                     </th>
                                     <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Actions
@@ -325,12 +325,15 @@ function IndexDocuments({ auth, documents, sites, users, DocumentAccess, flash }
                                                     : "Aucune description"}
                                             </td>
                                             <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
+                                                {document.expiration_date
+                                                    ? (document.expiration_date || "Non trouvé")
+                                                    : "Non spécifié"
+                                                }
+                                            </td>
+                                            <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
                                                 {sites && document.site_id
                                                     ? (sites.find((site) => site.id === document.site_id)?.name || "Non trouvé")
                                                     : "Non spécifié"}
-                                            </td>
-                                            <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                                                {document.created_at ? new Date(document.created_at).toLocaleString("fr-FR") : "Non spécifié"}
                                             </td>
                                             <td className="px-6 py-3 whitespace-nowrap text-right text-sm font-medium">
                                                 <div className="flex space-x-2">

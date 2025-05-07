@@ -24,8 +24,8 @@ export default function Authenticated({ user, header, children }) {
     return (
         <div className="flex h-screen bg-gray-100 font-sans text-sm text-gray-800">
             {/* Sidebar */}
-            <aside className="w-64 bg-gray-900 text-white flex flex-col">
-                <div className="text-center text-2xl font-bold text-orange-500 py-6 border-b border-gray-700">
+            <aside className="w-64 bg-[#301454] text-white flex flex-col">
+                <div className="text-center text-2xl font-bold text-orange-500 py-6 border-b border-orange-500">
                     M-AUTOMOTIV
                 </div>
                 <nav className="flex-1 px-4 py-6 space-y-2">
@@ -46,9 +46,6 @@ export default function Authenticated({ user, header, children }) {
 
                     {user.role === "admin" && (
                         <>
-                            {/*<NavLink href={route("utilisateurs")} active={route().current("utilisateurs")}>*/}
-                            {/*    Access*/}
-                            {/*</NavLink>*/}
                             <NavLink href={route("utilisateurs")} active={route().current("utilisateurs")}>
                                 Utilisateurs
                             </NavLink>

@@ -90,20 +90,22 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
     };
 
     const typeOptionsByRole = {
-        admin: ["connecte", "document", "site", "user"],
-        manager: ["connecte", "document", "site"],
+        admin: ["document", "site", "user"],
+        manager: ["document", "site"],
         user: [],
+        all: ["document", "site", "user"]
     };
 
     const actionOptionsByType = {
         document: ["add", "edit", "delete", "updateAccessRetire", "updateAccessLimit"],
         site: ["add", "edit", "delete"],
         user: ["reset", "updaterole"],
+        all: ["connecte", "add", "edit", "delete", "reset", "updaterole", "updateAccessRetire", "updateAccessLimit"],
     };
 
     const actionOptionsByRole = {
-        admin: ["add", "edit", "delete", "reset", "updaterole", "updateAccessRetire", "updateAccessLimit"],
-        manager: ["add", "edit", "delete", "updateAccessRetire", "updateAccessLimit"],
+        admin: ["connecte", "add", "edit", "delete", "reset", "updaterole", "updateAccessRetire", "updateAccessLimit"],
+        manager: ["connecte", "add", "edit", "delete", "updateAccessRetire", "updateAccessLimit"],
         user: ["connecte"],
     };
 
@@ -129,16 +131,28 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
     const totalAlerts = filteredAlerts.length;
     const availableOptions = alertsPerPageOptions.filter(option => option <= totalAlerts || option === alertsPerPageOptions[0]);
 
-    const showTypeFilter = data.role !== "user";
-    const showActionFilter = data.type !== "connecte";
+    // Le filtre d'action est toujours affiché
+    const showActionFilter = true;
 
-    const availableTypeOptions = typeOptionsByRole[data.role] || [];
-    const availableActionOptions =
-        data.role === "user"
-            ? actionOptionsByRole["user"]
-            : (actionOptionsByType[data.type] || []).filter(action =>
-                actionOptionsByRole[data.role]?.includes(action)
-            );
+    // Définir les options disponibles pour chaque filtre
+    const availableTypeOptions = typeOptionsByRole[data.role] || typeOptionsByRole["all"];
+
+    // Options d'action basées sur le rôle et le type
+    let availableActionOptions;
+    if (data.type === 'all') {
+        // Si aucun type spécifique n'est sélectionné, montrer toutes les actions disponibles pour le rôle
+        availableActionOptions = actionOptionsByRole[data.role] || actionOptionsByRole["user"];
+    } else {
+        // Sinon, filtrer les actions en fonction du type et du rôle
+        availableActionOptions = (actionOptionsByType[data.type] || []).filter(action =>
+            actionOptionsByRole[data.role]?.includes(action)
+        );
+    }
+
+    // S'assurer que "connecte" est toujours disponible quelle que soit la combinaison type/rôle
+    if (!availableActionOptions.includes("connecte") && actionOptionsByRole[data.role]?.includes("connecte")) {
+        availableActionOptions = ["connecte", ...availableActionOptions];
+    }
 
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
@@ -179,23 +193,22 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
                                 </select>
                             </div>
 
-                            {showTypeFilter && (
-                                <div className="flex flex-col w-full">
-                                    <label htmlFor="typeFilter" className="text-xs font-medium text-gray-700 mb-1">Filtrer par type :</label>
-                                    <select
-                                        className="w-full px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        id="typeFilter"
-                                        name="type"
-                                        value={data.type}
-                                        onChange={handleFilterChange}
-                                    >
-                                        <option value="all">Toutes</option>
-                                        {availableTypeOptions.map((type) => (
-                                            <option key={type} value={type}>{translateLabel(type)}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            )}
+                            {/* Filtre par type - toujours affiché maintenant */}
+                            <div className="flex flex-col w-full">
+                                <label htmlFor="typeFilter" className="text-xs font-medium text-gray-700 mb-1">Filtrer par type :</label>
+                                <select
+                                    className="w-full px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    id="typeFilter"
+                                    name="type"
+                                    value={data.type}
+                                    onChange={handleFilterChange}
+                                >
+                                    <option value="all">Toutes</option>
+                                    {availableTypeOptions.map((type) => (
+                                        <option key={type} value={type}>{translateLabel(type)}</option>
+                                    ))}
+                                </select>
+                            </div>
 
                             {showActionFilter && (
                                 <div className="flex flex-col w-full">

@@ -88,7 +88,7 @@ export default function DocumentAcces({ auth, users,documentId,usersWithAccess, 
                                         onClick={() => setData("users", [])}
                                         className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition"
                                     >
-                                        Restaurer l accès
+                                        Révoquer l'access
                                     </button>
                                     <button
                                         onClick={() => setShowAccesModel(false)}

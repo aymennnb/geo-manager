@@ -9,6 +9,7 @@ export default function EditDocuments({ auth, document, sites, setShowEditForm }
         site_id: document.site_id,
         uploaded_by: document.uploaded_by,
         description: document.description,
+        expiration_date: document.expiration_date,
         file_path: null,
         role: auth.user.role,
         user_id: auth.user.id,
@@ -148,6 +149,25 @@ export default function EditDocuments({ auth, document, sites, setShowEditForm }
                                         {errors.description}
                                     </p>
                                 )}
+                            </div>
+
+                            <div className="mb-6">
+                                <label htmlFor="expiration_date" className="block text-gray-700 text-sm font-medium mb-2">
+                                    Date d'expiration
+                                </label>
+                                <input
+                                    id="expiration_date"
+                                    name="expiration_date"
+                                    type="date"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    value={data.expiration_date}
+                                    onChange={(e) => setData("expiration_date", e.target.value)}
+                                />
+                                {errors.expiration_date &&
+                                    <p className="mt-2 text-sm text-red-600">
+                                        {errors.expiration_date}
+                                    </p>
+                                }
                             </div>
 
                             {/* Boutons */}
