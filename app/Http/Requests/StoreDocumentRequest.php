@@ -26,7 +26,8 @@ class StoreDocumentRequest extends FormRequest
             'description' => 'nullable|string',
             'site_id' => 'required|exists:sites,id',
             'uploaded_by' => 'required|exists:users,id',
-            'file_path' => 'required|file|mimes:pdf,doc,docx,xls,csv,xlsx,png,jpg,jpeg|max:20480'
+            'file_path' => 'required|file|mimes:pdf,doc,docx,xls,csv,xlsx,png,jpg,jpeg|max:20480',
+            'expiration_date' => 'nullable|date|after_or_equal:today'
         ];
     }
 }

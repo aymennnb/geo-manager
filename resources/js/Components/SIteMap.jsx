@@ -50,7 +50,7 @@ export default function SiteMap({ auth, selectedSite, oncancel, documents, docum
 
     return (
         <div className="flex flex-col bg-white rounded-lg shadow-lg max-w-4xl mx-auto">
-            <div className="p-4 border-b flex justify-between items-center bg-orange-500 text-white rounded-t-lg">
+            <div className="p-4 border-b flex justify-between items-center bg-[#301454] text-orange-500 rounded-t-lg">
                 <h3 className="font-semibold text-lg">
                     {selectedSite.name}
                 </h3>

@@ -90,7 +90,7 @@ export default function DocumentsAccesGroup({ documentIds, users, setShowAccessG
                                 onClick={() => setData("user_ids", [])}
                                 className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition"
                             >
-                                Réinitialiser la sélection
+                                Révoquer l'access
                             </button>
                             <button
                                 type="button"

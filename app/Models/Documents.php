@@ -10,6 +10,7 @@ class Documents extends Model
         'title',
         'description',
         'file_path',
+        'expiration_date',
         'site_id',
         'uploaded_by',
         'created_at',

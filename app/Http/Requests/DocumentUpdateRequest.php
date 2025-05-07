@@ -26,6 +26,7 @@ class DocumentUpdateRequest extends FormRequest
             'description' => 'nullable|string',
             'site_id' => 'required|exists:sites,id',
             'uploaded_by' => 'required|exists:users,id',
+            'expiration_date' => 'nullable|date|after_or_equal:today'
         ];
     }
 }

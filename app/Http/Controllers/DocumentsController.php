@@ -18,7 +18,7 @@ class DocumentsController extends Controller
 {
     public function index()
     {
-        $documents = Documents::select('id', 'title', 'description', 'file_path', 'site_id', 'uploaded_by', 'created_at', 'updated_at')->get();
+        $documents = Documents::select('id', 'title', 'description', 'file_path','expiration_date', 'site_id', 'uploaded_by', 'created_at', 'updated_at')->get();
         $sites = Sites::select('id', 'name')->get();
         $users = User::select('id', 'name')->get();
 //        $users = User::where('role', 'user')->select('id', 'name')->get();
@@ -48,6 +48,7 @@ class DocumentsController extends Controller
         $document = new Documents($validated);
         $document->title = $request->title;
         $document->description = $request->description;
+        $document->expiration_date = $request->expiration_date;
         $document->site_id = $request->site_id;
         $document->uploaded_by = $request->uploaded_by;
 
@@ -87,6 +88,7 @@ class DocumentsController extends Controller
 
         $item->title = $request->title;
         $item->description = $request->description;
+        $item->expiration_date = $request->expiration_date;
         $item->site_id = $request->site_id;
         $item->uploaded_by = $request->uploaded_by;
 

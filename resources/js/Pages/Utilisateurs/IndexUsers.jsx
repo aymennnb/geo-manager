@@ -486,12 +486,12 @@ export default function IndexUsers({ auth, users, flash }) {
                             )}
                         </div>
                     </div>
-                    {import.meta.env.DEV && (
-                        <div className="mt-4 p-2 bg-gray-100 rounded">
-                            <p>IDs des utilisateurs sélectionnés :</p>
-                            <pre>{JSON.stringify(data, null, 2)}</pre>
-                        </div>
-                    )}
+                    {/*{import.meta.env.DEV && (*/}
+                    {/*    <div className="mt-4 p-2 bg-gray-100 rounded">*/}
+                    {/*        <p>IDs des utilisateurs sélectionnés :</p>*/}
+                    {/*        <pre>{JSON.stringify(data, null, 2)}</pre>*/}
+                    {/*    </div>*/}
+                    {/*)}*/}
                 </div>
             </div>
             {showEditForm && userToEdit && (
