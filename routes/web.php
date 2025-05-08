@@ -77,6 +77,8 @@ Route::middleware(['auth','verified'])->group(function () {
         Route::prefix('alerts')->controller(AlertController::class)->group(function(){
             Route::get('/','index')->name('alerts');
             Route::post('create','create')->name('alert.create');
+            Route::get('expiring-documents', 'getExpiringDocuments')->name('expiring-documents');
+
         });
 
     });
