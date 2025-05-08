@@ -10,7 +10,7 @@ const ConfirmResetPassword = ({ userToReset, onConfirm, onCancel }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
             <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
                 <h2 className="text-lg font-semibold text-gray-800 mb-4">
                     Confirmer la réinitialisation du mot de passe

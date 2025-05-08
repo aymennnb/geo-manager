@@ -9,7 +9,7 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
         role: 'all',
         action: 'all',
         type: 'all',
-        date: 'all',
+        date: 'recent',
         start_date: '',
         end_date: '',
         nomserch: ''
@@ -170,7 +170,7 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
         <Authenticated user={auth.user} header={<h2>Liste des Alertes</h2>}>
             <Head title="Alerts" />
 
-            <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div className="mx-auto sm:px-6 lg:px-8">
                 <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div className="p-6 bg-white border-b border-gray-200">
                         <div className="flex justify-between items-center mb-6">
@@ -239,7 +239,6 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
                                     value={data.date}
                                     onChange={handleFilterChange}
                                 >
-                                    <option value="all">Toutes</option>
                                     <option value="recent">Plus Récent</option>
                                     <option value="ancien">Plus Ancien</option>
                                 </select>

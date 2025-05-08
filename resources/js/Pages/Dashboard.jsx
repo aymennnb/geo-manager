@@ -101,7 +101,7 @@ export default function Dashboard({ auth, sitesMaps, documents, documentAccess }
         }>
             <Head title="Maps" />
             <div className="relative">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div className=" mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg relative">
                         <div className="p-4 sm:p-6">
                             <div className="mb-4">
@@ -152,7 +152,7 @@ export default function Dashboard({ auth, sitesMaps, documents, documentAccess }
                                         center={mapCenter}
                                         zoom={mapZoom}
                                         className="h-full w-full"
-                                        style={{ height: "100%", width: "100%" }}
+                                        style={{ height: "100%", width: "100%",borderRadius:"7px"}}
                                     >
                                         <TileLayer
                                             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -162,11 +162,12 @@ export default function Dashboard({ auth, sitesMaps, documents, documentAccess }
                                         {sitesMaps.map((site) => (
                                             <Marker
                                                 key={site.id}
+                                                title={site.name}
                                                 position={[site.latitude, site.longitude]}
                                                 eventHandlers={{
                                                     click: () => {
                                                         setSelectedSite(site);
-                                                        setMapCenter([site.latitude, site.longitude]);
+                                                        // setMapCenter([site.latitude, site.longitude]);
                                                         // setMapZoom(15);
                                                     },
                                                 }}

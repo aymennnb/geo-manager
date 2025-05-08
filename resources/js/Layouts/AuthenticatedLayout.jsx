@@ -5,9 +5,16 @@ import { Toaster } from "react-hot-toast";
 
 export default function Authenticated({ user, header, children }) {
     const [showDropdown, setShowDropdown] = useState(false);
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+        const stored = localStorage.getItem("sidebarOpen");
+        return stored !== null ? stored === "true" : true;
+    });
     const dropdownRef = useRef();
 
+// Sauvegarder l'état à chaque changement
+    useEffect(() => {
+        localStorage.setItem("sidebarOpen", isSidebarOpen);
+    }, [isSidebarOpen]);
 
     useEffect(() => {
         function handleClickOutside(event) {
@@ -21,13 +28,18 @@ export default function Authenticated({ user, header, children }) {
         };
     }, []);
 
+    const toggleSidebar = () => {
+        setIsSidebarOpen(prev => !prev);
+    };
+
+
     return (
         <div className="flex h-screen bg-gray-100 font-sans text-sm text-gray-800">
-            <aside className="w-64 bg-[#381454] text-white flex flex-col">
-                <div className="text-center text-2xl font-bold text-[#ff6c04] py-6 border-b border-[#ff6c04]">
+            <aside className={`${isSidebarOpen ? 'w-64' : 'w-0'} bg-[#381454] text-white flex flex-col overflow-hidden`}>
+                <div className="text-center text-2xl font-bold text-[#ff6c04] py-6 border-b border-[#ff6c04] whitespace-nowrap">
                     M-AUTOMOTIV
                 </div>
-                <nav className="flex-1 px-4 py-6 space-y-2">
+                <nav className="flex-1 px-4 py-6 space-y-2 whitespace-nowrap">
                     <NavLink href={route("dashboard")} active={route().current("dashboard")}>
                         Maps
                     </NavLink>
@@ -105,12 +117,22 @@ export default function Authenticated({ user, header, children }) {
                     pauseOnFocusLoss: true,
                 }}
                 />
-                <header className="bg-white border-b border-gray-200 px-6 py-4 shadow-sm flex justify-between items-center">
-                    {/*<div><button>=</button></div>*/}
-                    <h2 className="text-lg font-semibold text-gray-700">{header}</h2>
+                <header className="bg-white border-b border-gray-200 px-6 py-4 shadow-sm flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={toggleSidebar}
+                            className="p-2 rounded hover:bg-gray-100 transition-colors focus:outline-none"
+                            aria-label={isSidebarOpen ? "Masquer la barre latérale" : "Afficher la barre latérale"}
+                        >
+                            {isSidebarOpen ? "☰" : "☲"}
+                        </button>
+                        <h2 className="text-lg font-semibold text-gray-700">{header}</h2>
+                    </div>
                     <div className="flex items-center gap-3">
+                        {/* Tu peux ajouter des boutons, notifications, etc. ici */}
                     </div>
                 </header>
+
 
                 {/* Page content */}
                 <main className="flex-1 overflow-y-auto p-6 bg-gray-50">{children}</main>
