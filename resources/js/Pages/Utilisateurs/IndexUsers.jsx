@@ -24,8 +24,10 @@ export default function IndexUsers({ auth, users, flash }) {
         name_user: "",
         role_group:"",
         searchTerm:"",
-        start_date: "", // Ajout du champ pour la date de début
-        end_date: ""    // Ajout du champ pour la date de fin
+        searchId:"", // Ajout du champ pour la recherche par ID
+        filterRole:"", // Ajout du champ pour filtrer par rôle
+        start_date: "",
+        end_date: ""
     });
 
     const [showAddForm, setShowAddForm] = useState(false);
@@ -60,6 +62,20 @@ export default function IndexUsers({ auth, users, flash }) {
             user.name && user.name.toLowerCase().includes(data.searchTerm.toLowerCase())
         );
 
+        // Filtrage par ID
+        if (data.searchId) {
+            filtered = filtered.filter(user =>
+                user.id.toString().includes(data.searchId)
+            );
+        }
+
+        // Filtrage par rôle
+        if (data.filterRole) {
+            filtered = filtered.filter(user =>
+                user.role === data.filterRole
+            );
+        }
+
         // Filtrage par date de création
         if (data.start_date) {
             const startDate = new Date(data.start_date);
@@ -75,7 +91,7 @@ export default function IndexUsers({ auth, users, flash }) {
 
         setFilteredUsers(filtered);
         setCurrentPage(1); // Réinitialiser à la première page lors d'une nouvelle recherche
-    }, [data.searchTerm, data.start_date, data.end_date, users, auth.user.id]);
+    }, [data.searchTerm, data.searchId, data.filterRole, data.start_date, data.end_date, users, auth.user.id]);
 
     // Initialiser filteredUsers avec users au chargement (en excluant l'utilisateur actuel)
     useEffect(() => {
@@ -264,7 +280,7 @@ export default function IndexUsers({ auth, users, flash }) {
         <Authenticated user={auth.user} header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Utilisateurs</h2>}>
             <Head title="Utilisateurs" />
             <div>
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div className="mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6 bg-white border-b border-gray-200">
                             <div className="flex justify-between items-center mb-6">
@@ -301,28 +317,71 @@ export default function IndexUsers({ auth, users, flash }) {
                                     </button>
                                 </div>
                             </div>
-                            <div className="flex items-end gap-4 mb-7">
-                                <div className="relative flex-1">
-                                    <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                    </svg>
+
+                            {/* Nouvelle section de filtres responsive */}
+                            <div className="flex flex-wrap gap-4 mb-7">
+
+                                {/* Nouveau filtre par ID */}
+                                <div className="relative flex-1 min-w-[150px]">
+                                    <label htmlFor="searchId" className="text-xs font-medium text-gray-700 mb-1 block">Recherche par ID:</label>
+                                    <div className="relative">
+                                        <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
                                     <input
-                                        style={{height:'33px'}}
                                         type="text"
-                                        name="searchTerm"
-                                        value={data.searchTerm}
+                                        id="searchId"
+                                        name="searchId"
+                                        value={data.searchId}
                                         onChange={handleFilterChange}
-                                        className="block w-full pl-10 pr-3 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                        placeholder="Rechercher par nom..."
+                                        className="block w-full pl-10 pr-3 py-1 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                        placeholder="ID..."
                                     />
+                                    </div>
+                                </div>
+
+                                {/* Filtre par nom */}
+                                <div className="relative flex-1 min-w-[200px]">
+                                    <label htmlFor="searchTerm" className="text-xs font-medium text-gray-700 mb-1 block">Recherche par nom:</label>
+                                    <div className="relative">
+                                        <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                        <input
+                                            type="text"
+                                            id="searchTerm"
+                                            name="searchTerm"
+                                            value={data.searchTerm}
+                                            onChange={handleFilterChange}
+                                            className="block w-full pl-10 pr-3 py-1 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                            placeholder="Nom..."
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Nouveau filtre par rôle */}
+                                <div className="relative flex-1 min-w-[150px]">
+                                    <label htmlFor="filterRole" className="text-xs font-medium text-gray-700 mb-1 block">Filtrer par rôle:</label>
+                                    <select
+                                        id="filterRole"
+                                        name="filterRole"
+                                        value={data.filterRole}
+                                        onChange={handleFilterChange}
+                                        className="block w-full px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                    >
+                                        <option value="">Tous les rôles</option>
+                                        <option value="admin">Admin</option>
+                                        <option value="manager">Manager</option>
+                                        <option value="user">Utilisateur</option>
+                                    </select>
                                 </div>
 
                                 {/* Champ pour la date de début */}
-                                <div className="flex flex-col w-40">
-                                    <label htmlFor="start_date" className="text-xs font-medium text-gray-700 mb-1">Date de début:</label>
+                                <div className="flex-1 min-w-[150px]">
+                                    <label htmlFor="start_date" className="text-xs font-medium text-gray-700 mb-1 block">Date de début:</label>
                                     <input
                                         type="date"
-                                        className="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="block w-full px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                                         id="start_date"
                                         name="start_date"
                                         value={data.start_date}
@@ -331,11 +390,11 @@ export default function IndexUsers({ auth, users, flash }) {
                                 </div>
 
                                 {/* Champ pour la date de fin */}
-                                <div className="flex flex-col w-40">
-                                    <label htmlFor="end_date" className="text-xs font-medium text-gray-700 mb-1">Date de fin:</label>
+                                <div className="flex-1 min-w-[150px]">
+                                    <label htmlFor="end_date" className="text-xs font-medium text-gray-700 mb-1 block">Date de fin:</label>
                                     <input
                                         type="date"
-                                        className="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="block w-full px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                                         id="end_date"
                                         name="end_date"
                                         value={data.end_date}
@@ -343,11 +402,12 @@ export default function IndexUsers({ auth, users, flash }) {
                                     />
                                 </div>
 
-                                <div className="flex flex-col">
-                                    <label className="text-xs font-medium text-gray-700 mb-1">Par page:</label>
+                                {/* Sélecteur d'éléments par page */}
+                                <div className="flex-none min-w-[100px]">
+                                    <label htmlFor="itemsPerPage" className="text-xs font-medium text-gray-700 mb-1 block">Par page:</label>
                                     <select
                                         id="itemsPerPage"
-                                        className="w-24 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="block w-full px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                                         value={itemsPerPage}
                                         onChange={(e) => {
                                             setItemsPerPage(Number(e.target.value));
@@ -368,6 +428,7 @@ export default function IndexUsers({ auth, users, flash }) {
                                     <thead>
                                     <tr className="text-left bg-gray-50">
                                         <th className="px-6 py-3 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
+                                        <th className="px-6 py-3 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider">Id</th>
                                         <th className="px-6 py-3 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider">Nom</th>
                                         <th className="px-6 py-3 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                                         <th className="px-6 py-3 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider">Rôle</th>
@@ -389,11 +450,12 @@ export default function IndexUsers({ auth, users, flash }) {
                                                         onChange={() => handleSelectUser(user.id)}
                                                     />
                                                 </td>
+                                                <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-900">{user.id}</td>
                                                 <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-900">{user.name}</td>
                                                 <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">{user.email}</td>
                                                 <td className="px-6 whitespace-nowrap text-sm text-gray-500">
                                                     <select
-                                                        className="border border-gray-300 rounded-[7px] p-1.1"
+                                                        className="border border-gray-300 rounded-[7px] py-1"
                                                         defaultValue={user.role}
                                                         onChange={(e) => handleRoleChange(
                                                             user.id,
@@ -451,7 +513,7 @@ export default function IndexUsers({ auth, users, flash }) {
                                 </table>
                             </div>
                             {filteredUsers.length > 0 && (
-                                <div className="mt-4 flex items-center justify-between">
+                                <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
                                     <div className="flex justify-end text-sm text-gray-500">
                                         {filteredUsers.length} utilisateur(s) trouvé(s)
                                     </div>
@@ -486,12 +548,6 @@ export default function IndexUsers({ auth, users, flash }) {
                             )}
                         </div>
                     </div>
-                    {/*{import.meta.env.DEV && (*/}
-                    {/*    <div className="mt-4 p-2 bg-gray-100 rounded">*/}
-                    {/*        <p>IDs des utilisateurs sélectionnés :</p>*/}
-                    {/*        <pre>{JSON.stringify(data, null, 2)}</pre>*/}
-                    {/*    </div>*/}
-                    {/*)}*/}
                 </div>
             </div>
             {showEditForm && userToEdit && (

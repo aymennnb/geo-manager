@@ -1,17 +1,45 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "@inertiajs/react";
 
 export default function DocumentsAccesGroup({ documentIds, users, setShowAccessGroup, existingAccesses = [] }) {
     const { data, setData, post, processing, errors } = useForm({
         document_ids: documentIds,
         user_ids: [],
+        searchTerm: "" // Ajout du champ pour la recherche
     });
+
+    // État pour stocker les utilisateurs filtrés
+    const [filteredUsers, setFilteredUsers] = useState(users || []);
 
     useEffect(() => {
         if (existingAccesses.length > 0) {
             setData("user_ids", existingAccesses.map(user => user.id));
         }
     }, [existingAccesses]);
+
+    // Initialiser filteredUsers avec users au chargement
+    useEffect(() => {
+        if (users) {
+            setFilteredUsers(users);
+        }
+    }, [users]);
+
+    // Filtrer les utilisateurs en fonction du terme de recherche
+    useEffect(() => {
+        if (!users) return;
+
+        let filtered = users.filter(user =>
+            user.name && user.name.toLowerCase().includes(data.searchTerm.toLowerCase())
+        );
+
+        setFilteredUsers(filtered);
+    }, [data.searchTerm, users]);
+
+    // Gestionnaire pour le champ de recherche
+    const handleFilterChange = (e) => {
+        const { name, value } = e.target;
+        setData(name, value);
+    };
 
     const handleSelect = (e) => {
         const userId = parseInt(e.target.value, 10);
@@ -61,23 +89,44 @@ export default function DocumentsAccesGroup({ documentIds, users, setShowAccessG
                         </div>
                     </div>
 
+                    {/* Champ de recherche */}
+                    <div className="mb-4">
+                        <div className="relative flex-1">
+                            <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <input
+                                style={{height:'33px'}}
+                                type="text"
+                                name="searchTerm"
+                                value={data.searchTerm}
+                                onChange={handleFilterChange}
+                                className="block w-full pl-10 pr-3 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                placeholder="Rechercher par nom..."
+                            />
+                        </div>
+                    </div>
+
                     <form onSubmit={handleSubmit}>
                         <div className="border rounded p-4 mb-4 max-h-72 overflow-y-auto">
-                            {users
-                                .map((user) => (
-                                <div key={user.id} className="checkbox-container mb-2">
-                                    <input
-                                        type="checkbox"
-                                        name="user_ids"
-                                        id={`user-${user.id}`}
-                                        value={user.id}
-                                        checked={data.user_ids.includes(user.id)}
-                                        onChange={handleSelect}
-                                        className="mr-2"
-                                    />
-                                    <label htmlFor={`user-${user.id}`}>{user.name}</label>
-                                </div>
-                            ))}
+                            {filteredUsers.length > 0 ? (
+                                filteredUsers.map((user) => (
+                                    <div key={user.id} className="checkbox-container mb-2">
+                                        <input
+                                            type="checkbox"
+                                            name="user_ids"
+                                            id={`user-${user.id}`}
+                                            value={user.id}
+                                            checked={data.user_ids.includes(user.id)}
+                                            onChange={handleSelect}
+                                            className="mr-2"
+                                        />
+                                        <label htmlFor={`user-${user.id}`}>{user.name}</label>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="text-gray-500">Aucun utilisateur trouvé.</p>
+                            )}
                         </div>
 
                         {errors.user_ids && (
