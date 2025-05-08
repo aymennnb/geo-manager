@@ -6,6 +6,7 @@ use App\Http\Requests\AlertInsertRequest;
 use App\Models\Alerts;
 use App\Models\Documents;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class AlertController extends Controller
@@ -67,5 +68,30 @@ class AlertController extends Controller
         Alerts::create($validated);
 
         return response()->json(['message' => 'Alerte enregistrée avec succès.']);
+    }
+
+    public function getExpiringDocuments()
+    {
+        $documents = Documents::whereNotNull('date_expiration')->get();
+
+        $expiringDocuments = [];
+        $today = Carbon::now();
+
+        foreach ($documents as $document) {
+            $expirationDate = Carbon::parse($document->date_expiration);
+            $daysUntilExpiration = $today->diffInDays($expirationDate, false);
+
+            if ($daysUntilExpiration >= 0 && $daysUntilExpiration <= 30) {
+                $expiringDocuments[] = [
+                    'id' => $document->id,
+                    'name' => $document->name ?? 'Document #' . $document->id,
+                    'date_expiration' => $document->date_expiration,
+                    'days_until_expiration' => $daysUntilExpiration,
+                    'is_critical' => $daysUntilExpiration <= 7
+                ];
+            }
+        }
+
+        return response()->json($expiringDocuments);
     }
 }

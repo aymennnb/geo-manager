@@ -23,9 +23,8 @@ export default function Authenticated({ user, header, children }) {
 
     return (
         <div className="flex h-screen bg-gray-100 font-sans text-sm text-gray-800">
-            {/* Sidebar */}
-            <aside className="w-64 bg-[#301454] text-white flex flex-col">
-                <div className="text-center text-2xl font-bold text-orange-500 py-6 border-b border-orange-500">
+            <aside className="w-64 bg-[#381454] text-white flex flex-col">
+                <div className="text-center text-2xl font-bold text-[#ff6c04] py-6 border-b border-[#ff6c04]">
                     M-AUTOMOTIV
                 </div>
                 <nav className="flex-1 px-4 py-6 space-y-2">
@@ -100,27 +99,16 @@ export default function Authenticated({ user, header, children }) {
             <div className="flex-1 flex flex-col overflow-hidden">
                 {/* Header */}
                 <Toaster position="top-right" reverseOrder={false} toastOptions={{
-                    autoClose: 7000, // 5000 ms = 5 secondes
-                    pauseOnHover: true, // Mettre en pause lorsque l'utilisateur survole
-                    draggable: true, // Permettre le glissement du toast
-                    pauseOnFocusLoss: true, // Mettre en pause si l'application perd le focus
+                    autoClose: 7000,
+                    pauseOnHover: true,
+                    draggable: true,
+                    pauseOnFocusLoss: true,
                 }}
                 />
                 <header className="bg-white border-b border-gray-200 px-6 py-4 shadow-sm flex justify-between items-center">
+                    {/*<div><button>=</button></div>*/}
                     <h2 className="text-lg font-semibold text-gray-700">{header}</h2>
                     <div className="flex items-center gap-3">
-                        {/*<NavLink*/}
-                        {/*    className="text-sm text-gray-600 hover:text-blue-600"*/}
-                        {/*    href={route("profile.edit")}*/}
-                        {/*>*/}
-                        {/*    Profil*/}
-                        {/*</NavLink>*/}
-                        {/*<NavLink*/}
-                        {/*    className="text-sm text-red-500 border border-red-500 px-3 py-1 rounded hover:bg-red-50"*/}
-                        {/*    href={route('logout')} method="post" as="button"*/}
-                        {/*>*/}
-                        {/*    Déconnexion*/}
-                        {/*</NavLink>*/}
                     </div>
                 </header>
 
