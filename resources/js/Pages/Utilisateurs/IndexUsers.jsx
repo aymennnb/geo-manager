@@ -14,6 +14,10 @@ import ModalWrapper from "@/Components/ModalWrapper";
 import toast from 'react-hot-toast';
 import {FaBackward} from "react-icons/fa6";
 import {TbPlayerTrackNextFilled} from "react-icons/tb";
+import { IoMdPersonAdd } from "react-icons/io";
+import { AiOutlineUsergroupDelete } from "react-icons/ai";
+
+
 
 
 export default function IndexUsers({ auth, users, flash }) {
@@ -295,7 +299,7 @@ export default function IndexUsers({ auth, users, flash }) {
                                                 disabled={data.users_ids.length === 0}
                                                 className="px-4 py-2 bg-red-100 text-red-600 rounded-md hover:text-red-900 transition"
                                             >
-                                                Supprimer
+                                                {/*<AiOutlineUsergroupDelete/>*/} Supprimer
                                             </button>
                                             <select
                                                 style={{ height: "36px" }}
@@ -313,7 +317,7 @@ export default function IndexUsers({ auth, users, flash }) {
                                         onClick={() => setShowAddForm(true)}
                                         className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
                                     >
-                                        Ajouter un utilisateur
+                                        Ajouter un utilisateur {/*<IoMdPersonAdd/>*/}
                                     </button>
                                 </div>
                             </div>
@@ -360,7 +364,7 @@ export default function IndexUsers({ auth, users, flash }) {
                                 </div>
 
                                 {/* Nouveau filtre par rôle */}
-                                <div className="relative flex-1 min-w-[150px]">
+                                <div className="relative flex-1 min-w-[200px]">
                                     <label htmlFor="filterRole" className="text-xs font-medium text-gray-700 mb-1 block">Filtrer par rôle:</label>
                                     <select
                                         id="filterRole"
@@ -513,7 +517,7 @@ export default function IndexUsers({ auth, users, flash }) {
                                 </table>
                             </div>
                             {filteredUsers.length > 0 && (
-                                <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+                                <div className="mt-4 flex items-center justify-between">
                                     <div className="flex justify-end text-sm text-gray-500">
                                         {filteredUsers.length} utilisateur(s) trouvé(s)
                                     </div>

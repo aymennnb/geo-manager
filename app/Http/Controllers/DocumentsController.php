@@ -29,7 +29,7 @@ class DocumentsController extends Controller
             'sites' => $sites,
             'users' => $users,
             'DocumentAccess'=> $documentAccess
-        ])->with(['success'=> 'Document ajouté avec succès.']);
+        ]);
     }
 
 

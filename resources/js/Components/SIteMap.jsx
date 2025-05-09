@@ -6,13 +6,14 @@ export default function SiteMap({ auth, selectedSite, oncancel, documents, docum
     const [showArrows, setShowArrows] = useState(false);
     const carouselRef = useRef(null);
 
-    const filteredDocuments = documents.filter(
-        (doc) =>
-            doc.site_id === selectedSite.id &&
-            !documentAccess.find(
-                (access) => access.document_id === doc.id && access.user_id === auth.user.id
-            )
-    );
+    const filteredDocuments = documents.filter((doc) => {
+        const isSiteMatch = doc.site_id === selectedSite.id;
+        const hasAccess = documentAccess.find(
+            (access) => access.document_id === doc.id && access.user_id === auth.user.id
+        );
+        const isAdmin = auth.user.role === "admin";
+        return isSiteMatch && (hasAccess || isAdmin);
+    });
 
     useEffect(() => {
         setShowArrows(filteredDocuments.length > 2);
