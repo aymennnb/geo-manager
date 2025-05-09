@@ -93,29 +93,6 @@ class SitesController extends Controller
         return redirect('sites')->with(['success' => "Le site {$item->name} a été mis à jour."]);
     }
 
-    public function show($id)
-    {
-//        $site = Sites::where('id', $id)->first();
-        $documents = Documents::all();
-
-//        if (!$site) {
-//            return redirect('sites')->with(['error' => 'Site non trouvé.']);
-//        }
-
-//        Alerts::create([
-//            'user_id' => auth()->user()->id,
-//            'role' => auth()->user()->role,
-//            'action' => 'view',
-//            'type' => 'site',
-//            'message' => "a consulté les détails du site avec le nom {$site->name} et l'id {$site->id}.",
-//        ]);
-
-        return inertia('Sites/Details', [
-//            'site' => $site,
-            'documents' => $documents
-        ]);
-    }
-
     public function delete($id)
     {
         $item = Sites::where('id',$id)->first();
