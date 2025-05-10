@@ -7,10 +7,17 @@ import ConfirmSitesDelete from "@/Components/ConfirmSitesDelete";
 import AddSite from "@/Pages/Sites/AddSite"
 import EditSite from "@/Pages/Sites/EditSite"
 import Details from "@/Pages/Sites/Details"
+import ImportSitesXLSX from "@/Pages/Sites/AddFileXLSX";
 import ModalWrapper from "@/Components/ModalWrapper";
 import toast from 'react-hot-toast';
 import { TbPlayerTrackNextFilled } from "react-icons/tb";
 import { FaBackward } from "react-icons/fa6";
+import { TbHomeEdit } from "react-icons/tb";
+import { TiDeleteOutline } from "react-icons/ti";
+import { BsHouseAdd } from "react-icons/bs";
+import { CgDetailsMore } from "react-icons/cg";
+import { FaFileImport } from "react-icons/fa6";
+
 
 
 function IndexSites({ auth, sites, documents, flash}) {
@@ -39,6 +46,8 @@ function IndexSites({ auth, sites, documents, flash}) {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
     const [filteredSites, setFilteredSites] = useState([]);
+
+    const [showAddFileForm,setshowAddFileForm] = useState(false)
 
     const selectedSitesTodelete = sites.filter((site) =>
         data.sites_ids.includes(site.id)
@@ -166,15 +175,21 @@ function IndexSites({ auth, sites, documents, flash}) {
                                             disabled={data.sites_ids.length === 0}
                                             className="px-4 py-2 bg-red-100 text-red-600 rounded-md hover:text-red-900 transition"
                                         >
-                                            Supprimer
+                                            <TiDeleteOutline/>{/*Supprimer*/}
                                         </button>
                                     </>
                                 )}
                                 <button
+                                    onClick={() => setshowAddFileForm(true)}
+                                    className="px-4 py-2 bg-green-100 text-green-600 rounded-md hover:text-green-900 transition"
+                                >
+                                    <FaFileImport/>
+                                </button>
+                                <button
                                     onClick={() => setShowAddForm(true)}
                                     className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
                                 >
-                                    Ajouter un Site
+                                    <BsHouseAdd/>{/*Ajouter un Site*/}
                                 </button>
                             </div>
                         </div>
@@ -301,7 +316,11 @@ function IndexSites({ auth, sites, documents, flash}) {
                                                 />
                                             </td>
                                             <td className="px-2 py-1 whitespace-nowrap text-sm text-gray-900">
-                                                <img src={`/storage/${site.image}`} alt={site.name} />
+                                                <img
+                                                    src={`/storage/${site.image}`}
+                                                    alt={site.name}
+                                                    style={{ width: '65px', height: '65px', objectFit: 'cover' }}
+                                                />
                                             </td>
                                             <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
                                                 {site.name}
@@ -327,7 +346,7 @@ function IndexSites({ auth, sites, documents, flash}) {
                                                         }}
                                                         className="text-blue-600 hover:text-blue-900 px-2 py-1 rounded bg-blue-100"
                                                     >
-                                                        Détails
+                                                        <CgDetailsMore/>{/*Détails*/}
                                                     </button>
                                                     <button
                                                         onClick={() => {
@@ -336,13 +355,13 @@ function IndexSites({ auth, sites, documents, flash}) {
                                                         }}
                                                         className="text-yellow-600 hover:text-yellow-900 px-2 py-1 rounded bg-yellow-100"
                                                     >
-                                                        Modifier
+                                                        <TbHomeEdit/>{/*Modifier*/}
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteClick(site)}
                                                         className="text-red-600 hover:text-red-900 px-2 py-1 rounded bg-red-100"
                                                     >
-                                                        Supprimer
+                                                        <TiDeleteOutline/>{/*Supprimer*/}
                                                     </button>
                                                 </div>
                                             </td>
@@ -395,6 +414,11 @@ function IndexSites({ auth, sites, documents, flash}) {
                             </div>
                         )}
                     </div>
+                    {showAddFileForm && (
+                        <ModalWrapper title="Importation groupée des sites" onClose={() => setshowAddFileForm(false)}>
+                            <ImportSitesXLSX auth={auth} setshowAddFileForm={setshowAddFileForm} />
+                        </ModalWrapper>
+                    )}
                     {showAddForm && (
                         <ModalWrapper title="Ajouter un nouveau site" onClose={() => setShowAddForm(false)}>
                             <AddSite auth={auth} setShowAddForm={setShowAddForm} />

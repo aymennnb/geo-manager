@@ -9,9 +9,17 @@ import DetailsDocument from "@/Pages/Documents/DetailsDocument";
 import DocumentsAccesGroup from '@/Pages/Documents/DocumentsAccesGroup';
 import ConfirmSuppDOcs from '@/Components/ConfirmSuppDOcs';
 import ModalWrapper from "@/Components/ModalWrapper";
+import MultiSelectDropdown from "@/Components/MultiSelectDropdown";
 import toast from 'react-hot-toast';
 import { TbPlayerTrackNextFilled } from "react-icons/tb";
 import { FaBackward } from "react-icons/fa6";
+import { TbZoomReset } from "react-icons/tb";
+import { TiDocumentDelete } from "react-icons/ti";
+import { FaFileShield } from "react-icons/fa6";
+import { BiDetail } from "react-icons/bi";
+import { HiDocumentAdd } from "react-icons/hi";
+import { MdEditDocument } from "react-icons/md";
+
 
 export default function IndexDocuments({ auth, documents, sites, users, DocumentAccess, flash }) {
     const { data, setData, delete: destroy, post } = useForm({
@@ -19,7 +27,6 @@ export default function IndexDocuments({ auth, documents, sites, users, Document
         searchTerm: '',
         start_date: "", // Date de début pour la création
         end_date: "",   // Date de fin pour la création
-        site_id: "",    // Filtre par site
         exp_start_date: "", // Date de début pour l'expiration
         exp_end_date: ""    // Date de fin pour l'expiration
     });
@@ -42,6 +49,9 @@ export default function IndexDocuments({ auth, documents, sites, users, Document
     const [currentPage, setCurrentPage] = useState(1);
     const [filteredDocuments, setFilteredDocuments] = useState([]);
 
+    // Utiliser un tableau d'IDs pour le filtre par site au lieu d'un seul ID
+    const [selectedSites, setSelectedSites] = useState([]);
+
     // Filtrer les documents en fonction des critères de recherche et dates
     useEffect(() => {
         if (!documents) return;
@@ -50,9 +60,9 @@ export default function IndexDocuments({ auth, documents, sites, users, Document
             doc.title && doc.title.toLowerCase().includes(data.searchTerm.toLowerCase())
         );
 
-        // Filtrage par site
-        if (data.site_id) {
-            filtered = filtered.filter(doc => doc.site_id === parseInt(data.site_id));
+        // Filtrage par site (avec support multi-sélection)
+        if (selectedSites.length > 0) {
+            filtered = filtered.filter(doc => selectedSites.includes(doc.site_id));
         }
 
         // Filtrage par date de création
@@ -82,7 +92,7 @@ export default function IndexDocuments({ auth, documents, sites, users, Document
 
         setFilteredDocuments(filtered);
         setCurrentPage(1); // Réinitialiser à la première page lors d'une nouvelle recherche
-    }, [data.searchTerm, data.start_date, data.end_date, data.site_id, data.exp_start_date, data.exp_end_date, documents]);
+    }, [data.searchTerm, data.start_date, data.end_date, selectedSites, data.exp_start_date, data.exp_end_date, documents]);
 
     // Initialiser filteredDocuments avec documents au chargement
     useEffect(() => {
@@ -122,10 +132,11 @@ export default function IndexDocuments({ auth, documents, sites, users, Document
             searchTerm: '',
             start_date: '',
             end_date: '',
-            site_id: '',
             exp_start_date: '',
             exp_end_date: ''
         });
+        // Réinitialiser également la sélection des sites
+        setSelectedSites([]);
     };
 
     const openDetailModal = (document) => {
@@ -229,14 +240,14 @@ export default function IndexDocuments({ auth, documents, sites, users, Document
                                                 disabled={data.document_ids.length === 0}
                                                 className="px-4 py-2 bg-red-100 text-red-600 rounded-md hover:text-red-900 transition"
                                             >
-                                                Supprimer
+                                                <TiDocumentDelete/>{/*Supprimer*/}
                                             </button>
                                             <button
                                                 onClick={handleChangeAccess}
                                                 disabled={data.document_ids.length === 0}
                                                 className="px-4 py-2 bg-green-100 text-green-600 rounded-md hover:text-green-900 transition"
                                             >
-                                                Accès
+                                                <FaFileShield/>{/*Accès*/}
                                             </button>
                                         </>
                                     )}
@@ -244,15 +255,15 @@ export default function IndexDocuments({ auth, documents, sites, users, Document
                                         onClick={() => setShowAddForm(true)}
                                         className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
                                     >
-                                        Ajouter un Document
+                                        <HiDocumentAdd/>{/*Ajouter un Document*/}
                                     </button>
                                 </div>
                             </div>
 
-                            {/* Nouvelle section de filtres sur une même ligne */}
-                            <div className="flex flex-wrap gap-4 mb-7">
+                            {/* Nouvelle section de filtres sur une même ligne - Version corrigée */}
+                            <div className="flex flex-wrap items-end gap-3 mb-7 relative z-0">
                                 {/* Filtre par titre */}
-                                <div className="relative flex-1 min-w-[200px]">
+                                <div className="relative flex-1 min-w-[170px]">
                                     <label htmlFor="searchTerm" className="text-xs font-medium text-gray-700 mb-1 block">Recherche par titre:</label>
                                     <div className="relative">
                                         <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -270,23 +281,14 @@ export default function IndexDocuments({ auth, documents, sites, users, Document
                                     </div>
                                 </div>
 
-                                {/* Filtre par site (select) */}
-                                <div className="relative flex-1 min-w-[150px]">
-                                    <label htmlFor="site_id" className="text-xs font-medium text-gray-700 mb-1 block">Site:</label>
-                                    <select
-                                        id="site_id"
-                                        name="site_id"
-                                        value={data.site_id}
-                                        onChange={handleFilterChange}
-                                        className="block w-full px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                    >
-                                        <option value="">Tous les sites</option>
-                                        {sites && sites.map(site => (
-                                            <option key={site.id} value={site.id}>
-                                                {site.name}
-                                            </option>
-                                        ))}
-                                    </select>
+                                {/* Filtre par site (MultiSelectDropdown) */}
+                                <div className="relative flex-1 min-w-[200px] z-20">
+                                    <MultiSelectDropdown
+                                        options={sites}
+                                        selectedOptions={selectedSites}
+                                        setSelectedOptions={setSelectedSites}
+                                        label="Filtrer par site:"
+                                    />
                                 </div>
 
                                 {/* Dates de création */}
@@ -340,34 +342,54 @@ export default function IndexDocuments({ auth, documents, sites, users, Document
                                 </div>
 
                                 {/* Sélecteur d'éléments par page */}
-                                <div className="flex-none min-w-[100px]">
-                                    <label htmlFor="itemsPerPage" className="text-xs font-medium text-gray-700 mb-1 block">Par page:</label>
-                                    <select
-                                        id="itemsPerPage"
-                                        className="block w-full px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                        value={itemsPerPage}
-                                        onChange={(e) => {
-                                            setItemsPerPage(Number(e.target.value));
-                                            setCurrentPage(1); // Réinitialiser à la première page lors du changement d'items par page
-                                        }}
-                                    >
-                                        {availableOptions.map(option => (
-                                            <option key={option} value={option}>
-                                                {option}
-                                            </option>
-                                        ))}
-                                    </select>
+                                {/*<div className="flex-1 min-w-[100px]">*/}
+                                {/*    <label htmlFor="itemsPerPage" className="text-xs font-medium text-gray-700 mb-1 block">Par page:</label>*/}
+                                {/*    <select*/}
+                                {/*        id="itemsPerPage"*/}
+                                {/*        className="block w-full px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"*/}
+                                {/*        value={itemsPerPage}*/}
+                                {/*        onChange={(e) => {*/}
+                                {/*            setItemsPerPage(Number(e.target.value));*/}
+                                {/*            setCurrentPage(1); // Réinitialiser à la première page lors du changement d'items par page*/}
+                                {/*        }}*/}
+                                {/*    >*/}
+                                {/*        {availableOptions.map(option => (*/}
+                                {/*            <option key={option} value={option}>*/}
+                                {/*                {option}*/}
+                                {/*            </option>*/}
+                                {/*        ))}*/}
+                                {/*    </select>*/}
+                                {/*</div>*/}
+
+                                {/* Bouton de réinitialisation - placé au même niveau que les autres contrôles */}
+                                {/* Groupe : Par page + Réinitialiser */}
+                                <div className="flex-1 min-w-[200px]">
+                                    <label className="text-xs font-medium text-gray-700 mb-1 block">Par page :</label>
+                                    <div className="flex items-center gap-2">
+                                        <select
+                                            id="itemsPerPage"
+                                            className="w-full h-[30px] px-3 py-1 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                            value={itemsPerPage}
+                                            onChange={(e) => {
+                                                setItemsPerPage(Number(e.target.value));
+                                                setCurrentPage(1); // Réinitialiser à la première page
+                                            }}
+                                        >
+                                            {availableOptions.map(option => (
+                                                <option key={option} value={option}>
+                                                    {option}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <button
+                                            onClick={resetFilters}
+                                            className="h-[30px] px-3 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition flex items-center"
+                                        >
+                                            <TbZoomReset className="mr-1" />
+                                        </button>
+                                    </div>
                                 </div>
 
-                                {/* Bouton de réinitialisation */}
-                                <div className="flex items-end">
-                                    <button
-                                        onClick={resetFilters}
-                                        className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
-                                    >
-                                        Réinitialiser
-                                    </button>
-                                </div>
                             </div>
 
                             <div className="overflow-x-auto bg-white rounded-lg shadow overflow-y-auto">
@@ -420,19 +442,19 @@ export default function IndexDocuments({ auth, documents, sites, users, Document
                                                             onClick={() => openDetailModal(document)}
                                                             className="text-blue-600 hover:text-blue-900 px-2 py-1 rounded bg-blue-100"
                                                         >
-                                                            Détails
+                                                            <BiDetail/>{/*Détails*/}
                                                         </button>
                                                         <button
                                                             onClick={() => openEditModal(document)}
                                                             className="text-yellow-600 hover:text-yellow-900 px-2 py-1 rounded bg-yellow-100"
                                                         >
-                                                            Modifier
+                                                            <MdEditDocument/>{/*Modifier*/}
                                                         </button>
                                                         <button
                                                             onClick={() => openAccessModal(document.id)}
                                                             className="text-green-600 hover:text-green-900 px-2 py-1 rounded bg-green-100"
                                                         >
-                                                            Accès
+                                                            <FaFileShield/>{/*Accès*/}
                                                         </button>
                                                         <button
                                                             onClick={() => deleteDocument({
@@ -442,7 +464,7 @@ export default function IndexDocuments({ auth, documents, sites, users, Document
                                                             })}
                                                             className="text-red-600 hover:text-red-900 px-2 py-1 rounded bg-red-100"
                                                         >
-                                                            Supprimer
+                                                            <TiDocumentDelete/>{/*Supprimer*/}
                                                         </button>
                                                     </div>
                                                 </td>

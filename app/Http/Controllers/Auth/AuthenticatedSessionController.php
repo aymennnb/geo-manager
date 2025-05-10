@@ -34,13 +34,13 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-//        Alerts::create([
-//            'user_id' => auth()->user()->id,
-//            'role' => auth()->user()->role,
-//            'action' => 'connecte',
-//            'type' => 'connecte',
-//            'message' => "s'est connecté"
-//        ]);
+        Alerts::create([
+            'user_id' => auth()->user()->id,
+            'role' => auth()->user()->role,
+            'action' => 'connecte',
+            'type' => 'connecte',
+            'message' => "s'est connecté"
+        ]);
 
         return redirect()->intended(route('dashboard', absolute: false));
     }

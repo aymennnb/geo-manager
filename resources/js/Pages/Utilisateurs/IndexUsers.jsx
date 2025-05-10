@@ -16,9 +16,10 @@ import {FaBackward} from "react-icons/fa6";
 import {TbPlayerTrackNextFilled} from "react-icons/tb";
 import { IoMdPersonAdd } from "react-icons/io";
 import { AiOutlineUsergroupDelete } from "react-icons/ai";
-
-
-
+import { AiOutlineUserDelete } from "react-icons/ai";
+import { LiaUserEditSolid } from "react-icons/lia";
+import { IoPersonAddOutline } from "react-icons/io5";
+import { MdOutlineLockReset } from "react-icons/md";
 
 export default function IndexUsers({ auth, users, flash }) {
     const { data, setData, post, processing, errors, delete: destroy } = useForm({
@@ -299,14 +300,14 @@ export default function IndexUsers({ auth, users, flash }) {
                                                 disabled={data.users_ids.length === 0}
                                                 className="px-4 py-2 bg-red-100 text-red-600 rounded-md hover:text-red-900 transition"
                                             >
-                                                {/*<AiOutlineUsergroupDelete/>*/} Supprimer
+                                                <AiOutlineUsergroupDelete/> {/*Supprimer*/}
                                             </button>
                                             <select
-                                                style={{ height: "36px" }}
-                                                className="border w-48 border-gray-300 rounded-[7px] py-1"
+                                                style={{ height: "30px" }}
+                                                className="block w-48 px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                                                 onChange={handleUsersRoleChange}
                                             >
-                                                <option value="">-- choisir un role --</option>
+                                                <option value="">-- Changer le role --</option>
                                                 <option value="admin">Admin</option>
                                                 <option value="manager">Manager</option>
                                                 <option value="user">Utilisateur</option>
@@ -317,7 +318,7 @@ export default function IndexUsers({ auth, users, flash }) {
                                         onClick={() => setShowAddForm(true)}
                                         className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
                                     >
-                                        Ajouter un utilisateur {/*<IoMdPersonAdd/>*/}
+                                        <IoPersonAddOutline/>{/*Ajouter un utilisateur*/}
                                     </button>
                                 </div>
                             </div>
@@ -483,7 +484,7 @@ export default function IndexUsers({ auth, users, flash }) {
                                                         onClick={() => askResetPassword(user.id, user.name)}
                                                         className="text-indigo-600 hover:text-indigo-900 px-2 py-1 rounded bg-indigo-100"
                                                     >
-                                                        Réinitialiser
+                                                        <MdOutlineLockReset/>{/*Réinitialiser*/}
                                                     </button>
                                                 </td>
                                                 <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">{new Date(user.created_at).toLocaleString("fr-FR")}</td>
@@ -494,13 +495,13 @@ export default function IndexUsers({ auth, users, flash }) {
                                                             onClick={() => openEditUser(user)}
                                                             className="text-yellow-600 hover:text-yellow-900 px-2 py-1 rounded bg-yellow-100"
                                                         >
-                                                            Modifier
+                                                            <LiaUserEditSolid/>{/*Modifier*/}
                                                         </button>
                                                         <button
                                                             onClick={() => deleteUser(user.id, user.role, user.name)}
                                                             className="text-red-600 hover:text-red-900 px-2 py-1 rounded bg-red-100"
                                                         >
-                                                            Supprimer
+                                                            <AiOutlineUserDelete/>{/*Supprimer*/}
                                                         </button>
                                                     </div>
                                                 </td>
