@@ -11,6 +11,9 @@ use App\Models\Sites;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\SitesImport;
+
 
 class SitesController extends Controller
 {
@@ -72,12 +75,12 @@ class SitesController extends Controller
         $item->longitude = $request->longitude;
 
         if ($request->hasFile('image')) {
-            if ($item->file && Storage::disk('public')->exists($item->file)) {
-                Storage::disk('public')->delete($item->file);
+            if ($item->image && Storage::disk('public')->exists($item->image)) {
+                Storage::disk('public')->delete($item->image);
             }
 
             $imagePath = $request->file('image')->store('sitesImages', 'public');
-            $item->file = $imagePath;
+            $item->image = $imagePath;
         }
 
         $item->save();
@@ -163,5 +166,20 @@ class SitesController extends Controller
         }
 
         return back()->with(['success'=> 'Les sites sélectionnés ont été supprimés.']);
+    }
+
+    /**
+     * Importe des sites à partir d'un fichier CSV ou XLSX
+     */
+    public function importSites(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt,xlsx,xls|max:2048',
+        ]);
+
+        $import = new SitesImport();
+        Excel::import($import, $request->file('file'));
+
+        return back()->with('success', "{$import->count} site(s) ont été importés avec succès.");
     }
 }

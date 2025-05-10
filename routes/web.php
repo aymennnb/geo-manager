@@ -43,6 +43,7 @@ Route::middleware(['auth','verified'])->group(function () {
                 Route::get('details/{id}','show');
                 Route::delete('delete/{id}','delete');
                 Route::post('Sites-delete', 'SitesDelete')->name('sites.SitesDelete');
+                Route::post('sites-import', 'importSites')->name('sites.import');
             });
 
             Route::prefix('documents')->controller(DocumentsController::class)->group(function(){

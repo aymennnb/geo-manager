@@ -1,5 +1,7 @@
 import InputError from "@/Components/InputError";
 import { Head, Link, useForm } from "@inertiajs/react";
+import { useState } from "react";
+import { HiEye, HiEyeOff } from "react-icons/hi";
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -8,6 +10,12 @@ export default function Register() {
         password: "",
         password_confirmation: "",
     });
+
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    const togglePasswordVisibility = () => setShowPassword(!showPassword);
+    const toggleConfirmPasswordVisibility = () => setShowConfirmPassword(!showConfirmPassword);
 
     const submit = (e) => {
         e.preventDefault();
@@ -29,7 +37,7 @@ export default function Register() {
                             Rejoignez nous
                         </h1>
                         <p className="text-sm text-gray-600">
-                            Créez un compte pour commencer votre exploration géographique et découvrir les différents sites de <br/> M-AUTOMOTIV.                        </p>
+                            Créez un compte pour commencer votre exploration géographique et découvrir les différents sites de <br/> <span className="text-orange-500">M-AUTOMOTIV</span>.</p>
                     </div>
 
                     <form onSubmit={submit}>
@@ -67,44 +75,53 @@ export default function Register() {
                             <InputError message={errors.email} className="mt-1 text-xs" />
                         </div>
 
-                        <div className="mb-4">
-                            <label className="block text-gray-700 text-sm font-medium mb-1" htmlFor="password">
-                                Mot de passe
-                            </label>
+                        <div className="mb-4 relative">
+                            <label htmlFor="password" className="block text-gray-700 text-sm font-medium mb-1">Mot de passe</label>
                             <input
                                 id="password"
-                                type="password"
+                                type={showPassword ? "text" : "password"}
                                 name="password"
                                 value={data.password}
-                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition"
-                                autoComplete="new-password"
-                                placeholder="••••••••"
                                 onChange={(e) => setData("password", e.target.value)}
+                                className="w-full px-3 py-2 pr-10 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition"
+                                placeholder="••••••••"
+                                autoComplete="new-password"
                             />
+                            <span
+                                onClick={togglePasswordVisibility}
+                                className="absolute right-3 top-9 cursor-pointer text-gray-500"
+                            >
+                    {showPassword ? <HiEyeOff /> : <HiEye />}
+                </span>
                             <InputError message={errors.password} className="mt-1 text-xs" />
                         </div>
 
-                        <div className="mb-4">
-                            <label className="block text-gray-700 text-sm font-medium mb-1" htmlFor="password_confirmation">
-                                Confirmer le mot de passe
-                            </label>
+                        {/* Confirmation mot de passe */}
+                        <div className="mb-4 relative">
+                            <label htmlFor="password_confirmation" className="block text-gray-700 text-sm font-medium mb-1">Confirmer le mot de passe</label>
                             <input
                                 id="password_confirmation"
-                                type="password"
+                                type={showConfirmPassword ? "text" : "password"}
                                 name="password_confirmation"
                                 value={data.password_confirmation}
-                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition"
-                                autoComplete="new-password"
-                                placeholder="••••••••"
                                 onChange={(e) => setData("password_confirmation", e.target.value)}
+                                className="w-full px-3 py-2 pr-10 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition"
+                                placeholder="••••••••"
+                                autoComplete="new-password"
                             />
+                            <span
+                                onClick={toggleConfirmPasswordVisibility}
+                                className="absolute right-3 top-9 cursor-pointer text-gray-500"
+                            >
+                    {showConfirmPassword ? <HiEyeOff /> : <HiEye />}
+                </span>
                             <InputError message={errors.password_confirmation} className="mt-1 text-xs" />
                         </div>
 
                         <button
                             type="submit"
                             disabled={processing}
-                            className="w-full bg-blue-400 hover:bg-blue-500 text-white font-medium py-2 px-3 text-sm rounded-md transition duration-300 ease-in-out"
+                            className="w-full bg-[#5a217b] hover:bg-[#381454] text-white font-medium py-2 px-3 text-sm rounded-md transition duration-300 ease-in-out"
                         >
                             {processing ? "Création du compte..." : "S'inscrire"}
                         </button>
@@ -114,7 +131,7 @@ export default function Register() {
                                 Vous avez déjà un compte ?{" "}
                                 <Link
                                     href={route("login")}
-                                    className="text-blue-500 hover:text-blue-700 font-medium"
+                                    className="text-[#ff6c04] hover:text-blue-700 font-medium"
                                 >
                                     Se connecter
                                 </Link>

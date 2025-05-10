@@ -1,5 +1,7 @@
 import InputError from "@/Components/InputError";
 import { Head, Link, useForm } from "@inertiajs/react";
+import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -7,6 +9,8 @@ export default function Login({ status, canResetPassword }) {
         password: "",
         remember: false,
     });
+
+    const [showPassword, setShowPassword] = useState(false);
 
     const submit = (e) => {
         e.preventDefault();
@@ -17,7 +21,7 @@ export default function Login({ status, canResetPassword }) {
     };
 
     return (
-        <div className="min-h-screen flex flex-col md:flex-row">
+        <div className="min-h-screen flex flex-col md:flex-row ">
             {/* Left side - Form */}
             <div className="w-full md:w-2/2 flex items-center justify-center p-4">
                 <div className="w-full max-w-sm">
@@ -28,7 +32,7 @@ export default function Login({ status, canResetPassword }) {
                             Prêt à explorer nos implantations ?
                         </h1>
                         <p className="text-sm text-gray-600">
-                            Connectez-vous à votre compte pour consulter nos sites <br/> M-AUTOMOTIV.
+                            Connectez-vous à votre compte pour consulter nos sites <br/> <span className="text-orange-500">M-AUTOMOTIV</span>.
                         </p>
                     </div>
 
@@ -56,20 +60,26 @@ export default function Login({ status, canResetPassword }) {
                             <InputError message={errors.email} className="mt-1 text-xs" />
                         </div>
 
-                        <div className="mb-4">
-                            <label className="block text-gray-700 text-sm font-medium mb-1" htmlFor="password">
+                        <div className="mb-4 relative">
+                            <label htmlFor="password" className="block text-gray-700 text-sm font-medium mb-1">
                                 Password
                             </label>
                             <input
                                 id="password"
-                                type="password"
+                                type={showPassword ? "text" : "password"}
                                 name="password"
                                 value={data.password}
-                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition"
+                                onChange={(e) => setData("password", e.target.value)}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition pr-10"
                                 autoComplete="current-password"
                                 placeholder="••••••••"
-                                onChange={(e) => setData("password", e.target.value)}
                             />
+                            <div
+                                className="absolute right-3 top-9 cursor-pointer text-gray-500"
+                                onClick={() => setShowPassword(!showPassword)}
+                            >
+                                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </div>
                             <InputError message={errors.password} className="mt-1 text-xs" />
                         </div>
 
@@ -88,7 +98,7 @@ export default function Login({ status, canResetPassword }) {
                             {canResetPassword && (
                                 <Link
                                     href={route("password.request")}
-                                    className="text-xs text-blue-500 hover:text-blue-700 font-medium"
+                                    className="text-xs text-[#ff6c04] hover:text-[#5a217b] font-medium"
                                 >
                                     Forgot password?
                                 </Link>
@@ -98,7 +108,7 @@ export default function Login({ status, canResetPassword }) {
                         <button
                             type="submit"
                             disabled={processing}
-                            className="w-full bg-blue-400 hover:bg-blue-500 text-white font-medium py-2 px-3 text-sm rounded-md transition duration-300 ease-in-out"
+                            className="w-full bg-[#5a217b] hover:bg-[#381454] text-white font-medium py-2 px-3 text-sm rounded-md transition duration-300 ease-in-out"
                         >
                             {processing ? "Logging in..." : "Log in"}
                         </button>
@@ -108,7 +118,7 @@ export default function Login({ status, canResetPassword }) {
                                 Don't have an account?{" "}
                                 <Link
                                     href={route("register")}
-                                    className="text-blue-500 hover:text-blue-700 font-medium"
+                                    className="text-[#ff6c04] hover:text-[#5a217b] font-medium"
                                 >
                                     Sign up
                                 </Link>
@@ -117,17 +127,6 @@ export default function Login({ status, canResetPassword }) {
                     </form>
                 </div>
             </div>
-
-            {/*/!* Right side - Illustration *!/*/}
-            {/*<div className="hidden md:flex w-1/2 bg-gray-50 items-center justify-center p-8">*/}
-            {/*    <div className="max-w-md">*/}
-            {/*        <img*/}
-            {/*            src="/megane.png"*/}
-            {/*            alt="Person reading"*/}
-            {/*            className="w-full h-auto"*/}
-            {/*        />*/}
-            {/*    </div>*/}
-            {/*</div>*/}
         </div>
     );
 }
