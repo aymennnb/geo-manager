@@ -50,7 +50,7 @@ export default function Register() {
                                 type="text"
                                 name="name"
                                 value={data.name}
-                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition"
+                                className="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition"
                                 autoComplete="name"
                                 placeholder="Votre nom"
                                 onChange={(e) => setData("name", e.target.value)}
@@ -67,7 +67,7 @@ export default function Register() {
                                 type="email"
                                 name="email"
                                 value={data.email}
-                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition"
+                                className="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition"
                                 autoComplete="username"
                                 placeholder="votremail@exemple.com"
                                 onChange={(e) => setData("email", e.target.value)}
@@ -83,7 +83,7 @@ export default function Register() {
                                 name="password"
                                 value={data.password}
                                 onChange={(e) => setData("password", e.target.value)}
-                                className="w-full px-3 py-2 pr-10 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition"
+                                className="w-full px-3 py-2 pr-10 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition"
                                 placeholder="••••••••"
                                 autoComplete="new-password"
                             />
@@ -105,7 +105,7 @@ export default function Register() {
                                 name="password_confirmation"
                                 value={data.password_confirmation}
                                 onChange={(e) => setData("password_confirmation", e.target.value)}
-                                className="w-full px-3 py-2 pr-10 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition"
+                                className="w-full px-3 py-2 pr-10 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition"
                                 placeholder="••••••••"
                                 autoComplete="new-password"
                             />
@@ -141,16 +141,16 @@ export default function Register() {
                 </div>
             </div>
 
-            {/* Partie droite - Illustration (commentée comme dans la page de connexion) */}
-            {/*<div className="hidden md:flex w-1/2 bg-gray-50 items-center justify-center p-8">*/}
-            {/*    <div className="max-w-md">*/}
-            {/*        <img*/}
-            {/*            src="/megane.png"*/}
-            {/*            alt="Personne en train de lire"*/}
-            {/*            className="w-full h-auto"*/}
-            {/*        />*/}
-            {/*    </div>*/}
-            {/*</div>*/}
+             {/*Partie droite - Illustration (commentée comme dans la page de connexion)*/}
+            <div className="hidden md:flex w-2/2 bg-gray-50 items-center justify-center p-8">
+                <div className="max-w-md">
+                    <img
+                        src={`/storage/register-photo.jpg`}
+                        alt="Personne en train de lire"
+                        className="w-full h-auto"
+                    />
+                </div>
+            </div>
         </div>
     );
 }

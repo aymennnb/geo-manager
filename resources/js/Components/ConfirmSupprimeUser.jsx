@@ -1,6 +1,8 @@
 import React from "react";
+import { useWindowWidth } from "@/hooks/useWindowWidth.js";
 
-const ConfirmSupprimeUser = ({ userToDelete,confirmDelete, cancelDelete }) => {
+const ConfirmSupprimeUser = ({ userToDelete, confirmDelete, cancelDelete }) => {
+    const windowWidth = useWindowWidth();
 
     const handleConfirm = () => {
         confirmDelete();
@@ -12,13 +14,26 @@ const ConfirmSupprimeUser = ({ userToDelete,confirmDelete, cancelDelete }) => {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+            <div
+                className={`
+                    bg-white p-6 rounded-lg shadow-lg max-w-md
+                    ${windowWidth < 530
+                    ? 'w-[90%] max-w-xs'
+                    : 'w-full'
+                }
+                `}
+            >
                 <h2 className="text-lg font-semibold text-gray-800 mb-4">
                     Confirmer la suppression
                 </h2>
                 <p className="text-gray-600 mb-6">
-                    {userToDelete?.role === "admin"}
-                    Voulez-vous vraiment supprimer {userToDelete?.role === "admin"? "l'admin": userToDelete?.role === "manager" ? "Le manager" : "L'utilisateur"} {userToDelete?.name_user_to_delete} ?
+                    Voulez-vous vraiment supprimer {
+                    userToDelete?.role === "admin"
+                        ? "l'admin"
+                        : userToDelete?.role === "manager"
+                            ? "Le manager"
+                            : "L'utilisateur"
+                } {userToDelete?.name_user_to_delete} ?
                 </p>
                 <div className="flex justify-end space-x-4">
                     <button

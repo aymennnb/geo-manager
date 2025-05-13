@@ -48,7 +48,7 @@ export default function ResetPassword({ token, email }) {
                                 type="email"
                                 name="email"
                                 value={data.email}
-                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition"
+                                className="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition"
                                 autoComplete="username"
                                 onChange={(e) => setData("email", e.target.value)}
                             />
@@ -64,7 +64,7 @@ export default function ResetPassword({ token, email }) {
                                 type={showPassword ? "text" : "password"}
                                 name="password"
                                 value={data.password}
-                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition pr-10"
+                                className="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition pr-10"
                                 autoComplete="new-password"
                                 placeholder="••••••••"
                                 onChange={(e) => setData("password", e.target.value)}
@@ -88,7 +88,7 @@ export default function ResetPassword({ token, email }) {
                                 type={showPasswordConfirmation ? "text" : "password"}
                                 name="password_confirmation"
                                 value={data.password_confirmation}
-                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition pr-10"
+                                className="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition pr-10"
                                 autoComplete="new-password"
                                 placeholder="••••••••"
                                 onChange={(e) => setData("password_confirmation", e.target.value)}

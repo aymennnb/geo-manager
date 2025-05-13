@@ -16,4 +16,9 @@ class Documents extends Model
         'created_at',
         'updated_at'
     ];
+
+    public function documentAccesses()
+    {
+        return $this->belongsToMany(User::class, 'documents_accesses', 'document_id', 'user_id');
+    }
 }

@@ -4,17 +4,26 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UserUpdateRequest;
 use App\Models\Alerts;
+use App\Models\Documents;
+use App\Models\DocumentsAccess;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class UserController extends Controller
 {
+
     public function index(){
         $users = User::all();
-
+        $documents = Documents::select('id', 'title')->get();
+        $AccessTable = DocumentsAccess::select('document_id', 'user_id')->get();
+        $documentAccess = DocumentsAccess::with('user')->get();
         return Inertia::render('Utilisateurs/IndexUsers', [
-            'users' => $users
+            'users' => $users,
+            'AccessTable'=>$AccessTable,
+            'documents'=>$documents,
+            'documentAccess'=>$documentAccess
         ]);
     }
 
@@ -126,6 +135,10 @@ class UserController extends Controller
     {
         $item = User::findOrFail($id);
 
+        // Supprimer les accès de l'utilisateur dans la table documents_accesses
+        DB::table('documents_accesses')->where('user_id', $id)->delete();
+
+        // Créer une alerte pour la suppression
         Alerts::create([
             'user_id' => auth()->user()->id,
             'role' => auth()->user()->role,
@@ -134,10 +147,12 @@ class UserController extends Controller
             'message' => " a supprimé un " . ($item->role === 'admin' ? "admin" : ($item->role === 'manager' ? 'manager' : 'utilisateur')) . " avec le nom {$item->name} et L'id " . ($item->id) . ".",
         ]);
 
+        // Supprimer l'utilisateur
         $item->delete();
 
         return redirect('utilisateurs')->with(['success' => "L'utilisateur {$item->name} a été supprimé avec succès."]);
     }
+
 
     public function UsersDelete(Request $request)
     {
@@ -191,4 +206,56 @@ class UserController extends Controller
 
         return redirect()->route('utilisateurs')->with(['success' => 'Les rôles des utilisateurs sélectionnés ont été mis à jour.']);
     }
+
+    public function updateAccessDocs(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'documents' => 'array',
+            'documents.*' => 'exists:documents,id',
+        ]);
+
+        $userId = $request->user_id;
+        $user = User::find($userId);
+
+        $documentIds = $request->documents ?? [];
+        $existingAccess = DocumentsAccess::where('user_id', $userId)->pluck('document_id')->toArray();
+
+        $docsToAdd = array_diff($documentIds, $existingAccess);
+        $docsToRemove = array_diff($existingAccess, $documentIds);
+
+        DocumentsAccess::where('user_id', $userId)->delete();
+
+        foreach ($documentIds as $documentId) {
+            DocumentsAccess::create([
+                'document_id' => $documentId,
+                'user_id' => $userId,
+            ]);
+        }
+
+        foreach ($docsToAdd as $documentId) {
+            $doc = Documents::find($documentId);
+            Alerts::create([
+                'user_id' => auth()->id(),
+                'role' => auth()->user()->role,
+                'action' => 'updateAccessLimit',
+                'type' => 'document',
+                'message' => "a limité l'accès au document {$doc->title} (id: {$documentId}) à l'utilisateur {$user->name} (id: {$userId})."
+            ]);
+        }
+
+        foreach ($docsToRemove as $documentId) {
+            $doc = Documents::find($documentId);
+            Alerts::create([
+                'user_id' => auth()->id(),
+                'role' => auth()->user()->role,
+                'action' => 'updateAccessRetire',
+                'type' => 'document',
+                'message' => "a retiré l'accès au document {$doc->title} (id: {$documentId}) à l'utilisateur {$user->name} (id: {$userId})."
+            ]);
+        }
+
+        return redirect()->route('utilisateurs')->with(['success' => "Les accès de l'utilisateur {$user->name} ont été mis à jour."]);
+    }
+
 }

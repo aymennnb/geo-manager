@@ -45,14 +45,14 @@ export default function Login({ status, canResetPassword }) {
                     <form onSubmit={submit}>
                         <div className="mb-4">
                             <label className="block text-gray-700 text-sm font-medium mb-1" htmlFor="email">
-                                Email
+                                Adresse e-mail
                             </label>
                             <input
                                 id="email"
                                 type="email"
                                 name="email"
                                 value={data.email}
-                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition"
+                                className="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition"
                                 autoComplete="username"
                                 placeholder="youremail@example.com"
                                 onChange={(e) => setData("email", e.target.value)}
@@ -62,7 +62,7 @@ export default function Login({ status, canResetPassword }) {
 
                         <div className="mb-4 relative">
                             <label htmlFor="password" className="block text-gray-700 text-sm font-medium mb-1">
-                                Password
+                                Mot de passe
                             </label>
                             <input
                                 id="password"
@@ -70,7 +70,7 @@ export default function Login({ status, canResetPassword }) {
                                 name="password"
                                 value={data.password}
                                 onChange={(e) => setData("password", e.target.value)}
-                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition pr-10"
+                                className="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition pr-10"
                                 autoComplete="current-password"
                                 placeholder="••••••••"
                             />
@@ -92,7 +92,7 @@ export default function Login({ status, canResetPassword }) {
                                     className="h-3 w-3 rounded border-gray-300 text-blue-500 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                                     onChange={(e) => setData("remember", e.target.checked)}
                                 />
-                                <span className="ml-1 text-xs text-gray-600">Remember me</span>
+                                <span className="ml-1 text-xs text-gray-600">Se souvenir de moi</span>
                             </label>
 
                             {canResetPassword && (
@@ -100,7 +100,7 @@ export default function Login({ status, canResetPassword }) {
                                     href={route("password.request")}
                                     className="text-xs text-[#ff6c04] hover:text-[#5a217b] font-medium"
                                 >
-                                    Forgot password?
+                                    Mot de passe oublié?
                                 </Link>
                             )}
                         </div>
@@ -110,17 +110,17 @@ export default function Login({ status, canResetPassword }) {
                             disabled={processing}
                             className="w-full bg-[#5a217b] hover:bg-[#381454] text-white font-medium py-2 px-3 text-sm rounded-md transition duration-300 ease-in-out"
                         >
-                            {processing ? "Logging in..." : "Log in"}
+                            {processing ? "Connexion en cours..." : "Se connecter"}
                         </button>
 
                         <div className="mt-4 text-center">
                             <p className="text-gray-600 text-xs">
-                                Don't have an account?{" "}
+                                Vous n’avez pas de compte ?{" "}
                                 <Link
                                     href={route("register")}
                                     className="text-[#ff6c04] hover:text-[#5a217b] font-medium"
                                 >
-                                    Sign up
+                                    S'inscrire
                                 </Link>
                             </p>
                         </div>

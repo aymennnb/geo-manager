@@ -10,13 +10,14 @@ import Details from "@/Pages/Sites/Details"
 import ImportSitesXLSX from "@/Pages/Sites/AddFileXLSX";
 import ModalWrapper from "@/Components/ModalWrapper";
 import toast from 'react-hot-toast';
-import { TbPlayerTrackNextFilled } from "react-icons/tb";
+import {TbPlayerTrackNextFilled, TbZoomReset} from "react-icons/tb";
 import { FaBackward } from "react-icons/fa6";
 import { TbHomeEdit } from "react-icons/tb";
 import { TiDeleteOutline } from "react-icons/ti";
 import { BsHouseAdd } from "react-icons/bs";
 import { CgDetailsMore } from "react-icons/cg";
-import { FaFileImport } from "react-icons/fa6";
+import { TfiImport } from "react-icons/tfi";
+import { useWindowWidth } from "@/hooks/useWindowWidth.js";
 
 
 
@@ -28,6 +29,8 @@ function IndexSites({ auth, sites, documents, flash}) {
         start_date: '',
         end_date: ''
     });
+
+    const width = useWindowWidth();
 
     const [showAddForm, setShowAddForm] = useState(false);
 
@@ -52,6 +55,17 @@ function IndexSites({ auth, sites, documents, flash}) {
     const selectedSitesTodelete = sites.filter((site) =>
         data.sites_ids.includes(site.id)
     );
+
+    const resetFilters = () => {
+        setData({
+            ...data,
+            searchTerm: '',
+            address: '',
+            start_date: '',
+            end_date: ''
+        });
+        setCurrentPage(1);
+    };
 
     // Fonction pour filtrer les sites
     useEffect(() => {
@@ -115,9 +129,9 @@ function IndexSites({ auth, sites, documents, flash}) {
         post(route('sites.SitesDelete'), {
             onSuccess: () => {
                 setData("sites_ids", []);
-                setShowSitesDelete(false);
             }
         });
+        setShowSitesDelete(false);
     }
 
     const handleDeleteClick = (site) => {
@@ -167,13 +181,15 @@ function IndexSites({ auth, sites, documents, flash}) {
                     <div className="p-6 bg-white border-b border-gray-200">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="mr-1 text-lg font-medium text-gray-900">Liste des sites</h3>
+                            {width < 550 ?
                             <div className="flex space-x-3">
                                 {data.sites_ids.length > 0 && (
                                     <>
                                         <button
                                             onClick={() => setShowSitesDelete(true)}
                                             disabled={data.sites_ids.length === 0}
-                                            className="px-4 py-2 bg-red-100 text-red-600 rounded-md hover:text-red-900 transition"
+                                            title={`Supprimer ${data.sites_ids.length} site${data.sites_ids.length > 1 ? 's' : ''} sélectionné${data.sites_ids.length > 1 ? 's' : ''}`}
+                                            className="px-3 py-2 bg-red-100 text-red-600 rounded-md hover:text-red-900 transition"
                                         >
                                             <TiDeleteOutline/>{/*Supprimer*/}
                                         </button>
@@ -181,59 +197,96 @@ function IndexSites({ auth, sites, documents, flash}) {
                                 )}
                                 <button
                                     onClick={() => setshowAddFileForm(true)}
-                                    className="px-4 py-2 bg-green-100 text-green-600 rounded-md hover:text-green-900 transition"
+                                    title="Importer des Fichiers des Sites"
+                                    className="px-3 py-2 bg-green-100 text-green-600 rounded-md hover:text-green-900 transition"
                                 >
-                                    <FaFileImport/>
+                                    <TfiImport/>
                                 </button>
                                 <button
                                     onClick={() => setShowAddForm(true)}
-                                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
+                                    title="Ajouter un nouveau Site"
+                                    className="px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
                                 >
                                     <BsHouseAdd/>{/*Ajouter un Site*/}
                                 </button>
-                            </div>
+                            </div> :
+                                <div className="flex space-x-3">
+                                    {data.sites_ids.length > 0 && (
+                                        <>
+                                            <button
+                                                onClick={() => setShowSitesDelete(true)}
+                                                disabled={data.sites_ids.length === 0}
+                                                title={`Supprimer ${data.sites_ids.length} site${data.sites_ids.length > 1 ? 's' : ''} sélectionné${data.sites_ids.length > 1 ? 's' : ''}`}
+                                                className="px-4 py-2 bg-red-100 text-red-600 rounded-md hover:text-red-900 transition"
+                                            >
+                                                <TiDeleteOutline/>{/*Supprimer*/}
+                                            </button>
+                                        </>
+                                    )}
+                                    <button
+                                        onClick={() => setshowAddFileForm(true)}
+                                        title="Importer des Fichiers des Sites"
+                                        className="px-4 py-2 bg-green-100 text-green-600 rounded-md hover:text-green-900 transition"
+                                    >
+                                        <TfiImport/>
+                                    </button>
+                                    <button
+                                        onClick={() => setShowAddForm(true)}
+                                        title="Ajouter un nouveau Site"
+                                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
+                                    >
+                                        <BsHouseAdd/>{/*Ajouter un Site*/}
+                                    </button>
+                                </div>
+                            }
                         </div>
 
                         {/* Barre de recherche, filtres et sélection du nombre d'éléments par page */}
-                        <div className="flex items-end gap-4 mb-7">
-                            {/* Recherche par nom */}
-                            <div className="relative flex-1">
-                                <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                                <input
-                                    style={{height:'33px'}}
-                                    type="text"
-                                    name="searchTerm"
-                                    value={data.searchTerm}
-                                    onChange={handleFilterChange}
-                                    className="block w-full pl-10 pr-3 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                    placeholder="Rechercher par nom..."
-                                />
+                        {/* Section de filtres avec mise en page cohérente - Page indexsite */}
+                        <div className="flex flex-wrap items-end gap-3 mb-7 relative z-0">
+                            {/* Filtre par nom */}
+                            <div className="relative flex-1 min-w-[200px]">
+                                <label htmlFor="searchTerm" className="text-xs font-medium text-gray-700 mb-1 block">Recherche par nom:</label>
+                                <div className="relative">
+                                    <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                    <input
+                                        type="text"
+                                        id="searchTerm"
+                                        name="searchTerm"
+                                        value={data.searchTerm}
+                                        onChange={handleFilterChange}
+                                        className="block w-full pl-10 pr-3 py-1 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                        placeholder="Nom du site..."
+                                    />
+                                </div>
                             </div>
 
-                            {/* Recherche par adresse */}
-                            <div className="relative flex-1">
-                                <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                                <input
-                                    style={{height:'33px'}}
-                                    type="text"
-                                    name="address"
-                                    value={data.address}
-                                    onChange={handleFilterChange}
-                                    className="block w-full pl-10 pr-3 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                    placeholder="Rechercher par adresse..."
-                                />
+                            {/* Filtre par adresse */}
+                            <div className="relative flex-1 min-w-[200px]">
+                                <label htmlFor="address" className="text-xs font-medium text-gray-700 mb-1 block">Recherche par adresse:</label>
+                                <div className="relative">
+                                    <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                    <input
+                                        type="text"
+                                        id="address"
+                                        name="address"
+                                        value={data.address}
+                                        onChange={handleFilterChange}
+                                        className="block w-full pl-10 pr-3 py-1 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                        placeholder="Adresse..."
+                                    />
+                                </div>
                             </div>
-
-                            {/* Champ pour la date de début */}
-                            <div className="flex flex-col w-40">
-                                <label htmlFor="start_date" className="text-xs font-medium text-gray-700 mb-1">Date de début:</label>
+                            {/* Dates de création */}
+                            <div className="flex-1 min-w-[150px]">
+                                <label htmlFor="start_date" className="text-xs font-medium text-gray-700 mb-1 block">Création début:</label>
                                 <input
                                     type="date"
-                                    className="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="block w-full px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                                     id="start_date"
                                     name="start_date"
                                     value={data.start_date}
@@ -241,12 +294,11 @@ function IndexSites({ auth, sites, documents, flash}) {
                                 />
                             </div>
 
-                            {/* Champ pour la date de fin */}
-                            <div className="flex flex-col w-40">
-                                <label htmlFor="end_date" className="text-xs font-medium text-gray-700 mb-1">Date de fin:</label>
+                            <div className="flex-1 min-w-[150px]">
+                                <label htmlFor="end_date" className="text-xs font-medium text-gray-700 mb-1 block">Création fin:</label>
                                 <input
                                     type="date"
-                                    className="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="block w-full px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                                     id="end_date"
                                     name="end_date"
                                     value={data.end_date}
@@ -254,24 +306,33 @@ function IndexSites({ auth, sites, documents, flash}) {
                                 />
                             </div>
 
-                            {/* Sélection du nombre d'éléments par page */}
-                            <div className="flex flex-col">
-                                <label className="text-xs font-medium text-gray-700 mb-1">Par page:</label>
-                                <select
-                                    id="itemsPerPage"
-                                    className="w-24 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    value={itemsPerPage}
-                                    onChange={(e) => {
-                                        setItemsPerPage(Number(e.target.value));
-                                        setCurrentPage(1); // Réinitialiser à la première page lors du changement d'items par page
-                                    }}
-                                >
-                                    {availableOptions.map(option => (
-                                        <option key={option} value={option}>
-                                            {option}
-                                        </option>
-                                    ))}
-                                </select>
+                            {/* Éléments par page et bouton réinitialiser */}
+                            <div className="flex-1 min-w-[200px]">
+                                <label className="text-xs font-medium text-gray-700 mb-1 block">Par page :</label>
+                                <div className="flex items-center gap-2">
+                                    <select
+                                        id="itemsPerPage"
+                                        className="w-full h-[30px] px-3 py-1 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                        value={itemsPerPage}
+                                        onChange={(e) => {
+                                            setItemsPerPage(Number(e.target.value));
+                                            setCurrentPage(1); // Réinitialiser à la première page
+                                        }}
+                                    >
+                                        {availableOptions.map(option => (
+                                            <option key={option} value={option}>
+                                                {option}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <button
+                                        onClick={resetFilters}
+                                        title="Réinitialiser le Filtre"
+                                        className="h-[30px] px-3 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition flex items-center"
+                                    >
+                                        <TbZoomReset className="mr-1" />
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -344,6 +405,7 @@ function IndexSites({ auth, sites, documents, flash}) {
                                                             setShowDetailModal(true);
                                                             setSiteToShowDetails(site);
                                                         }}
+                                                        title={`Consulter les détails du site ${site.name}`}
                                                         className="text-blue-600 hover:text-blue-900 px-2 py-1 rounded bg-blue-100"
                                                     >
                                                         <CgDetailsMore/>{/*Détails*/}
@@ -353,12 +415,14 @@ function IndexSites({ auth, sites, documents, flash}) {
                                                             setShowEditModal(true);
                                                             setsiteToEdit(site);
                                                         }}
+                                                        title={`Modifier les informations du site ${site.name}`}
                                                         className="text-yellow-600 hover:text-yellow-900 px-2 py-1 rounded bg-yellow-100"
                                                     >
                                                         <TbHomeEdit/>{/*Modifier*/}
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteClick(site)}
+                                                        title={`Supprimer le site ${site.name}`}
                                                         className="text-red-600 hover:text-red-900 px-2 py-1 rounded bg-red-100"
                                                     >
                                                         <TiDeleteOutline/>{/*Supprimer*/}
@@ -449,12 +513,6 @@ function IndexSites({ auth, sites, documents, flash}) {
                         />
                     )}
                 </div>
-                {/*{import.meta.env.DEV && (*/}
-                {/*    <div className="mt-4 p-2 bg-gray-100 rounded">*/}
-                {/*        <p>IDs des utilisateurs sélectionnés :</p>*/}
-                {/*        <pre>{JSON.stringify(data, null, 2)}</pre>*/}
-                {/*    </div>*/}
-                {/*)}*/}
             </div>
         </Authenticated>
     );

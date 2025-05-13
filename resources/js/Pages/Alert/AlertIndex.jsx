@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Head, useForm, Link } from "@inertiajs/react";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
-import { TbPlayerTrackNextFilled } from "react-icons/tb";
+import { TbPlayerTrackNextFilled, TbZoomReset } from "react-icons/tb";
 import { FaBackward } from "react-icons/fa6";
+import { useWindowWidth } from "@/hooks/useWindowWidth.js";
 
 export default function AlertIndex({ auth, alerts, users, documents, filters }) {
     const { data, setData } = useForm({
@@ -15,11 +16,75 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
         nomserch: ''
     });
 
+    const width = useWindowWidth();
+
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
     const [filteredAlerts, setFilteredAlerts] = useState([]);
 
-    // Fonction pour filtrer les alertes selon les critères
+    // Options disponibles basées sur les sélections actuelles
+    const [availableTypes, setAvailableTypes] = useState([]);
+    const [availableActions, setAvailableActions] = useState([]);
+
+    // Configuration des filtres relationnels
+    const filterRelations = {
+        roles: {
+            all: ["document", "site", "user"],
+            admin: ["document", "site", "user"],
+            manager: ["document", "site"],
+            user: []
+        },
+        types: {
+            document: ["add", "update", "delete", "updateAccessRetire", "updateAccessLimit", "export"],
+            site: ["add", "update", "delete", "consultation"],
+            user: ["add", "update", "delete", "connecte", "reset", "updaterole"]
+        }
+    };
+
+    const resetFilters = () => {
+        setData({
+            ...data,
+            role: 'all',
+            action: 'all',
+            type: 'all',
+            date: 'recent',
+            start_date: '',
+            end_date: '',
+            nomserch: ''
+        });
+        setCurrentPage(1);
+    };
+
+    // Mettre à jour les types disponibles en fonction du rôle sélectionné
+    useEffect(() => {
+        const types = filterRelations.roles[data.role] || [];
+        setAvailableTypes(types);
+
+        // Si le type actuellement sélectionné n'est pas disponible pour ce rôle, réinitialiser
+        if (data.type !== 'all' && !types.includes(data.type)) {
+            setData('type', 'all');
+        }
+    }, [data.role]);
+
+    // Mettre à jour les actions disponibles en fonction du type sélectionné
+    useEffect(() => {
+        if (data.type === 'all') {
+            // Si 'all' est sélectionné, obtenir toutes les actions possibles
+            const allActions = Object.values(filterRelations.types).flat();
+            // Éliminer les doublons avec Set
+            setAvailableActions([...new Set(allActions)]);
+        } else {
+            const actions = filterRelations.types[data.type] || [];
+            setAvailableActions(actions);
+
+            // Si l'action actuellement sélectionnée n'est pas disponible pour ce type, réinitialiser
+            if (data.action !== 'all' && !actions.includes(data.action)) {
+                setData('action', 'all');
+            }
+        }
+    }, [data.type]);
+
+    // Filtrer les alertes en fonction des critères
     useEffect(() => {
         if (!alerts) return;
 
@@ -89,70 +154,9 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
         }
     };
 
-    const typeOptionsByRole = {
-        admin: ["document", "site", "user"],
-        manager: ["document", "site"],
-        user: [],
-        all: ["document", "site", "user"]
-    };
-
-    const actionOptionsByType = {
-        document: ["add", "edit", "delete", "updateAccessRetire", "updateAccessLimit"],
-        site: ["add", "edit", "delete"],
-        user: ["reset", "updaterole"],
-        all: ["connecte", "add", "edit", "delete", "reset", "updaterole", "updateAccessRetire", "updateAccessLimit"],
-    };
-
-    const actionOptionsByRole = {
-        admin: ["connecte", "add", "edit", "delete", "reset", "updaterole", "updateAccessRetire", "updateAccessLimit"],
-        manager: ["connecte", "add", "edit", "delete", "updateAccessRetire", "updateAccessLimit"],
-        user: ["connecte"],
-    };
-
-    const translateLabel = (value) => {
-        const labels = {
-            all: "Tous",
-            document: "Document",
-            site: "Site",
-            user: "Utilisateur",
-            add: "Ajout",
-            edit: "Modification",
-            delete: "Suppression",
-            reset: "Réinitialisation",
-            updaterole: "Changement de rôle",
-            connecte: "Connexion",
-            updateAccessRetire: "Retirer accès",
-            updateAccessLimit: "Limiter accès",
-        };
-        return labels[value] || value;
-    };
-
-    const alertsPerPageOptions = [5, 10, 20, 25, 50, 100, 150,200,300,400,600,1000];
+    const alertsPerPageOptions = [5, 10, 20, 25, 50, 100, 150, 200, 300, 400, 600, 1000];
     const totalAlerts = filteredAlerts.length;
     const availableOptions = alertsPerPageOptions.filter(option => option <= totalAlerts || option === alertsPerPageOptions[0]);
-
-    // Le filtre d'action est toujours affiché
-    const showActionFilter = true;
-
-    // Définir les options disponibles pour chaque filtre
-    const availableTypeOptions = typeOptionsByRole[data.role] || typeOptionsByRole["all"];
-
-    // Options d'action basées sur le rôle et le type
-    let availableActionOptions;
-    if (data.type === 'all') {
-        // Si aucun type spécifique n'est sélectionné, montrer toutes les actions disponibles pour le rôle
-        availableActionOptions = actionOptionsByRole[data.role] || actionOptionsByRole["user"];
-    } else {
-        // Sinon, filtrer les actions en fonction du type et du rôle
-        availableActionOptions = (actionOptionsByType[data.type] || []).filter(action =>
-            actionOptionsByRole[data.role]?.includes(action)
-        );
-    }
-
-    // S'assurer que "connecte" est toujours disponible quelle que soit la combinaison type/rôle
-    if (!availableActionOptions.includes("connecte") && actionOptionsByRole[data.role]?.includes("connecte")) {
-        availableActionOptions = ["connecte", ...availableActionOptions];
-    }
 
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
@@ -162,9 +166,40 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
     // Initialiser filteredAlerts avec alerts au chargement initial
     useEffect(() => {
         if (alerts) {
-            setFilteredAlerts(alerts);
+            // Trier les alertes par date (plus récentes d'abord) au chargement initial
+            const sortedAlerts = [...alerts].sort((a, b) =>
+                new Date(b.created_at) - new Date(a.created_at)
+            );
+            setFilteredAlerts(sortedAlerts);
         }
     }, []);
+
+    // Fonction pour traduire les valeurs d'action en texte pour l'interface
+    const getActionLabel = (actionValue) => {
+        const actionLabels = {
+            'connecte': 'Connexion',
+            'add': 'Ajout',
+            'update': 'Modification',
+            'delete': 'Suppression',
+            'updateAccessRetire': 'Retirer l\'accès',
+            'updateAccessLimit': 'Limiter l\'accès',
+            'reset': 'Réinitialisation',
+            'updaterole': 'Changement du rôle',
+            'export': 'Export',
+            'consultation': 'Consultation'
+        };
+        return actionLabels[actionValue] || actionValue;
+    };
+
+    // Fonction pour traduire les valeurs de type en texte pour l'interface
+    const getTypeLabel = (typeValue) => {
+        const typeLabels = {
+            'document': 'Document',
+            'site': 'Site',
+            'user': 'Utilisateur'
+        };
+        return typeLabels[typeValue] || typeValue;
+    };
 
     return (
         <Authenticated user={auth.user} header={<h2>Liste des Alertes</h2>}>
@@ -173,133 +208,160 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
             <div className="mx-auto sm:px-6 lg:px-8">
                 <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div className="p-6 bg-white border-b border-gray-200">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-lg font-medium text-gray-900">Liste des alertes</h3>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-6 gap-6 mb-6">
-                            <div className="flex flex-col w-full">
-                                <label htmlFor="roleFilter" className="text-xs font-medium text-gray-700 mb-1">Filtrer par rôle :</label>
-                                <select
-                                    className="w-full px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    id="roleFilter"
-                                    name="role"
-                                    value={data.role}
-                                    onChange={handleFilterChange}
-                                >
-                                    <option value="all">Toutes</option>
-                                    <option value="admin">Admin</option>
-                                    <option value="manager">Manager</option>
-                                    <option value="user">Utilisateur</option>
-                                </select>
+                        <div className="p-6 bg-white border-b border-gray-200">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-lg font-medium text-gray-900">Liste des alertes</h3>
                             </div>
 
-                            {/* Filtre par type - toujours affiché maintenant */}
-                            <div className="flex flex-col w-full">
-                                <label htmlFor="typeFilter" className="text-xs font-medium text-gray-700 mb-1">Filtrer par type :</label>
-                                <select
-                                    className="w-full px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    id="typeFilter"
-                                    name="type"
-                                    value={data.type}
-                                    onChange={handleFilterChange}
-                                >
-                                    <option value="all">Toutes</option>
-                                    {availableTypeOptions.map((type) => (
-                                        <option key={type} value={type}>{translateLabel(type)}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {showActionFilter && (
-                                <div className="flex flex-col w-full">
-                                    <label htmlFor="actionFilter" className="text-xs font-medium text-gray-700 mb-1">Filtrer par action :</label>
+                            {/* Première ligne de filtres */}
+                            <div className="flex flex-wrap items-end gap-3 mb-3 relative z-0">
+                                {/* Filtre par rôle */}
+                                <div className="flex-1 min-w-[170px]">
+                                    <label htmlFor="roleFilter" className="text-xs font-medium text-gray-700 mb-1 block">Filtrer par rôle :</label>
                                     <select
-                                        className="w-full px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        id="actionFilter"
-                                        name="action"
-                                        value={data.action}
+                                        className="block w-full px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                        id="roleFilter"
+                                        name="role"
+                                        value={data.role}
                                         onChange={handleFilterChange}
                                     >
-                                        <option value="all">Toutes</option>
-                                        {availableActionOptions.map((action) => (
-                                            <option key={action} value={action}>
-                                                {translateLabel(action)}
+                                        <option value="all">Tous</option>
+                                        <option value="admin">Admin</option>
+                                        <option value="manager">Manager</option>
+                                        <option value="user">Utilisateur</option>
+                                    </select>
+                                </div>
+
+                                {/* Filtre par type - dynamique en fonction du rôle sélectionné */}
+                                <div className="flex-1 min-w-[170px]">
+                                    <label htmlFor="typeFilter" className="text-xs font-medium text-gray-700 mb-1 block">Filtrer par type :</label>
+                                    <select
+                                        className="block w-full px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                        id="typeFilter"
+                                        name="type"
+                                        value={data.type}
+                                        onChange={handleFilterChange}
+                                        disabled={data.role === 'user' || availableTypes.length === 0}
+                                    >
+                                        <option value="all">Tous</option>
+                                        {availableTypes.map(type => (
+                                            <option key={type} value={type}>
+                                                {getTypeLabel(type)}
                                             </option>
                                         ))}
                                     </select>
                                 </div>
-                            )}
 
-                            <div className="flex flex-col w-full">
-                                <label htmlFor="dateFilter" className="text-xs font-medium text-gray-700 mb-1">Filtrer par date :</label>
-                                <select
-                                    className="w-full px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    id="dateFilter"
-                                    name="date"
-                                    value={data.date}
-                                    onChange={handleFilterChange}
-                                >
-                                    <option value="recent">Plus Récent</option>
-                                    <option value="ancien">Plus Ancien</option>
-                                </select>
+                                {/* Filtre par action - dynamique en fonction du type sélectionné */}
+                                <div className="flex-1 min-w-[170px]">
+                                    <label htmlFor="actionFilter" className="text-xs font-medium text-gray-700 mb-1 block">Filtrer par action :</label>
+                                    <select
+                                        className="block w-full px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                        id="actionFilter"
+                                        name="action"
+                                        value={data.action}
+                                        onChange={handleFilterChange}
+                                        disabled={availableActions.length === 0}
+                                    >
+                                        <option value="all">Toutes</option>
+                                        {availableActions.map(action => (
+                                            <option key={action} value={action}>
+                                                {getActionLabel(action)}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Filtre par ordre de date */}
+                                <div className="flex-1 min-w-[150px]">
+                                    <label htmlFor="dateFilter" className="text-xs font-medium text-gray-700 mb-1 block">Filtrer par date :</label>
+                                    <select
+                                        className="block w-full px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                        id="dateFilter"
+                                        name="date"
+                                        value={data.date}
+                                        onChange={handleFilterChange}
+                                    >
+                                        <option value="recent">Plus Récent</option>
+                                        <option value="ancien">Plus Ancien</option>
+                                    </select>
+                                </div>
+
+                                {/* Dates de début et fin */}
+                                <div className="flex-1 min-w-[150px]">
+                                    <label htmlFor="start_date" className="text-xs font-medium text-gray-700 mb-1 block">Date de début :</label>
+                                    <input
+                                        type="date"
+                                        className="block w-full px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                        id="start_date"
+                                        name="start_date"
+                                        value={data.start_date}
+                                        onChange={handleFilterChange}
+                                    />
+                                </div>
+
+                                <div className="flex-1 min-w-[150px]">
+                                    <label htmlFor="end_date" className="text-xs font-medium text-gray-700 mb-1 block">Date de fin :</label>
+                                    <input
+                                        type="date"
+                                        className="block w-full px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                        id="end_date"
+                                        name="end_date"
+                                        value={data.end_date}
+                                        onChange={handleFilterChange}
+                                    />
+                                </div>
                             </div>
 
-                            <div className="flex flex-col w-full">
-                                <label htmlFor="start_date" className="text-xs font-medium text-gray-700 mb-1">Date de début :</label>
-                                <input
-                                    type="date"
-                                    className="w-full px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    id="start_date"
-                                    name="start_date"
-                                    value={data.start_date}
-                                    onChange={handleFilterChange}
-                                />
-                            </div>
+                            {/* Deuxième ligne de filtres */}
+                            <div className="flex flex-wrap items-end gap-3 mb-7 relative z-0">
+                                {/* Recherche par nom */}
+                                <div className={width < 500 ? "relative flex-1 w-full" : "flex-1 min-w-[150px]"}>
+                                    <label htmlFor="nomserch" className="text-xs font-medium text-gray-700 mb-1 block">Recherche par nom :</label>
+                                    <div className="relative">
+                                        <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                        <input
+                                            type="text"
+                                            id="nomserch"
+                                            name="nomserch"
+                                            value={data.nomserch}
+                                            onChange={handleFilterChange}
+                                            className="block w-full pl-10 pr-3 py-1 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                            placeholder="Rechercher par nom..."
+                                        />
+                                    </div>
+                                </div>
 
-                            <div className="flex flex-col w-full">
-                                <label htmlFor="end_date" className="text-xs font-medium text-gray-700 mb-1">Date de fin :</label>
-                                <input
-                                    type="date"
-                                    className="w-full px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    id="end_date"
-                                    name="end_date"
-                                    value={data.end_date}
-                                    onChange={handleFilterChange}
-                                />
-                            </div>
-                        </div>
-                        <div className="flex items-end gap-4 mb-7">
-                            <div className="relative flex-1">
-                                <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                                <input
-                                    style={{height:'33px'}}
-                                    type="text"
-                                    name="nomserch"
-                                    value={data.nomserch}
-                                    onChange={handleFilterChange}
-                                    className="block w-full pl-10 pr-3 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                    placeholder="Rechercher par nom..."
-                                />
-                            </div>
-                            <div className="flex flex-col">
-                                <label className="text-xs font-medium text-gray-700 mb-1">Par page:</label>
-                                <select
-                                    id="itemsPerPage"
-                                    className="w-24 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    value={itemsPerPage}
-                                    onChange={(e) => {
-                                        setItemsPerPage(Number(e.target.value));
-                                        setCurrentPage(1); // Réinitialiser à la première page lors du changement d'items par page
-                                    }}
-                                >
-                                    {availableOptions.map(option => (
-                                        <option key={option} value={option}>
-                                            {option}
-                                        </option>
-                                    ))}
-                                </select>
+                                {/* Items par page et bouton reset */}
+                                <div className={width < 500 ? "flex-2 w-full" : "flex-2 min-w-[150px]"}>
+                                    <label className="text-xs font-medium text-gray-700 mb-1 block">Par page :</label>
+                                    <div className="flex items-center gap-2">
+                                        <select
+                                            id="itemsPerPage"
+                                            className="w-full h-[30px] px-3 py-1 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                            value={itemsPerPage}
+                                            onChange={(e) => {
+                                                setItemsPerPage(Number(e.target.value));
+                                                setCurrentPage(1); // Réinitialiser à la première page
+                                            }}
+                                        >
+                                            {availableOptions.map(option => (
+                                                <option key={option} value={option}>
+                                                    {option}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <button
+                                            onClick={resetFilters}
+                                            title="Réinitialiser le Filtre"
+                                            className="h-[30px] px-3 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition flex items-center"
+                                        >
+                                            <TbZoomReset className="mr-1" />
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -388,12 +450,6 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
                     </div>
                 </div>
             </div>
-            {/*{import.meta.env.DEV && (*/}
-            {/*    <div className="mt-10 p-2 bg-gray-100 rounded">*/}
-            {/*        <p>Données du formulaire :</p>*/}
-            {/*        <pre>{JSON.stringify(data, null, 2)}</pre>*/}
-            {/*    </div>*/}
-            {/*)}*/}
         </Authenticated>
     );
 }

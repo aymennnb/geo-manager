@@ -1,45 +1,53 @@
 import React, { useState, useEffect } from "react";
-import { Head, useForm } from "@inertiajs/react";
-import Authenticated from "@/Layouts/AuthenticatedLayout";
+import { useForm } from "@inertiajs/react";
 import toast from "react-hot-toast";
 import { useWindowWidth } from "@/hooks/useWindowWidth.js";
 
-export default function DocumentAcces({ auth, users, documentId, usersWithAccess, documentAccesses, setShowAccesModel }) {
+export default function UserDocsAccess({ auth, userId, users, documents, userDocumentsAccess, setShowAccessModal }) {
     const { data, setData, post, processing, errors } = useForm({
-        document_id: documentId,
-        users: usersWithAccess,
-        searchTerm: "" // Ajout du champ pour la recherche
+        user_id: userId,
+        documents: [], // Initialize as empty array
+        searchTerm: ""
     });
 
     const Width = useWindowWidth();
 
+    // État pour stocker les documents filtrés
+    const [filteredDocuments, setFilteredDocuments] = useState(documents || []);
 
-    // État pour stocker les utilisateurs filtrés
-    const [filteredUsers, setFilteredUsers] = useState(users || []);
-
+    // S'assurer que data.documents est toujours initialisé correctement
     useEffect(() => {
-        if (documentAccesses) {
-            setData("users", documentAccesses.map((u) => u.id));
+        // userDocumentsAccess should be an array of document IDs
+        if (Array.isArray(userDocumentsAccess)) {
+            setData("documents", userDocumentsAccess);
+        } else {
+            console.warn("userDocumentsAccess is not an array:", userDocumentsAccess);
+            setData("documents", []);
         }
-    }, [documentAccesses]);
+    }, [userDocumentsAccess]);
 
-    // Filtrer les utilisateurs en fonction du terme de recherche
+    // Filtrer les documents en fonction du terme de recherche
     useEffect(() => {
-        if (!users) return;
+        if (!documents) return;
 
-        let filtered = users.filter(user =>
-            user.name && user.name.toLowerCase().includes(data.searchTerm.toLowerCase())
-        );
-
-        setFilteredUsers(filtered);
-    }, [data.searchTerm, users]);
-
-    // Initialiser filteredUsers avec users au chargement
-    useEffect(() => {
-        if (users) {
-            setFilteredUsers(users);
+        // Appliquer uniquement le filtre de recherche sans mélanger avec les documents sélectionnés
+        if (data.searchTerm) {
+            const filtered = documents.filter(document =>
+                document.title && document.title.toLowerCase().includes(data.searchTerm.toLowerCase())
+            );
+            setFilteredDocuments(filtered);
+        } else {
+            // Si pas de terme de recherche, montrer tous les documents
+            setFilteredDocuments(documents);
         }
-    }, [users]);
+    }, [data.searchTerm, documents]);
+
+    // Initialiser les documents filtrés
+    useEffect(() => {
+        if (documents) {
+            setFilteredDocuments(documents);
+        }
+    }, [documents]);
 
     // Gestionnaire pour le champ de recherche
     const handleFilterChange = (e) => {
@@ -47,24 +55,44 @@ export default function DocumentAcces({ auth, users, documentId, usersWithAccess
         setData(name, value);
     };
 
+    // Gérer la sélection des documents
     const handleSelect = (e) => {
-        const userId = parseInt(e.target.value, 10);
+        const documentId = parseInt(e.target.value, 10);
         const isChecked = e.target.checked;
 
+        // S'assurer que data.documents est un tableau avant de le manipuler
+        const currentDocs = Array.isArray(data.documents) ? [...data.documents] : [];
+
         if (isChecked) {
-            setData("users", [...data.users, userId]);
+            // Ajouter l'ID du document s'il n'existe pas déjà
+            if (!currentDocs.includes(documentId)) {
+                setData("documents", [...currentDocs, documentId]);
+            }
         } else {
-            setData("users", data.users.filter(id => id !== userId));
+            // Supprimer l'ID du document
+            setData("documents", currentDocs.filter(id => id !== documentId));
         }
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route("access.update"), {
+        post(route("utilisateurs.updateAccessDocs"), {
             onSuccess: () => {
-                setShowAccesModel(false);
+                setShowAccessModal(false);
             },
+            onError: (errors) => {
+                console.error("Errors:", errors);
+                toast.error("Une erreur est survenue lors de la mise à jour des accès");
+            }
         });
+    };
+
+    // Trouver l'utilisateur concerné
+    const user = auth?.user;
+
+    // Vérifier si un document est sélectionné
+    const isDocumentSelected = (docId) => {
+        return Array.isArray(data.documents) && data.documents.includes(docId);
     };
 
     return (
@@ -72,22 +100,26 @@ export default function DocumentAcces({ auth, users, documentId, usersWithAccess
             <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div className="p-6">
-                        <h3 className="text-lg font-medium mb-4">Sélectionner les utilisateurs</h3>
-                        {/* Affichage des utilisateurs sélectionnés */}
+                        <h3 className="text-lg font-medium mb-4">Sélectionner les documents</h3>
+
+                        {/* Affichage des documents sélectionnés */}
                         <div className="mb-4">
-                            <label className="block mb-2">Utilisateurs sélectionnés pour le document avec l'id <b>{data.document_id}</b> ({data.users.length}) :</label>
+                            <label className="block mb-2">
+                                Documents sélectionnés pour l'utilisateur <b>{users.find((u)=>u.id===userId)?.name}</b>{" "}
+                                ({Array.isArray(data.documents) ? data.documents.length : 0}) :
+                            </label>
                             <div className="flex flex-wrap gap-2">
-                                {data.users.length > 0 ? (
-                                    data.users.map((userId) => {
-                                        const user = users.find(u => u.id === userId);
-                                        return user ? (
-                                            <div key={userId} className="bg-blue-100 text-blue-800 px-3 py-1 rounded">
-                                                {user.name}
+                                {data.documents.length > 0 ? (
+                                    data.documents.map((docId) => {
+                                        const doc = documents.find(d => d.id === docId);
+                                        return (
+                                            <div key={docId} className="bg-blue-100 text-blue-800 px-3 py-1 rounded">
+                                                {doc?.title || "Document introuvable"}
                                             </div>
-                                        ) : null;
+                                        );
                                     })
                                 ) : (
-                                    <p className="text-gray-500">Aucun utilisateur sélectionné</p>
+                                    <p className="text-gray-500">Aucun document sélectionné</p>
                                 )}
                             </div>
                         </div>
@@ -108,7 +140,7 @@ export default function DocumentAcces({ auth, users, documentId, usersWithAccess
                                     value={data.searchTerm}
                                     onChange={handleFilterChange}
                                     className="block w-full pl-10 pr-8 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                    placeholder="Rechercher par nom..."
+                                    placeholder="Rechercher par nom de document..."
                                 />
 
                                 {/* Bouton X (réinitialisation) */}
@@ -126,29 +158,29 @@ export default function DocumentAcces({ auth, users, documentId, usersWithAccess
                         </div>
 
                         <form onSubmit={handleSubmit}>
-                            <div className="border rounded p-4 mb-4">
-                                {filteredUsers.length > 0 ? (
-                                    filteredUsers.map((user) => (
-                                        <div key={user.id} className="checkbox-container mb-2">
+                            <div className="border rounded p-4 mb-4 max-h-60 overflow-y-auto">
+                                {filteredDocuments.length > 0 ? (
+                                    filteredDocuments.map((document) => (
+                                        <div key={document.id} className="checkbox-container mb-2">
                                             <input
                                                 type="checkbox"
-                                                name="users"
-                                                id={`user-${user.id}`}
-                                                value={user.id}
-                                                checked={data.users.includes(user.id)}
+                                                name="documents"
+                                                id={`document-${document.id}`}
+                                                value={document.id}
+                                                checked={isDocumentSelected(document.id)}
                                                 onChange={handleSelect}
                                                 className="mr-2"
                                             />
-                                            <label htmlFor={`user-${user.id}`}>{user.name}</label>
+                                            <label htmlFor={`document-${document.id}`}>{document.title}</label>
                                         </div>
                                     ))
                                 ) : (
-                                    <p className="text-gray-500">Aucun utilisateur trouvé.</p>
+                                    <p className="text-gray-500">Aucun document trouvé.</p>
                                 )}
                             </div>
 
-                            {errors.users && (
-                                <div className="text-red-500 mb-4">{errors.users}</div>
+                            {errors.documents && (
+                                <div className="text-red-500 mb-4">{errors.documents}</div>
                             )}
 
                             {
@@ -156,13 +188,14 @@ export default function DocumentAcces({ auth, users, documentId, usersWithAccess
                                     <div className="flex justify-end space-x-2 mb-3">
                                         <button
                                             type="button"
-                                            onClick={() => setData("users", [])}
+                                            onClick={() => setData("documents", [])}
                                             className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition"
                                         >
-                                            Révoquer l'access
+                                            Révoquer tous les accès
                                         </button>
                                         <button
-                                            onClick={() => setShowAccesModel(false)}
+                                            type="button"
+                                            onClick={() => setShowAccessModal(false)}
                                             className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition"
                                         >
                                             Annuler
@@ -179,13 +212,14 @@ export default function DocumentAcces({ auth, users, documentId, usersWithAccess
                                     <div className="flex justify-end space-x-2 mb-3">
                                         <button
                                             type="button"
-                                            onClick={() => setData("users", [])}
+                                            onClick={() => setData("documents", [])}
                                             className="px-2 py-1 text-xs bg-gray-600 text-white rounded-md hover:bg-gray-700 transition"
                                         >
                                             Révoquer l'access
                                         </button>
                                         <button
-                                            onClick={() => setShowAccesModel(false)}
+                                            type="button"
+                                            onClick={() => setShowAccessModal(false)}
                                             className="px-1 py-1 text-xs bg-gray-600 text-white rounded-md hover:bg-gray-700 transition"
                                         >
                                             Annuler

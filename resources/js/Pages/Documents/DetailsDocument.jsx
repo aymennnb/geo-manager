@@ -15,7 +15,7 @@ export default function DetailsDocument({ auth, document, setshowDetailModal, si
     };
 
     return (
-        <div className="max-w-5xl mx-auto px-4 py-6">
+        <div className="max-w-5xl mx-auto px-1 py-2">
             <div className="bg-white shadow rounded-lg overflow-hidden">
                 {/* En-tête */}
                 <div className="bg-blue-100 p-4">
@@ -91,7 +91,7 @@ export default function DetailsDocument({ auth, document, setshowDetailModal, si
                             <div>
                                 <h4 className="font-medium text-gray-700">Ajouté par</h4>
                                 <p className="text-gray-600 mt-1">
-                                    {users.find(user => user.id === document.uploaded_by)?.name || 'Non trouvé'}
+                                    {users.find(user => Number(user.id) === Number(document.uploaded_by))?.name || 'Non trouvé'}
                                 </p>
                             </div>
 
