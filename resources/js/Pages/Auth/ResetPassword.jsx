@@ -25,7 +25,7 @@ export default function ResetPassword({ token, email }) {
     return (
         <div className="min-h-screen flex flex-col md:flex-row">
             {/* Left side - Form */}
-            <div className="w-full md:w-2/2 flex items-center justify-center p-4">
+            <div className="w-full md:w-2/2  h-[95vh] flex items-center justify-center p-8">
                 <div className="w-full max-w-sm">
                     <Head title="Reset Password" />
 
