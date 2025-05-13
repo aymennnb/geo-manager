@@ -19,9 +19,11 @@ import { FaFileShield } from "react-icons/fa6";
 import { BiDetail } from "react-icons/bi";
 import { HiDocumentAdd } from "react-icons/hi";
 import { MdEditDocument } from "react-icons/md";
+import { CiExport } from "react-icons/ci";
+import { useWindowWidth } from "@/hooks/useWindowWidth.js";
 
 
-export default function IndexDocuments({ auth, documents, sites, users, DocumentAccess, flash }) {
+export default function IndexDocuments({ auth,AccessTable, documents,usersAccess, sites, users, DocumentAccess, flash }) {
     const { data, setData, delete: destroy, post } = useForm({
         document_ids: [],
         searchTerm: '',
@@ -30,6 +32,8 @@ export default function IndexDocuments({ auth, documents, sites, users, Document
         exp_start_date: "", // Date de début pour l'expiration
         exp_end_date: ""    // Date de fin pour l'expiration
     });
+
+    const width = useWindowWidth();
 
     const [showAddForm, setShowAddForm] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -169,13 +173,47 @@ export default function IndexDocuments({ auth, documents, sites, users, Document
     };
 
     const confirmDocsGroupDelete = () => {
+        if (data.document_ids.length === 0) return;
+
+        // Filtrer les documents avec accès
+        const docsWithAccess = data.document_ids
+            .map((id) => {
+                const accessCount = AccessTable.filter(entry => entry.document_id === id).length;
+                const doc = documents.find(doc => doc.id === id);
+                return accessCount > 0 ? { id, title: doc ? doc.title : `Document ${id}`, accessCount } : null;
+            })
+            .filter(Boolean);
+
+        if (docsWithAccess.length > 0) {
+            // Limiter l'affichage à 5 documents et ajouter "..."
+            const maxDocuments = 5;
+            const displayedDocuments = docsWithAccess.slice(0, maxDocuments);
+            const remainingDocuments = docsWithAccess.length - maxDocuments > 0;
+
+            // Créer une liste formatée pour l'affichage
+            const documentList = displayedDocuments.map(d => `• ${d.title} : ${d.accessCount} utilisateur${d.accessCount > 1 ? 's' : ''} ayant accès`).join('\n');
+            const additionalMessage = remainingDocuments ? "\n...\n" : "";  // Afficher "..." si plus de 5 documents
+
+            // Afficher le message d'erreur avec la liste des documents
+            toast.error(
+                `Impossible de supprimer certains documents car des utilisateurs y ont encore accès :\n${documentList}${additionalMessage}\n\nVeuillez d'abord supprimer ces accès.`,
+                { duration: 10000 }
+            );
+
+            setShowConfirmGroupModal(false);
+            return;
+        }
+
+        // Aucun accès trouvé → suppression possible
         post(route("documents.DocsDelete"), {
             onSuccess: () => {
                 setData("document_ids", []);
-                setShowConfirmGroupModal(false);
             },
         });
+
+        setShowConfirmGroupModal(false);
     };
+
 
     const handleDocsDelete = () => {
         const selectedDocs = documents
@@ -200,12 +238,30 @@ export default function IndexDocuments({ auth, documents, sites, users, Document
     };
 
     const confirmDelete = () => {
-        if (documentToDelete) {
-            destroy(`/documents/delete/${documentToDelete.id}`);
+        if (!documentToDelete) return;
+
+        const accessCount = AccessTable.filter((entry) => entry.document_id === documentToDelete.id).length;
+
+        const doc = documents.find((doc) => doc.id === documentToDelete.id);
+        const doctitle = doc ? doc.title : "ce document";
+
+        if (accessCount > 0) {
+            toast.error(
+                `Le document ${doctitle} a ${accessCount} utilisateur${accessCount > 1 ? "s" : ""} ayant accès.\n\nVeuillez supprimer ${accessCount > 1 ? "ces accès" : "cet accès"} avant de pouvoir supprimer ce document.`,
+                {
+                    duration: 10000,
+                }
+            );
             setShowConfirmModal(false);
-            setDocumentToDelete(null);
+            return;
         }
+
+        destroy(`/documents/delete/${documentToDelete.id}`);
+        setShowConfirmModal(false);
+        setDocumentToDelete(null);
     };
+
+
 
     const cancelDelete = () => {
         setShowConfirmModal(false);
@@ -221,6 +277,57 @@ export default function IndexDocuments({ auth, documents, sites, users, Document
         }
     }, [flash]);
 
+
+// This function constructs the export URL with all current filters
+    const handleExport = () => {
+        // Vérifie si des documents correspondent aux filtres actuels
+        if (filteredDocuments.length === 0) {
+            // Affiche un toast d'erreur si aucun document ne correspond
+            toast.error("Aucun document à exporter avec ces filtres.");
+            return; // Arrête l'exécution de la fonction
+        }
+
+        // Si des documents sont présents, continue avec l'exportation
+        // Build query parameters from current filters
+        const params = new URLSearchParams();
+
+        // Add search term if present
+        if (data.searchTerm) {
+            params.append('searchTerm', data.searchTerm);
+        }
+
+        // Add selected sites if any
+        if (selectedSites.length > 0) {
+            params.append('siteIds', selectedSites.join(','));
+        }
+
+        // Add date filters if present
+        if (data.start_date) {
+            params.append('startDate', data.start_date);
+        }
+
+        if (data.end_date) {
+            params.append('endDate', data.end_date);
+        }
+
+        if (data.exp_start_date) {
+            params.append('expStartDate', data.exp_start_date);
+        }
+
+        if (data.exp_end_date) {
+            params.append('expEndDate', data.exp_end_date);
+        }
+
+        // Build the final URL with query parameters
+        const exportUrl = `${route('documents.export')}?${params.toString()}`;
+
+        // Navigate to the export URL
+        window.location.href = exportUrl;
+
+        // Optionnellement, affiche un toast de succès
+        toast.success(`Exportation de ${filteredDocuments.length} document(s) en cours...`);
+    };
+
     return (
         <Authenticated user={auth.user} header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Documents</h2>}>
             <Head title="Documents" />
@@ -232,32 +339,78 @@ export default function IndexDocuments({ auth, documents, sites, users, Document
                                 <h3 className="mr-1 text-lg font-medium text-gray-900">
                                     Liste des documents
                                 </h3>
+                                {width < 550 ?
                                 <div className="flex space-x-3">
                                     {data.document_ids.length > 0 && (
                                         <>
                                             <button
                                                 onClick={handleDocsDelete}
                                                 disabled={data.document_ids.length === 0}
-                                                className="px-4 py-2 bg-red-100 text-red-600 rounded-md hover:text-red-900 transition"
+                                                title={`Supprimer ${data.document_ids.length} document${data.document_ids.length > 1 ? 's' : ''} sélectionné${data.document_ids.length > 1 ? 's' : ''}`}
+                                                className="px-2 py-2 bg-red-100 text-red-600 rounded-md hover:text-red-900 transition"
                                             >
                                                 <TiDocumentDelete/>{/*Supprimer*/}
                                             </button>
                                             <button
                                                 onClick={handleChangeAccess}
-                                                disabled={data.document_ids.length === 0}
-                                                className="px-4 py-2 bg-green-100 text-green-600 rounded-md hover:text-green-900 transition"
+                                                title={`Gérer l'accès à ${data.document_ids.length} document${data.document_ids.length > 1 ? 's' : ''} sélectionné${data.document_ids.length > 1 ? 's' : ''}`}                                                disabled={data.document_ids.length === 0}
+                                                className="px-2 py-2 bg-green-100 text-green-600 rounded-md hover:text-green-900 transition"
                                             >
                                                 <FaFileShield/>{/*Accès*/}
                                             </button>
                                         </>
                                     )}
                                     <button
+                                        onClick={handleExport}
+                                        title="Exporter les Documents Filtrés"
+                                        className="px-2 py-2 bg-green-100 text-green-600 rounded-md hover:text-green-900 transition"
+                                    >
+                                        <CiExport />
+                                    </button>
+                                    <button
                                         onClick={() => setShowAddForm(true)}
-                                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
+                                        title="Ajouter un nouveau Document"
+                                        className="px-2 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
                                     >
                                         <HiDocumentAdd/>{/*Ajouter un Document*/}
                                     </button>
-                                </div>
+                                </div> :
+                                    <div className="flex space-x-3">
+                                        {data.document_ids.length > 0 && (
+                                            <>
+                                                <button
+                                                    onClick={handleDocsDelete}
+                                                    disabled={data.document_ids.length === 0}
+                                                    title={`Supprimer ${data.document_ids.length} document${data.document_ids.length > 1 ? 's' : ''} sélectionné${data.document_ids.length > 1 ? 's' : ''}`}
+                                                    className="px-4 py-2 bg-red-100 text-red-600 rounded-md hover:text-red-900 transition"
+                                                >
+                                                    <TiDocumentDelete/>{/*Supprimer*/}
+                                                </button>
+                                                <button
+                                                    onClick={handleChangeAccess}
+                                                    title={`Gérer l'accès à ${data.document_ids.length} document${data.document_ids.length > 1 ? 's' : ''} sélectionné${data.document_ids.length > 1 ? 's' : ''}`}                                                disabled={data.document_ids.length === 0}
+                                                    className="px-4 py-2 bg-green-100 text-green-600 rounded-md hover:text-green-900 transition"
+                                                >
+                                                    <FaFileShield/>{/*Accès*/}
+                                                </button>
+                                            </>
+                                        )}
+                                        <button
+                                            onClick={handleExport}
+                                            title="Exporter les Documents Filtrés"
+                                            className="px-4 py-2 bg-green-100 text-green-600 rounded-md hover:text-green-900 transition"
+                                        >
+                                            <CiExport />
+                                        </button>
+                                        <button
+                                            onClick={() => setShowAddForm(true)}
+                                            title="Ajouter un nouveau Document"
+                                            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
+                                        >
+                                            <HiDocumentAdd/>{/*Ajouter un Document*/}
+                                        </button>
+                                    </div>
+                                }
                             </div>
 
                             {/* Nouvelle section de filtres sur une même ligne - Version corrigée */}
@@ -340,29 +493,6 @@ export default function IndexDocuments({ auth, documents, sites, users, Document
                                         onChange={handleFilterChange}
                                     />
                                 </div>
-
-                                {/* Sélecteur d'éléments par page */}
-                                {/*<div className="flex-1 min-w-[100px]">*/}
-                                {/*    <label htmlFor="itemsPerPage" className="text-xs font-medium text-gray-700 mb-1 block">Par page:</label>*/}
-                                {/*    <select*/}
-                                {/*        id="itemsPerPage"*/}
-                                {/*        className="block w-full px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"*/}
-                                {/*        value={itemsPerPage}*/}
-                                {/*        onChange={(e) => {*/}
-                                {/*            setItemsPerPage(Number(e.target.value));*/}
-                                {/*            setCurrentPage(1); // Réinitialiser à la première page lors du changement d'items par page*/}
-                                {/*        }}*/}
-                                {/*    >*/}
-                                {/*        {availableOptions.map(option => (*/}
-                                {/*            <option key={option} value={option}>*/}
-                                {/*                {option}*/}
-                                {/*            </option>*/}
-                                {/*        ))}*/}
-                                {/*    </select>*/}
-                                {/*</div>*/}
-
-                                {/* Bouton de réinitialisation - placé au même niveau que les autres contrôles */}
-                                {/* Groupe : Par page + Réinitialiser */}
                                 <div className="flex-1 min-w-[200px]">
                                     <label className="text-xs font-medium text-gray-700 mb-1 block">Par page :</label>
                                     <div className="flex items-center gap-2">
@@ -383,13 +513,13 @@ export default function IndexDocuments({ auth, documents, sites, users, Document
                                         </select>
                                         <button
                                             onClick={resetFilters}
+                                            title="Réinitialiser le Filtre"
                                             className="h-[30px] px-3 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition flex items-center"
                                         >
                                             <TbZoomReset className="mr-1" />
                                         </button>
                                     </div>
                                 </div>
-
                             </div>
 
                             <div className="overflow-x-auto bg-white rounded-lg shadow overflow-y-auto">
@@ -440,18 +570,21 @@ export default function IndexDocuments({ auth, documents, sites, users, Document
                                                     <div className="flex space-x-2">
                                                         <button
                                                             onClick={() => openDetailModal(document)}
+                                                            title={`Consulter les détails du document ${document.title}`}
                                                             className="text-blue-600 hover:text-blue-900 px-2 py-1 rounded bg-blue-100"
                                                         >
                                                             <BiDetail/>{/*Détails*/}
                                                         </button>
                                                         <button
                                                             onClick={() => openEditModal(document)}
+                                                            title={`Modifier les informations du document ${document.title}`}
                                                             className="text-yellow-600 hover:text-yellow-900 px-2 py-1 rounded bg-yellow-100"
                                                         >
                                                             <MdEditDocument/>{/*Modifier*/}
                                                         </button>
                                                         <button
                                                             onClick={() => openAccessModal(document.id)}
+                                                            title={`Gérer l'accès au document ${document.title}`}
                                                             className="text-green-600 hover:text-green-900 px-2 py-1 rounded bg-green-100"
                                                         >
                                                             <FaFileShield/>{/*Accès*/}
@@ -462,6 +595,7 @@ export default function IndexDocuments({ auth, documents, sites, users, Document
                                                                 title: document.title,
                                                                 siteName: sites.find((site) => site.id === document.site_id)?.name
                                                             })}
+                                                            title={`Supprimer le document ${document.title}`}
                                                             className="text-red-600 hover:text-red-900 px-2 py-1 rounded bg-red-100"
                                                         >
                                                             <TiDocumentDelete/>{/*Supprimer*/}
@@ -516,11 +650,17 @@ export default function IndexDocuments({ auth, documents, sites, users, Document
                             )}
                         </div>
                     </div>
+                    {import.meta.env.DEV && (
+                        <div className="mt-4 p-2 bg-gray-100 rounded">
+                            <p>Données du formulaire :</p>
+                            <pre>{JSON.stringify(AccessTable, null, 2)}</pre>
+                        </div>
+                    )}
                 </div>
             </div>
             {showAccessGroup && (
                 <ModalWrapper title="Gérer les accès" onClose={() => setShowAccessGroup(false)}>
-                    <DocumentsAccesGroup documentIds={data.document_ids} users={users} setShowAccessGroup={setShowAccessGroup} />
+                    <DocumentsAccesGroup documentIds={data.document_ids} users={usersAccess} setShowAccessGroup={setShowAccessGroup} />
                 </ModalWrapper>
             )}
             {showDetailModal && documentDetail && (
@@ -542,7 +682,7 @@ export default function IndexDocuments({ auth, documents, sites, users, Document
                 <ModalWrapper title="Gérer les accès" onClose={() => setShowAccessModal(false)}>
                     <DocumentAcces
                         auth={auth}
-                        users={users}
+                        users={usersAccess}
                         documentId={currentDocumentAccess.documentId}
                         usersWithAccess={currentDocumentAccess.usersWithAccess}
                         setShowAccesModel={setShowAccessModal}

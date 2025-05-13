@@ -3,6 +3,7 @@ import { Head, useForm, Link } from "@inertiajs/react";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 import AddUser from "@/Pages/Utilisateurs/AddUser.jsx";
 import EditUser from "@/Pages/Utilisateurs/EditUser.jsx";
+import { useWindowWidth } from "@/hooks/useWindowWidth.js";
 
 // Les Messages de Confirmation
 import ConfirmResetPassword from "@/components/ConfirmResetPassword";
@@ -12,8 +13,8 @@ import ConfirmSuppUsers from "@/Components/ConfirmSuppUsers";
 import ConfirmChangeGroupRole from "@/Components/ConfirmChangeGroupRole";
 import ModalWrapper from "@/Components/ModalWrapper";
 import toast from 'react-hot-toast';
-import {FaBackward} from "react-icons/fa6";
-import {TbPlayerTrackNextFilled} from "react-icons/tb";
+import {FaBackward, FaFileShield} from "react-icons/fa6";
+import {TbPlayerTrackNextFilled, TbZoomReset} from "react-icons/tb";
 import { IoMdPersonAdd } from "react-icons/io";
 import { AiOutlineUsergroupDelete } from "react-icons/ai";
 import { AiOutlineUserDelete } from "react-icons/ai";
@@ -21,7 +22,7 @@ import { LiaUserEditSolid } from "react-icons/lia";
 import { IoPersonAddOutline } from "react-icons/io5";
 import { MdOutlineLockReset } from "react-icons/md";
 
-export default function IndexUsers({ auth, users, flash }) {
+export default function IndexUsers({ auth,AccessTable, documents,users, flash }) {
     const { data, setData, post, processing, errors, delete: destroy } = useForm({
         users_ids:[],
         user_id: "",
@@ -30,10 +31,13 @@ export default function IndexUsers({ auth, users, flash }) {
         role_group:"",
         searchTerm:"",
         searchId:"", // Ajout du champ pour la recherche par ID
+        searchEmail:"", // Ajout du champ pour la recherche par email
         filterRole:"", // Ajout du champ pour filtrer par rôle
         start_date: "",
         end_date: ""
     });
+
+    const width = useWindowWidth();
 
     const [showAddForm, setShowAddForm] = useState(false);
     const [showConfirmDelete, setShowConfirmDelete] = useState(false);
@@ -58,6 +62,20 @@ export default function IndexUsers({ auth, users, flash }) {
     const [currentPage, setCurrentPage] = useState(1);
     const [filteredUsers, setFilteredUsers] = useState([]);
 
+    // Fonction pour réinitialiser tous les filtres
+    const resetFilters = () => {
+        setData({
+            ...data,
+            searchTerm: '',
+            searchId: '',
+            searchEmail: '',
+            filterRole: '',
+            start_date: '',
+            end_date: ''
+        });
+        setCurrentPage(1);
+    };
+
     // Filtrer les utilisateurs en fonction des critères de recherche et dates
     useEffect(() => {
         if (!users) return;
@@ -71,6 +89,13 @@ export default function IndexUsers({ auth, users, flash }) {
         if (data.searchId) {
             filtered = filtered.filter(user =>
                 user.id.toString().includes(data.searchId)
+            );
+        }
+
+        // Filtrage par email
+        if (data.searchEmail) {
+            filtered = filtered.filter(user =>
+                user.email && user.email.toLowerCase().includes(data.searchEmail.toLowerCase())
             );
         }
 
@@ -96,7 +121,7 @@ export default function IndexUsers({ auth, users, flash }) {
 
         setFilteredUsers(filtered);
         setCurrentPage(1); // Réinitialiser à la première page lors d'une nouvelle recherche
-    }, [data.searchTerm, data.searchId, data.filterRole, data.start_date, data.end_date, users, auth.user.id]);
+    }, [data.searchTerm, data.searchId, data.searchEmail, data.filterRole, data.start_date, data.end_date, users, auth.user.id]);
 
     // Initialiser filteredUsers avec users au chargement (en excluant l'utilisateur actuel)
     useEffect(() => {
@@ -126,7 +151,7 @@ export default function IndexUsers({ auth, users, flash }) {
     };
 
     // Options pour le nombre d'éléments par page
-    const usersPerPageOptions = [5, 10, 20, 25, 50, 100, 150,200,300,400,600,1000];
+    const usersPerPageOptions = [5, 10, 20, 25, 50, 100, 150, 200, 300, 400, 600, 1000];
     const totalUsers = filteredUsers.length;
     const availableOptions = usersPerPageOptions.filter(option => option <= totalUsers || option === usersPerPageOptions[0]);
 
@@ -147,12 +172,13 @@ export default function IndexUsers({ auth, users, flash }) {
 
     const confirmChangeRole = () => {
         if (userToChangeRole) {
-            setData({
-                ...data,
+            setData(prev => ({
+                ...prev,
                 user_id: userToChangeRole.id,
                 role: userToChangeRole.newRole,
-            });
+            }));
             setConfirmedChange(true);
+            setShowConfirmChangeRole(false);
         }
     };
 
@@ -162,16 +188,21 @@ export default function IndexUsers({ auth, users, flash }) {
                 onSuccess: () => {
                     setShowConfirmChangeRole(false);
                     setUserToChangeRole(null);
-                    setConfirmedChange(false);
                     setData(prevData => ({
                         ...prevData,
                         user_id: "",
                         role: "",
                     }));
+                    setConfirmedChange(false);
                 },
+                onError: () => {
+                    toast.error("Erreur lors de la modification du rôle.");
+                    setConfirmedChange(false);
+                }
             });
         }
     }, [confirmedChange, data.user_id, data.role]);
+
 
     const cancelChangeRole = () => {
         setShowConfirmChangeRole(false);
@@ -204,15 +235,14 @@ export default function IndexUsers({ auth, users, flash }) {
         post(route("utilisateurs.UsersDelete"), {
             onSuccess: () => {
                 setData("users_ids", []);
-                setShowConfirmGroupModal(false);
             },
         });
+        setShowConfirmGroupModal(false);
     };
 
     const cancelGroupDelete = () => {
         setShowConfirmGroupModal(false);
     };
-
 
     const resetPassword = () => {
         post(route('users.resetPassword', userToReset.id), {
@@ -226,18 +256,57 @@ export default function IndexUsers({ auth, users, flash }) {
         setShowConfirmReset(true);
     };
 
-    const deleteUser = (userId, userRole,userName) => {
-        setUserToDelete({ id: userId, role: userRole,name_user_to_delete:userName});
+    const deleteUser = (userId, userRole, userName) => {
+        setUserToDelete({ id: userId, role: userRole, name_user_to_delete: userName });
         setShowConfirmDelete(true);
     };
 
     const confirmDelete = () => {
-        if (userToDelete) {
-            destroy(`/utilisateurs/delete/${userToDelete.id}`);
+
+        if (!userToDelete) return;
+
+        // Filtrer les accès de l'utilisateur
+        const accessEntries = AccessTable.filter((entry) => entry.user_id === userToDelete.id);
+
+        if (accessEntries.length > 0) {
+            // Trouver l'utilisateur à supprimer
+            const User = users.find((user) => user.id === userToDelete.id);
+            const UserName = User.name;
+
+            // Récupérer les noms des documents associés à l'utilisateur
+            const documentNames = accessEntries.map((entry) => {
+                const doc = documents.find((document) => document.id === entry.document_id);
+                return doc ? doc.title : "Document inconnu";
+            });
+
+            // Limiter l'affichage à 5 documents et ajouter "..."
+            const maxDocuments = 5;
+            const displayedDocuments = documentNames.slice(0, maxDocuments);
+            const remainingDocuments = documentNames.length - maxDocuments > 0;
+
+            // Créer une liste formatée pour l'affichage
+            const documentList = displayedDocuments.map((doc, index) => `• ${doc}`).join('\n');
+            const additionalMessage = remainingDocuments ? "\n...\n" : "";  // Afficher "..." si plus de 5 documents
+
+            toast.error(
+                `L'utilisateur ${UserName} a ${accessEntries.length} document${accessEntries.length > 1 ? "s" : ""} auquel il a accès, ${accessEntries.length > 1 ? "ces documents" : "cet document"} : \n\n${documentList}${additionalMessage}\n\nVeuillez supprimer ces accès avant de pouvoir supprimer cet utilisateur.`,
+                {
+                    duration: 10000,
+                }
+            );
+
             setShowConfirmDelete(false);
-            setUserToDelete(null);
+            return;
         }
+
+        destroy(`/utilisateurs/delete/${userToDelete.id}`);
+        setShowConfirmDelete(false);
+        setUserToDelete(null);
     };
+
+
+
+
 
     const cancelDelete = () => {
         setShowConfirmDelete(false);
@@ -250,7 +319,7 @@ export default function IndexUsers({ auth, users, flash }) {
             toast.error('Veuillez choisir un rôle avant de continuer.');
             return;
         }
-        setData('role_group',role);
+        setData('role_group', role);
         const selectedUsers = users.filter((u) => data.users_ids.includes(u.id));
         setUsersToChange(selectedUsers);
         setShowConfirmModal(true);
@@ -263,19 +332,19 @@ export default function IndexUsers({ auth, users, flash }) {
                     ...prevData,
                     users_ids: []
                 }));
-                setShowConfirmModal(false);
             },
             onError: () => {
                 toast.error("Une erreur est survenue lors de la modification du rôle.");
             }
         });
+        setShowConfirmModal(false);
     };
 
     useEffect(() => {
-        if (flash.message.success) {
+        if (flash.message && flash.message.success) {
             toast.success(flash.message.success);
         }
-        if (flash.message.error) {
+        if (flash.message && flash.message.error) {
             toast.error(flash.message.error);
         }
     }, [flash]);
@@ -292,56 +361,92 @@ export default function IndexUsers({ auth, users, flash }) {
                                 <h3 className="mr-1 text-lg font-medium text-gray-900">
                                     Liste des utilisateurs
                                 </h3>
-                                <div className="flex space-x-3">
-                                    {data.users_ids.length > 0 && (
-                                        <>
+                                {width < 550 ?
+                                    <div className="flex space-x-3">
+                                        {data.users_ids.length > 0 && (
+                                            <>
+                                                <button
+                                                    onClick={handleUsersDelete}
+                                                    disabled={data.users_ids.length === 0}
+                                                    title={`Supprimer ${data.users_ids.length} utilisateur${data.users_ids.length > 1 ? 's' : ''} sélectionné${data.users_ids.length > 1 ? 's' : ''}`}
+                                                    className="px-2 py-2 bg-red-100 text-red-600 rounded-md hover:text-red-900 transition"
+                                                >
+                                                    <AiOutlineUsergroupDelete />{/*Supprimer*/}
+                                                </button>
+                                                <select
+                                                    style={{ height: "36px" }}
+                                                    className="px-2 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                                    onChange={handleUsersRoleChange}
+                                                >
+                                                    <option value="">Rôle</option>
+                                                    <option value="admin">Admin</option>
+                                                    <option value="manager">Manager</option>
+                                                    <option value="user">Utilisateur</option>
+                                                </select>
+                                            </>
+                                        )}
+                                        <button
+                                            onClick={() => setShowAddForm(true)}
+                                            title="Ajouter un nouveau utilisateur"
+                                            className="px-2 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
+                                        >
+                                            <IoPersonAddOutline />{/*Ajouter un utilisateur*/}
+                                        </button>
+                                    </div> :
+                                    <div className="flex space-x-3">
+                                            {data.users_ids.length > 0 && (
+                                                <>
+                                                    <button
+                                                        onClick={handleUsersDelete}
+                                                        disabled={data.users_ids.length === 0}
+                                                        title={`Supprimer ${data.users_ids.length} utilisateur${data.users_ids.length > 1 ? 's' : ''} sélectionné${data.users_ids.length > 1 ? 's' : ''}`}
+                                                        className="px-4 py-2 bg-red-100 text-red-600 rounded-md hover:text-red-900 transition"
+                                                    >
+                                                        <AiOutlineUsergroupDelete/> {/*Supprimer*/}
+                                                    </button>
+                                                    <select
+                                                        style={{ height: "30px" }}
+                                                        className="block w-48 px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                                        onChange={handleUsersRoleChange}
+                                                    >
+                                                        <option value="">-- Changer le role --</option>
+                                                        <option value="admin">Admin</option>
+                                                        <option value="manager">Manager</option>
+                                                        <option value="user">Utilisateur</option>
+                                                    </select>
+                                                </>
+                                            )}
                                             <button
-                                                onClick={handleUsersDelete}
-                                                disabled={data.users_ids.length === 0}
-                                                className="px-4 py-2 bg-red-100 text-red-600 rounded-md hover:text-red-900 transition"
+                                                onClick={() => setShowAddForm(true)}
+                                                title="Ajouter un nouveau utilisateur"
+                                                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
                                             >
-                                                <AiOutlineUsergroupDelete/> {/*Supprimer*/}
+                                                <IoPersonAddOutline/>{/*Ajouter un utilisateur*/}
                                             </button>
-                                            <select
-                                                style={{ height: "30px" }}
-                                                className="block w-48 px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                                onChange={handleUsersRoleChange}
-                                            >
-                                                <option value="">-- Changer le role --</option>
-                                                <option value="admin">Admin</option>
-                                                <option value="manager">Manager</option>
-                                                <option value="user">Utilisateur</option>
-                                            </select>
-                                        </>
-                                    )}
-                                    <button
-                                        onClick={() => setShowAddForm(true)}
-                                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
-                                    >
-                                        <IoPersonAddOutline/>{/*Ajouter un utilisateur*/}
-                                    </button>
-                                </div>
+                                        </div>
+                                }
                             </div>
 
-                            {/* Nouvelle section de filtres responsive */}
-                            <div className="flex flex-wrap gap-4 mb-7">
 
-                                {/* Nouveau filtre par ID */}
+                            {/* Nouvelle section de filtres responsive */}
+                            {/* Section de filtres avec mise en page cohérente - Page indexuser */}
+                            <div className="flex flex-wrap items-end gap-3 mb-7 relative z-0">
+                                {/* Filtre par ID */}
                                 <div className="relative flex-1 min-w-[150px]">
                                     <label htmlFor="searchId" className="text-xs font-medium text-gray-700 mb-1 block">Recherche par ID:</label>
                                     <div className="relative">
                                         <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                         </svg>
-                                    <input
-                                        type="text"
-                                        id="searchId"
-                                        name="searchId"
-                                        value={data.searchId}
-                                        onChange={handleFilterChange}
-                                        className="block w-full pl-10 pr-3 py-1 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                        placeholder="ID..."
-                                    />
+                                        <input
+                                            type="number"
+                                            id="searchId"
+                                            name="searchId"
+                                            value={data.searchId}
+                                            onChange={handleFilterChange}
+                                            className="block w-full pl-10 pr-3 py-1 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                            placeholder="ID..."
+                                        />
                                     </div>
                                 </div>
 
@@ -364,8 +469,27 @@ export default function IndexUsers({ auth, users, flash }) {
                                     </div>
                                 </div>
 
-                                {/* Nouveau filtre par rôle */}
+                                {/* Filtre par adresse email */}
                                 <div className="relative flex-1 min-w-[200px]">
+                                    <label htmlFor="searchEmail" className="text-xs font-medium text-gray-700 mb-1 block">Recherche par email:</label>
+                                    <div className="relative">
+                                        <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                        <input
+                                            type="text"
+                                            id="searchEmail"
+                                            name="searchEmail"
+                                            value={data.searchEmail}
+                                            onChange={handleFilterChange}
+                                            className="block w-full pl-10 pr-3 py-1 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                            placeholder="Email..."
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Filtre par rôle */}
+                                <div className="relative flex-1 min-w-[150px]">
                                     <label htmlFor="filterRole" className="text-xs font-medium text-gray-700 mb-1 block">Filtrer par rôle:</label>
                                     <select
                                         id="filterRole"
@@ -381,9 +505,9 @@ export default function IndexUsers({ auth, users, flash }) {
                                     </select>
                                 </div>
 
-                                {/* Champ pour la date de début */}
+                                {/* Dates de création */}
                                 <div className="flex-1 min-w-[150px]">
-                                    <label htmlFor="start_date" className="text-xs font-medium text-gray-700 mb-1 block">Date de début:</label>
+                                    <label htmlFor="start_date" className="text-xs font-medium text-gray-700 mb-1 block">Création début:</label>
                                     <input
                                         type="date"
                                         className="block w-full px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -394,9 +518,8 @@ export default function IndexUsers({ auth, users, flash }) {
                                     />
                                 </div>
 
-                                {/* Champ pour la date de fin */}
                                 <div className="flex-1 min-w-[150px]">
-                                    <label htmlFor="end_date" className="text-xs font-medium text-gray-700 mb-1 block">Date de fin:</label>
+                                    <label htmlFor="end_date" className="text-xs font-medium text-gray-700 mb-1 block">Création fin:</label>
                                     <input
                                         type="date"
                                         className="block w-full px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -407,24 +530,33 @@ export default function IndexUsers({ auth, users, flash }) {
                                     />
                                 </div>
 
-                                {/* Sélecteur d'éléments par page */}
-                                <div className="flex-none min-w-[100px]">
-                                    <label htmlFor="itemsPerPage" className="text-xs font-medium text-gray-700 mb-1 block">Par page:</label>
-                                    <select
-                                        id="itemsPerPage"
-                                        className="block w-full px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                        value={itemsPerPage}
-                                        onChange={(e) => {
-                                            setItemsPerPage(Number(e.target.value));
-                                            setCurrentPage(1); // Réinitialiser à la première page lors du changement d'items par page
-                                        }}
-                                    >
-                                        {availableOptions.map(option => (
-                                            <option key={option} value={option}>
-                                                {option}
-                                            </option>
-                                        ))}
-                                    </select>
+                                {/* Éléments par page et bouton réinitialiser */}
+                                <div className="flex-1 min-w-[200px]">
+                                    <label className="text-xs font-medium text-gray-700 mb-1 block">Par page :</label>
+                                    <div className="flex items-center gap-2">
+                                        <select
+                                            id="itemsPerPage"
+                                            className="w-full h-[30px] px-3 py-1 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                            value={itemsPerPage}
+                                            onChange={(e) => {
+                                                setItemsPerPage(Number(e.target.value));
+                                                setCurrentPage(1); // Réinitialiser à la première page
+                                            }}
+                                        >
+                                            {availableOptions.map(option => (
+                                                <option key={option} value={option}>
+                                                    {option}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <button
+                                            onClick={resetFilters}
+                                            title="Réinitialiser le Filtre"
+                                            className="h-[30px] px-3 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition flex items-center"
+                                        >
+                                            <TbZoomReset className="mr-1" />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -482,6 +614,7 @@ export default function IndexUsers({ auth, users, flash }) {
                                                     <button
                                                         type="button"
                                                         onClick={() => askResetPassword(user.id, user.name)}
+                                                        title={`Réinitialiser le mot de passe de ${user.name}`}
                                                         className="text-indigo-600 hover:text-indigo-900 px-2 py-1 rounded bg-indigo-100"
                                                     >
                                                         <MdOutlineLockReset/>{/*Réinitialiser*/}
@@ -492,13 +625,22 @@ export default function IndexUsers({ auth, users, flash }) {
                                                 <td className="px-6 py-3 whitespace-nowrap text-right text-sm font-medium">
                                                     <div className="flex space-x-2">
                                                         <button
+                                                            // onClick={() => openAccessModal(document.id)}
+                                                            title={`Gérer l'accès au document ${document.title}`}
+                                                            className="text-green-600 hover:text-green-900 px-2 py-1 rounded bg-green-100"
+                                                        >
+                                                            <FaFileShield/>{/*Accès*/}
+                                                        </button>
+                                                        <button
                                                             onClick={() => openEditUser(user)}
+                                                            title={`Modifier les informations de ${user.name}`}
                                                             className="text-yellow-600 hover:text-yellow-900 px-2 py-1 rounded bg-yellow-100"
                                                         >
                                                             <LiaUserEditSolid/>{/*Modifier*/}
                                                         </button>
                                                         <button
                                                             onClick={() => deleteUser(user.id, user.role, user.name)}
+                                                            title={`Supprimer l'utilisateur ${user.name}`}
                                                             className="text-red-600 hover:text-red-900 px-2 py-1 rounded bg-red-100"
                                                         >
                                                             <AiOutlineUserDelete/>{/*Supprimer*/}

@@ -10,9 +10,12 @@ use App\Models\DocumentsAccess;
 use App\Models\Sites;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\DocumentsExport;
 
 class DocumentsController extends Controller
 {
@@ -20,16 +23,19 @@ class DocumentsController extends Controller
     {
         $documents = Documents::select('id', 'title', 'description', 'file_path','expiration_date', 'site_id', 'uploaded_by', 'created_at', 'updated_at')->get();
         $sites = Sites::select('id', 'name')->get();
-//        $users = User::select('id', 'name')->get();
-         $users = User::whereIn('role', ['user', 'manager'])->select('id', 'name')->get();
+        $users = User::select('id', 'name')->get();
+        $usersAccess = User::whereIn('role', ['user', 'manager'])->select('id', 'name')->get();
         // $users = User::where('role', 'user')->select('id', 'name')->get();
         $documentAccess = DocumentsAccess::with('user')
         ->get();
+        $AccessTable = DocumentsAccess::select('document_id', 'user_id')->get();
         return Inertia::render('Documents/IndexDocuments', [
             'documents' => $documents,
             'sites' => $sites,
-            'users' => $users,
-            'DocumentAccess'=> $documentAccess
+            'users'=>$users,
+            'usersAccess' => $usersAccess,
+            'DocumentAccess'=> $documentAccess,
+            'AccessTable'=>$AccessTable
         ]);
     }
 
@@ -319,5 +325,60 @@ class DocumentsController extends Controller
         }
 
         return redirect()->route('documents')->with(['success' => 'Les accès aux documents sélectionnés ont été mis à jour.']);
+    }
+
+
+    public function export(Request $request)
+    {
+        $searchTerm = $request->query('searchTerm', '');
+        $siteIds = $request->query('siteIds') ? explode(',', $request->query('siteIds')) : [];
+        $startDate = $request->query('startDate', '');
+        $endDate = $request->query('endDate', '');
+        $expStartDate = $request->query('expStartDate', '');
+        $expEndDate = $request->query('expEndDate', '');
+
+        // Reproduire le même filtrage que dans DocumentsExport pour compter
+        $query = Documents::query();
+
+        if (!empty($searchTerm)) {
+            $query->where('title', 'like', '%' . $searchTerm . '%');
+        }
+
+        if (!empty($siteIds)) {
+            $query->whereIn('site_id', $siteIds);
+        }
+
+        if (!empty($startDate)) {
+            $query->whereDate('created_at', '>=', $startDate);
+        }
+
+        if (!empty($endDate)) {
+            $query->whereDate('created_at', '<=', $endDate);
+        }
+
+        if (!empty($expStartDate)) {
+            $query->whereDate('expiration_date', '>=', $expStartDate);
+        }
+
+        if (!empty($expEndDate)) {
+            $query->whereDate('expiration_date', '<=', $expEndDate);
+        }
+
+        $count = $query->count();
+
+        $word = $count === 1 ? 'document' : 'documents';
+
+        Alerts::create([
+            'user_id' => Auth::id(),
+            'role' => Auth::user()->role,
+            'action' => 'export',
+            'type' => 'document',
+            'message' => "a exporté {$count} {$word} au format Excel.",
+        ]);
+
+        return Excel::download(
+            new DocumentsExport($searchTerm, $siteIds, $startDate, $endDate, $expStartDate, $expEndDate),
+            'documents.csv'
+        );
     }
 }

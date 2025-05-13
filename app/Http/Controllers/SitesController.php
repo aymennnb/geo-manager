@@ -41,8 +41,10 @@ class SitesController extends Controller
         $sites->address = $request->address;
         $sites->latitude = $request->latitude;
         $sites->longitude = $request->longitude;
-        $imagePath = $request->file('image')->store('sitesImages', 'public');
-        $sites->image = $imagePath;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('sitesImages', 'public');
+            $sites->image = $imagePath;
+        }
         $sites->save();
 
         Alerts::create([

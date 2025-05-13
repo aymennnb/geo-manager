@@ -1,6 +1,9 @@
 import React from "react";
+import { useWindowWidth } from "@/hooks/useWindowWidth.js";
 
 const ConfirmResetPassword = ({ userToReset, onConfirm, onCancel }) => {
+    const windowWidth = useWindowWidth();
+
     const handleConfirm = () => {
         onConfirm();
     };
@@ -11,12 +14,20 @@ const ConfirmResetPassword = ({ userToReset, onConfirm, onCancel }) => {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+            <div
+                className={`
+                    bg-white p-6 rounded-lg shadow-lg max-w-md
+                    ${windowWidth < 530
+                    ? 'w-[90%] max-w-xs'
+                    : 'w-full'
+                }
+                `}
+            >
                 <h2 className="text-lg font-semibold text-gray-800 mb-4">
                     Confirmer la réinitialisation du mot de passe
                 </h2>
                 <p className="text-gray-600 mb-6">
-                    Voulez-vous vraiment réinitialiser le mot de passe de {userToReset?.name} à la valeur par défaut ?
+                    Voulez-vous vraiment réinitialiser le mot de passe de {userToReset.name} à la valeur par défaut ?
                 </p>
                 <div className="flex justify-end space-x-4">
                     <button

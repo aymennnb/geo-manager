@@ -1,6 +1,8 @@
 import React from "react";
+import { useWindowWidth } from "@/hooks/useWindowWidth.js";
 
 const ConfirmSupprimeDocument = ({ documentToDelete, confirmDelete, cancelDelete }) => {
+    const windowWidth = useWindowWidth();
 
     const handleConfirm = () => {
         confirmDelete();
@@ -12,7 +14,15 @@ const ConfirmSupprimeDocument = ({ documentToDelete, confirmDelete, cancelDelete
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+            <div
+                className={`
+                    bg-white p-6 rounded-lg shadow-lg max-w-md
+                    ${windowWidth < 530
+                    ? 'w-[90%] max-w-xs'
+                    : 'w-full'
+                }
+                `}
+            >
                 <h2 className="text-lg font-semibold text-gray-800 mb-4">
                     Confirmer la suppression
                 </h2>

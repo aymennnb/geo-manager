@@ -57,18 +57,22 @@ class AlertController extends Controller
     public function create(Request $request)
     {
         $validated = $request->validate([
-            'role' => 'required|string|in:admin,manager,user',
             'user_id' => 'required|exists:users,id',
+            'role' => 'required|string|in:admin,manager,user',
             'action' => 'required|string|max:255',
             'type' => 'required|string|in:user,document,site',
-            'elem_id' => 'required|integer',
-            'message'=>''
+            'message' => 'required|string',
         ]);
 
-        Alerts::create($validated);
-
-        return response()->json(['message' => 'Alerte enregistrée avec succès.']);
+        Alerts::create([
+            'user_id' => $validated['user_id'],
+            'role' => $validated['role'],
+            'action' => $validated['action'],
+            'type' => $validated['type'],
+            'message' => $validated['message'],
+        ]);
     }
+
 
     public function getExpiringDocuments()
     {

@@ -4,17 +4,24 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UserUpdateRequest;
 use App\Models\Alerts;
+use App\Models\Documents;
+use App\Models\DocumentsAccess;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class UserController extends Controller
 {
     public function index(){
         $users = User::all();
+        $documents = Documents::select('id', 'title')->get();
+        $AccessTable = DocumentsAccess::select('document_id', 'user_id')->get();
 
         return Inertia::render('Utilisateurs/IndexUsers', [
-            'users' => $users
+            'users' => $users,
+            'AccessTable'=>$AccessTable,
+            'documents'=>$documents
         ]);
     }
 
@@ -126,6 +133,10 @@ class UserController extends Controller
     {
         $item = User::findOrFail($id);
 
+        // Supprimer les accès de l'utilisateur dans la table documents_accesses
+        DB::table('documents_accesses')->where('user_id', $id)->delete();
+
+        // Créer une alerte pour la suppression
         Alerts::create([
             'user_id' => auth()->user()->id,
             'role' => auth()->user()->role,
@@ -134,10 +145,12 @@ class UserController extends Controller
             'message' => " a supprimé un " . ($item->role === 'admin' ? "admin" : ($item->role === 'manager' ? 'manager' : 'utilisateur')) . " avec le nom {$item->name} et L'id " . ($item->id) . ".",
         ]);
 
+        // Supprimer l'utilisateur
         $item->delete();
 
         return redirect('utilisateurs')->with(['success' => "L'utilisateur {$item->name} a été supprimé avec succès."]);
     }
+
 
     public function UsersDelete(Request $request)
     {

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import NavLink from "@/Components/NavLink";
 import { Toaster } from "react-hot-toast";
+import { router } from '@inertiajs/react';
+import LoadingSpinner from "@/Components/Loader";
 
 
 export default function Authenticated({ user, header, children }) {
@@ -10,11 +12,8 @@ export default function Authenticated({ user, header, children }) {
         return stored !== null ? stored === "true" : true;
     });
     const dropdownRef = useRef();
+    const [loading, setLoading] = useState(false);
 
-// Sauvegarder l'état à chaque changement
-    useEffect(() => {
-        localStorage.setItem("sidebarOpen", isSidebarOpen);
-    }, [isSidebarOpen]);
 
     useEffect(() => {
         function handleClickOutside(event) {
@@ -28,13 +27,50 @@ export default function Authenticated({ user, header, children }) {
         };
     }, []);
 
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setShowDropdown(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
+    useEffect(() => {
+        const start = () => setLoading(true);
+        const finish = () => {
+            setTimeout(() => {
+                setLoading(false);
+            }, 50);
+        };
+
+        // Gestionnaire des événements d'Inertia.js
+        document.addEventListener('inertia:start', start);
+        document.addEventListener('inertia:finish', finish);
+        document.addEventListener('inertia:error', finish);
+        document.addEventListener('inertia:cancel', finish);
+
+        return () => {
+            document.removeEventListener('inertia:start', start);
+            document.removeEventListener('inertia:finish', finish);
+            document.removeEventListener('inertia:error', finish);
+            document.removeEventListener('inertia:cancel', finish);
+        };
+    }, []);
+
     const toggleSidebar = () => {
         setIsSidebarOpen(prev => !prev);
     };
 
+    const isExemptPage = window.location.pathname === '/dashboard';
+
 
     return (
         <div className="flex h-screen bg-gray-100 font-sans text-sm text-gray-800">
+            {!isExemptPage && <LoadingSpinner isLoading={loading} size="sm" />}
             <aside className={`${isSidebarOpen ? 'w-64' : 'w-0'} bg-[#381454] text-white flex flex-col overflow-hidden`}>
                 <div className="text-center text-2xl font-bold text-[#ff6c04] py-6 border-b border-[#ff6c04] whitespace-nowrap">
                     M-AUTOMOTIV

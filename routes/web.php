@@ -58,6 +58,7 @@ Route::middleware(['auth','verified'])->group(function () {
                 Route::post('accesschange', 'updateAccess')->name('access.update');
                 Route::post('Docs-delete', 'DocsDelete')->name('documents.DocsDelete');
                 Route::post('Docs-access', 'DocsAccess')->name('documents.DocsAccess');
+                Route::get('Docs-export', 'export')->name('documents.export');
             });
     });
 
@@ -73,13 +74,13 @@ Route::middleware(['auth','verified'])->group(function () {
             Route::delete('delete/{id}', 'delete')->name('utilisateurs.destroy');
             Route::post('Users-delete', 'UsersDelete')->name('utilisateurs.UsersDelete');
             Route::post('Users-change-Role', 'changeGroupRole')->name('utilisateurs.changeGroupRole');
+            Route::post('User-Access-Delete', 'SupprimerAccessDocs')->name('utilisateurs.suppAccess');
         });
 
         Route::prefix('alerts')->controller(AlertController::class)->group(function(){
             Route::get('/','index')->name('alerts');
             Route::post('create','create')->name('alert.create');
             Route::get('expiring-documents', 'getExpiringDocuments')->name('expiring-documents');
-
         });
 
     });
