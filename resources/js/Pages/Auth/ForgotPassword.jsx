@@ -1,5 +1,6 @@
 import InputError from "@/Components/InputError";
 import { Head, Link, useForm } from "@inertiajs/react";
+import { motion } from "framer-motion";
 
 export default function ForgotPassword({ status }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -15,7 +16,16 @@ export default function ForgotPassword({ status }) {
     return (
         <div className="min-h-screen flex flex-col md:flex-row">
             {/* Left side - Form */}
-            <div className="w-full md:w-2/2 flex items-center justify-center p-4">
+            <motion.div
+                initial={{ x: '100%', opacity: 0 }}  // Commence depuis la droite
+                animate={{ x: 0, opacity: 1 }}      // Arrive au centre
+                transition={{
+                    type: "spring",
+                    stiffness: 200,
+                    damping: 15,
+                    duration: 0.8
+                }}
+                className="w-full h-[95vh] flex items-center justify-center p-8">
                 <div className="w-full max-w-sm">
                     <Head title="Forgot Password" />
 
@@ -46,7 +56,7 @@ export default function ForgotPassword({ status }) {
                                 value={data.email}
                                 className="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition" // text-base = 16px
                                 autoComplete="username"
-                                placeholder="youremail@example.com"
+                                placeholder="votre email"
                                 onChange={(e) => setData('email', e.target.value)}
                             />
                             <InputError message={errors.email} className="mt-1 text-xs" />
@@ -73,18 +83,7 @@ export default function ForgotPassword({ status }) {
                         </div>
                     </form>
                 </div>
-            </div>
-
-            {/* Right side - Illustration is commented out in the login page */}
-            {/*<div className="hidden md:flex w-1/2 bg-gray-50 items-center justify-center p-8">*/}
-            {/*    <div className="max-w-md">*/}
-            {/*        <img*/}
-            {/*            src="/megane.png"*/}
-            {/*            alt="Person reading"*/}
-            {/*            className="w-full h-auto"*/}
-            {/*        />*/}
-            {/*    </div>*/}
-            {/*</div>*/}
+            </motion.div>
         </div>
     );
 }

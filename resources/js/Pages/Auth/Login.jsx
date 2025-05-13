@@ -2,6 +2,8 @@ import InputError from "@/Components/InputError";
 import { Head, Link, useForm } from "@inertiajs/react";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { useWindowWidth } from "@/hooks/useWindowWidth.js";
+import { motion } from "framer-motion";
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -9,6 +11,9 @@ export default function Login({ status, canResetPassword }) {
         password: "",
         remember: false,
     });
+
+    const width = useWindowWidth();
+    const isMobile = width < 768;
 
     const [showPassword, setShowPassword] = useState(false);
 
@@ -22,8 +27,18 @@ export default function Login({ status, canResetPassword }) {
 
     return (
         <div className="min-h-screen flex flex-col md:flex-row ">
-            {/* Left side - Form */}
-            <div className="w-full md:w-2/2 flex items-center justify-center p-4">
+            {/* Left side - Form avec animation */}
+            <motion.div
+                className="w-full h-[95vh] flex items-center justify-center p-8"
+                initial={{ x: '100%', opacity: 0 }}  // Commence depuis la droite
+                animate={{ x: 0, opacity: 1 }}      // Arrive au centre
+                transition={{
+                    type: "spring",
+                    stiffness: 200,
+                    damping: 15,
+                    duration: 0.8
+                }}
+            >
                 <div className="w-full max-w-sm">
                     <Head title="Log in" />
 
@@ -32,7 +47,7 @@ export default function Login({ status, canResetPassword }) {
                             Prêt à explorer nos implantations ?
                         </h1>
                         <p className="text-sm text-gray-600">
-                            Connectez-vous à votre compte pour consulter nos sites <br/> <span className="text-orange-500">M-AUTOMOTIV</span>.
+                            Connectez-vous à votre compte pour consulter nos sites {!isMobile ? <br/> : null} <span className="text-orange-500">M-AUTOMOTIV</span>.
                         </p>
                     </div>
 
@@ -54,7 +69,7 @@ export default function Login({ status, canResetPassword }) {
                                 value={data.email}
                                 className="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition"
                                 autoComplete="username"
-                                placeholder="youremail@example.com"
+                                placeholder="votre email"
                                 onChange={(e) => setData("email", e.target.value)}
                             />
                             <InputError message={errors.email} className="mt-1 text-xs" />
@@ -115,7 +130,7 @@ export default function Login({ status, canResetPassword }) {
 
                         <div className="mt-4 text-center">
                             <p className="text-gray-600 text-xs">
-                                Vous n’avez pas de compte ?{" "}
+                                Vous n'avez pas de compte ?{" "}
                                 <Link
                                     href={route("register")}
                                     className="text-[#ff6c04] hover:text-[#5a217b] font-medium"
@@ -126,7 +141,7 @@ export default function Login({ status, canResetPassword }) {
                         </div>
                     </form>
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 }

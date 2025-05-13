@@ -26,16 +26,17 @@ class DocumentsController extends Controller
         if ($user->role === 'admin') {
             $documents = Documents::select('id', 'title', 'description', 'file_path', 'expiration_date', 'site_id', 'uploaded_by', 'created_at', 'updated_at')
                 ->get();
+            $usersAccess = User::whereIn('role', ['user', 'manager'])->select('id', 'name')->get();
         } else {
             $documents = Documents::select('id', 'title', 'description', 'file_path', 'expiration_date', 'site_id', 'uploaded_by', 'created_at', 'updated_at')
                 ->whereHas('documentAccesses', function ($query) use ($user) {
                     $query->where('user_id', $user->id);
                 })
                 ->get();
+            $usersAccess = User::whereIn('role', ['user'])->select('id', 'name')->get();
         }
         $sites = Sites::select('id', 'name')->get();
         $users = User::select('id', 'name')->get();
-        $usersAccess = User::whereIn('role', ['user', 'manager'])->select('id', 'name')->get();
         // $users = User::where('role', 'user')->select('id', 'name')->get();
         $documentAccess = DocumentsAccess::with('user')
         ->get();
