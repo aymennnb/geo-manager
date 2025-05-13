@@ -13,15 +13,17 @@ use Inertia\Inertia;
 
 class UserController extends Controller
 {
+
     public function index(){
         $users = User::all();
         $documents = Documents::select('id', 'title')->get();
         $AccessTable = DocumentsAccess::select('document_id', 'user_id')->get();
-
+        $documentAccess = DocumentsAccess::with('user')->get();
         return Inertia::render('Utilisateurs/IndexUsers', [
             'users' => $users,
             'AccessTable'=>$AccessTable,
-            'documents'=>$documents
+            'documents'=>$documents,
+            'documentAccess'=>$documentAccess
         ]);
     }
 
@@ -204,4 +206,56 @@ class UserController extends Controller
 
         return redirect()->route('utilisateurs')->with(['success' => 'Les rôles des utilisateurs sélectionnés ont été mis à jour.']);
     }
+
+    public function updateAccessDocs(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'documents' => 'array',
+            'documents.*' => 'exists:documents,id',
+        ]);
+
+        $userId = $request->user_id;
+        $user = User::find($userId);
+
+        $documentIds = $request->documents ?? [];
+        $existingAccess = DocumentsAccess::where('user_id', $userId)->pluck('document_id')->toArray();
+
+        $docsToAdd = array_diff($documentIds, $existingAccess);
+        $docsToRemove = array_diff($existingAccess, $documentIds);
+
+        DocumentsAccess::where('user_id', $userId)->delete();
+
+        foreach ($documentIds as $documentId) {
+            DocumentsAccess::create([
+                'document_id' => $documentId,
+                'user_id' => $userId,
+            ]);
+        }
+
+        foreach ($docsToAdd as $documentId) {
+            $doc = Documents::find($documentId);
+            Alerts::create([
+                'user_id' => auth()->id(),
+                'role' => auth()->user()->role,
+                'action' => 'updateAccessLimit',
+                'type' => 'document',
+                'message' => "a limité l'accès au document {$doc->title} (id: {$documentId}) à l'utilisateur {$user->name} (id: {$userId})."
+            ]);
+        }
+
+        foreach ($docsToRemove as $documentId) {
+            $doc = Documents::find($documentId);
+            Alerts::create([
+                'user_id' => auth()->id(),
+                'role' => auth()->user()->role,
+                'action' => 'updateAccessRetire',
+                'type' => 'document',
+                'message' => "a retiré l'accès au document {$doc->title} (id: {$documentId}) à l'utilisateur {$user->name} (id: {$userId})."
+            ]);
+        }
+
+        return redirect()->route('utilisateurs')->with(['success' => "Les accès de l'utilisateur {$user->name} ont été mis à jour."]);
+    }
+
 }

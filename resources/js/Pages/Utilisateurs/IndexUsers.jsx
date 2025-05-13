@@ -21,8 +21,10 @@ import { AiOutlineUserDelete } from "react-icons/ai";
 import { LiaUserEditSolid } from "react-icons/lia";
 import { IoPersonAddOutline } from "react-icons/io5";
 import { MdOutlineLockReset } from "react-icons/md";
+import UserDocsAccess from "@/pages/Utilisateurs/UserDocsAccess"
+import DocumentAcces from "@/Pages/Documents/DocumentAcces.jsx";
 
-export default function IndexUsers({ auth,AccessTable, documents,users, flash }) {
+export default function IndexUsers({ auth,AccessTable,documentAccess, documents,users, flash }) {
     const { data, setData, post, processing, errors, delete: destroy } = useForm({
         users_ids:[],
         user_id: "",
@@ -30,14 +32,18 @@ export default function IndexUsers({ auth,AccessTable, documents,users, flash })
         name_user: "",
         role_group:"",
         searchTerm:"",
-        searchId:"", // Ajout du champ pour la recherche par ID
-        searchEmail:"", // Ajout du champ pour la recherche par email
-        filterRole:"", // Ajout du champ pour filtrer par rôle
+        searchId:"",
+        searchEmail:"",
+        filterRole:"",
         start_date: "",
         end_date: ""
     });
 
     const width = useWindowWidth();
+
+    // La partie des Access
+    const [showDocsAccessModal, setShowDocsAccessModal] = useState(false);
+    const [currentUserDocuments, setCurrentUserDocuments] = useState(null);
 
     const [showAddForm, setShowAddForm] = useState(false);
     const [showConfirmDelete, setShowConfirmDelete] = useState(false);
@@ -76,7 +82,19 @@ export default function IndexUsers({ auth,AccessTable, documents,users, flash })
         setCurrentPage(1);
     };
 
-    // Filtrer les utilisateurs en fonction des critères de recherche et dates
+    const openAccessModal = (userId) => {
+        const userDocumentsAccess = AccessTable
+            .filter((access) => access.user_id === userId)
+            .map((access) => access.document_id);
+
+        setCurrentUserDocuments({
+            userId: userId,
+            userDocumentsAccess: userDocumentsAccess,
+        });
+        setShowDocsAccessModal(true);
+    };
+
+
     useEffect(() => {
         if (!users) return;
 
@@ -625,11 +643,11 @@ export default function IndexUsers({ auth,AccessTable, documents,users, flash })
                                                 <td className="px-6 py-3 whitespace-nowrap text-right text-sm font-medium">
                                                     <div className="flex space-x-2">
                                                         <button
-                                                            // onClick={() => openAccessModal(document.id)}
-                                                            title={`Gérer l'accès au document ${document.title}`}
+                                                            onClick={() => openAccessModal(user.id)}
+                                                            title={`Gérer l'accès aux documents pour ${user.name}`}
                                                             className="text-green-600 hover:text-green-900 px-2 py-1 rounded bg-green-100"
                                                         >
-                                                            <FaFileShield/>{/*Accès*/}
+                                                            <FaFileShield />
                                                         </button>
                                                         <button
                                                             onClick={() => openEditUser(user)}
@@ -747,6 +765,18 @@ export default function IndexUsers({ auth,AccessTable, documents,users, flash })
                     onConfirm={confirmRoleChange}
                     onCancel={() => setShowConfirmModal(false)}
                 />
+            )}
+            {showDocsAccessModal && currentUserDocuments && (
+                <ModalWrapper title="Gérer les accès aux documents" onClose={() => setShowDocsAccessModal(false)}>
+                    <UserDocsAccess
+                        auth={auth}
+                        users={users}
+                        userId={currentUserDocuments.userId}
+                        documents={documents}
+                        userDocumentsAccess={currentUserDocuments.userDocumentsAccess}
+                        setShowAccessModal={setShowDocsAccessModal}
+                    />
+                </ModalWrapper>
             )}
         </Authenticated>
     );

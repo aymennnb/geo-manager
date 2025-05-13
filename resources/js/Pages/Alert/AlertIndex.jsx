@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Head, useForm, Link } from "@inertiajs/react";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
-import { TbPlayerTrackNextFilled,TbZoomReset } from "react-icons/tb";
+import { TbPlayerTrackNextFilled, TbZoomReset } from "react-icons/tb";
 import { FaBackward } from "react-icons/fa6";
 import { useWindowWidth } from "@/hooks/useWindowWidth.js";
 
@@ -22,6 +22,25 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
     const [currentPage, setCurrentPage] = useState(1);
     const [filteredAlerts, setFilteredAlerts] = useState([]);
 
+    // Options disponibles basées sur les sélections actuelles
+    const [availableTypes, setAvailableTypes] = useState([]);
+    const [availableActions, setAvailableActions] = useState([]);
+
+    // Configuration des filtres relationnels
+    const filterRelations = {
+        roles: {
+            all: ["document", "site", "user"],
+            admin: ["document", "site", "user"],
+            manager: ["document", "site"],
+            user: []
+        },
+        types: {
+            document: ["add", "update", "delete", "updateAccessRetire", "updateAccessLimit", "export"],
+            site: ["add", "update", "delete", "consultation"],
+            user: ["add", "update", "delete", "connecte", "reset", "updaterole"]
+        }
+    };
+
     const resetFilters = () => {
         setData({
             ...data,
@@ -36,7 +55,36 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
         setCurrentPage(1);
     };
 
-    // Fonction pour filtrer les alertes selon les critères
+    // Mettre à jour les types disponibles en fonction du rôle sélectionné
+    useEffect(() => {
+        const types = filterRelations.roles[data.role] || [];
+        setAvailableTypes(types);
+
+        // Si le type actuellement sélectionné n'est pas disponible pour ce rôle, réinitialiser
+        if (data.type !== 'all' && !types.includes(data.type)) {
+            setData('type', 'all');
+        }
+    }, [data.role]);
+
+    // Mettre à jour les actions disponibles en fonction du type sélectionné
+    useEffect(() => {
+        if (data.type === 'all') {
+            // Si 'all' est sélectionné, obtenir toutes les actions possibles
+            const allActions = Object.values(filterRelations.types).flat();
+            // Éliminer les doublons avec Set
+            setAvailableActions([...new Set(allActions)]);
+        } else {
+            const actions = filterRelations.types[data.type] || [];
+            setAvailableActions(actions);
+
+            // Si l'action actuellement sélectionnée n'est pas disponible pour ce type, réinitialiser
+            if (data.action !== 'all' && !actions.includes(data.action)) {
+                setData('action', 'all');
+            }
+        }
+    }, [data.type]);
+
+    // Filtrer les alertes en fonction des critères
     useEffect(() => {
         if (!alerts) return;
 
@@ -106,70 +154,9 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
         }
     };
 
-    const typeOptionsByRole = {
-        admin: ["document", "site", "user"],
-        manager: ["document", "site"],
-        user: [],
-        all: ["document", "site", "user"]
-    };
-
-    const actionOptionsByType = {
-        document: ["add", "edit", "delete", "updateAccessRetire", "updateAccessLimit"],
-        site: ["add", "edit", "delete"],
-        user: ["reset", "updaterole"],
-        all: ["connecte", "add", "edit", "delete", "reset", "updaterole", "updateAccessRetire", "updateAccessLimit"],
-    };
-
-    const actionOptionsByRole = {
-        admin: ["connecte", "add", "edit", "delete", "reset", "updaterole", "updateAccessRetire", "updateAccessLimit"],
-        manager: ["connecte", "add", "edit", "delete", "updateAccessRetire", "updateAccessLimit"],
-        user: ["connecte"],
-    };
-
-    const translateLabel = (value) => {
-        const labels = {
-            all: "Tous",
-            document: "Document",
-            site: "Site",
-            user: "Utilisateur",
-            add: "Ajout",
-            edit: "Modification",
-            delete: "Suppression",
-            reset: "Réinitialisation",
-            updaterole: "Changement de rôle",
-            connecte: "Connexion",
-            updateAccessRetire: "Retirer accès",
-            updateAccessLimit: "Limiter accès",
-        };
-        return labels[value] || value;
-    };
-
-    const alertsPerPageOptions = [5, 10, 20, 25, 50, 100, 150,200,300,400,600,1000];
+    const alertsPerPageOptions = [5, 10, 20, 25, 50, 100, 150, 200, 300, 400, 600, 1000];
     const totalAlerts = filteredAlerts.length;
     const availableOptions = alertsPerPageOptions.filter(option => option <= totalAlerts || option === alertsPerPageOptions[0]);
-
-    // Le filtre d'action est toujours affiché
-    const showActionFilter = true;
-
-    // Définir les options disponibles pour chaque filtre
-    const availableTypeOptions = typeOptionsByRole[data.role] || typeOptionsByRole["all"];
-
-    // Options d'action basées sur le rôle et le type
-    let availableActionOptions;
-    if (data.type === 'all') {
-        // Si aucun type spécifique n'est sélectionné, montrer toutes les actions disponibles pour le rôle
-        availableActionOptions = actionOptionsByRole[data.role] || actionOptionsByRole["user"];
-    } else {
-        // Sinon, filtrer les actions en fonction du type et du rôle
-        availableActionOptions = (actionOptionsByType[data.type] || []).filter(action =>
-            actionOptionsByRole[data.role]?.includes(action)
-        );
-    }
-
-    // S'assurer que "connecte" est toujours disponible quelle que soit la combinaison type/rôle
-    if (!availableActionOptions.includes("connecte") && actionOptionsByRole[data.role]?.includes("connecte")) {
-        availableActionOptions = ["connecte", ...availableActionOptions];
-    }
 
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
@@ -186,6 +173,33 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
             setFilteredAlerts(sortedAlerts);
         }
     }, []);
+
+    // Fonction pour traduire les valeurs d'action en texte pour l'interface
+    const getActionLabel = (actionValue) => {
+        const actionLabels = {
+            'connecte': 'Connexion',
+            'add': 'Ajout',
+            'update': 'Modification',
+            'delete': 'Suppression',
+            'updateAccessRetire': 'Retirer l\'accès',
+            'updateAccessLimit': 'Limiter l\'accès',
+            'reset': 'Réinitialisation',
+            'updaterole': 'Changement du rôle',
+            'export': 'Export',
+            'consultation': 'Consultation'
+        };
+        return actionLabels[actionValue] || actionValue;
+    };
+
+    // Fonction pour traduire les valeurs de type en texte pour l'interface
+    const getTypeLabel = (typeValue) => {
+        const typeLabels = {
+            'document': 'Document',
+            'site': 'Site',
+            'user': 'Utilisateur'
+        };
+        return typeLabels[typeValue] || typeValue;
+    };
 
     return (
         <Authenticated user={auth.user} header={<h2>Liste des Alertes</h2>}>
@@ -211,14 +225,14 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
                                         value={data.role}
                                         onChange={handleFilterChange}
                                     >
-                                        <option value="all">Toutes</option>
+                                        <option value="all">Tous</option>
                                         <option value="admin">Admin</option>
                                         <option value="manager">Manager</option>
                                         <option value="user">Utilisateur</option>
                                     </select>
                                 </div>
 
-                                {/* Filtre par type */}
+                                {/* Filtre par type - dynamique en fonction du rôle sélectionné */}
                                 <div className="flex-1 min-w-[170px]">
                                     <label htmlFor="typeFilter" className="text-xs font-medium text-gray-700 mb-1 block">Filtrer par type :</label>
                                     <select
@@ -227,34 +241,36 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
                                         name="type"
                                         value={data.type}
                                         onChange={handleFilterChange}
+                                        disabled={data.role === 'user' || availableTypes.length === 0}
                                     >
-                                        <option value="all">Toutes</option>
-                                        {availableTypeOptions.map((type) => (
-                                            <option key={type} value={type}>{translateLabel(type)}</option>
+                                        <option value="all">Tous</option>
+                                        {availableTypes.map(type => (
+                                            <option key={type} value={type}>
+                                                {getTypeLabel(type)}
+                                            </option>
                                         ))}
                                     </select>
                                 </div>
 
-                                {/* Filtre par action (conditionnel) */}
-                                {showActionFilter && (
-                                    <div className="flex-1 min-w-[170px]">
-                                        <label htmlFor="actionFilter" className="text-xs font-medium text-gray-700 mb-1 block">Filtrer par action :</label>
-                                        <select
-                                            className="block w-full px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                            id="actionFilter"
-                                            name="action"
-                                            value={data.action}
-                                            onChange={handleFilterChange}
-                                        >
-                                            <option value="all">Toutes</option>
-                                            {availableActionOptions.map((action) => (
-                                                <option key={action} value={action}>
-                                                    {translateLabel(action)}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                )}
+                                {/* Filtre par action - dynamique en fonction du type sélectionné */}
+                                <div className="flex-1 min-w-[170px]">
+                                    <label htmlFor="actionFilter" className="text-xs font-medium text-gray-700 mb-1 block">Filtrer par action :</label>
+                                    <select
+                                        className="block w-full px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                        id="actionFilter"
+                                        name="action"
+                                        value={data.action}
+                                        onChange={handleFilterChange}
+                                        disabled={availableActions.length === 0}
+                                    >
+                                        <option value="all">Toutes</option>
+                                        {availableActions.map(action => (
+                                            <option key={action} value={action}>
+                                                {getActionLabel(action)}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
 
                                 {/* Filtre par ordre de date */}
                                 <div className="flex-1 min-w-[150px]">
@@ -434,12 +450,6 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
                     </div>
                 </div>
             </div>
-            {/*{import.meta.env.DEV && (*/}
-            {/*    <div className="mt-10 p-2 bg-gray-100 rounded">*/}
-            {/*        <p>Données du formulaire :</p>*/}
-            {/*        <pre>{JSON.stringify(data, null, 2)}</pre>*/}
-            {/*    </div>*/}
-            {/*)}*/}
         </Authenticated>
     );
 }

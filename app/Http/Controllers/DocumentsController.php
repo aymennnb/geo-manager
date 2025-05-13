@@ -21,7 +21,18 @@ class DocumentsController extends Controller
 {
     public function index()
     {
-        $documents = Documents::select('id', 'title', 'description', 'file_path','expiration_date', 'site_id', 'uploaded_by', 'created_at', 'updated_at')->get();
+        $user = Auth::user();
+
+        if ($user->role === 'admin') {
+            $documents = Documents::select('id', 'title', 'description', 'file_path', 'expiration_date', 'site_id', 'uploaded_by', 'created_at', 'updated_at')
+                ->get();
+        } else {
+            $documents = Documents::select('id', 'title', 'description', 'file_path', 'expiration_date', 'site_id', 'uploaded_by', 'created_at', 'updated_at')
+                ->whereHas('documentAccesses', function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                })
+                ->get();
+        }
         $sites = Sites::select('id', 'name')->get();
         $users = User::select('id', 'name')->get();
         $usersAccess = User::whereIn('role', ['user', 'manager'])->select('id', 'name')->get();
@@ -231,7 +242,7 @@ class DocumentsController extends Controller
                 'role' => auth()->user()->role,
                 'action' => 'updateAccessRetire',
                 'type' => 'document',
-                'message' => "a retiré l'accès au document {$document->title} avec l'id {$documentId} à l'utilisateur {$user->name} qui a l'id {$user->id}."
+                'message' => "a retiré l'accès au document {$document->title} avec l'id {$documentId} à l'utilisateur qui a l'id {$user->id}."
             ]);
         }
 

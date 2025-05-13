@@ -650,12 +650,6 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
                             )}
                         </div>
                     </div>
-                    {import.meta.env.DEV && (
-                        <div className="mt-4 p-2 bg-gray-100 rounded">
-                            <p>Données du formulaire :</p>
-                            <pre>{JSON.stringify(AccessTable, null, 2)}</pre>
-                        </div>
-                    )}
                 </div>
             </div>
             {showAccessGroup && (

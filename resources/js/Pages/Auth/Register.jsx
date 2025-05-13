@@ -141,16 +141,16 @@ export default function Register() {
                 </div>
             </div>
 
-            {/* Partie droite - Illustration (commentée comme dans la page de connexion) */}
-            {/*<div className="hidden md:flex w-1/2 bg-gray-50 items-center justify-center p-8">*/}
-            {/*    <div className="max-w-md">*/}
-            {/*        <img*/}
-            {/*            src="/megane.png"*/}
-            {/*            alt="Personne en train de lire"*/}
-            {/*            className="w-full h-auto"*/}
-            {/*        />*/}
-            {/*    </div>*/}
-            {/*</div>*/}
+             {/*Partie droite - Illustration (commentée comme dans la page de connexion)*/}
+            <div className="hidden md:flex w-2/2 bg-gray-50 items-center justify-center p-8">
+                <div className="max-w-md">
+                    <img
+                        src={`/storage/register-photo.jpg`}
+                        alt="Personne en train de lire"
+                        className="w-full h-auto"
+                    />
+                </div>
+            </div>
         </div>
     );
 }
