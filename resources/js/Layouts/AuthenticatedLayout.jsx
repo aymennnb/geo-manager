@@ -79,7 +79,6 @@ export default function Authenticated({ user, header, children }) {
                     <NavLink href={route("dashboard")} active={route().current("dashboard")}>
                         Maps
                     </NavLink>
-
                     {(user.role === "admin" || user.role === "manager") && (
                         <>
                             <NavLink href={route("sites")} active={route().current("sites")}>

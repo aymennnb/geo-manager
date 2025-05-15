@@ -15,6 +15,14 @@ class Sites extends Model
         'latitude',
         'longitude',
         'image',
+        'ville',
+        'titre_foncier',
+        'superficie_terrain',
+        'zoning_urbanistique',
+        'consistance',
+        'surface_gla',
+        'uploaded_by',
+        'type_site',
         'created_at',
         'updated_at'
     ];

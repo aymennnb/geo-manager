@@ -13,13 +13,13 @@ return new class extends Migration
 {
     Schema::create('sites', function (Blueprint $table) {
         $table->id();
-        $table->string('name');                       
-        $table->string('web')->nullable();              
-        $table->string('email');                       
-        $table->string('phone');                      
-        $table->string('address');                     
-        $table->decimal('latitude', 18, 14);           
-        $table->decimal('longitude', 18, 14);  
+        $table->string('name');
+        $table->string('web')->nullable();
+        $table->string('email');
+        $table->string('phone');
+        $table->string('address');
+        $table->decimal('latitude', 18, 14);
+        $table->decimal('longitude', 18, 14);
         $table->string('image')->nullable(false);
         $table->timestamps();
     });

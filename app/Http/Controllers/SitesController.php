@@ -7,7 +7,10 @@ use App\Http\Requests\SiteUpdateRequest;
 use App\Models\Alerts;
 use App\Models\Documents;
 use App\Models\DocumentsAccess;
+use App\Models\Location;
 use App\Models\Sites;
+use App\Models\Surface;
+use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -19,14 +22,20 @@ class SitesController extends Controller
 {
     public function index(Request $request)
     {
-        $sites = Sites::select('id', 'image', 'name', 'email', 'phone', 'web', 'address', 'latitude', 'longitude', 'created_at', 'updated_at')->get();
+        $sites = Sites::all();
         $addresses = Sites::select('address')->distinct()->get();
         $documents = Documents::all();
+        $users = User::select('id','name')->get();
+        $surfaces = Surface::all();
+        $locations = Location::all();
 
         return inertia('Sites/IndexSites', [
             'sites' => $sites,
             'addresses' => $addresses,
-            'documents' => $documents
+            'documents' => $documents,
+            'users'=>$users,
+            'surfaces'=>$surfaces,
+            'locations'=>$locations
         ]);
     }
 
@@ -124,7 +133,7 @@ class SitesController extends Controller
     }
     public function map()
     {
-        $sitesMaps = Sites::select('id','image','name','email','phone','web','address','latitude','longitude','created_at','updated_at')->get();
+        $sitesMaps = Sites::all();
         $documents = Documents::all();
         $documentAccess = DocumentsAccess::select('id','document_id','user_id')->get();
 
@@ -176,12 +185,25 @@ class SitesController extends Controller
     public function importSites(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:csv,txt,xlsx,xls|max:2048',
+            'file' => 'required|mimes:xlsx,xls'
         ]);
 
-        $import = new SitesImport();
-        Excel::import($import, $request->file('file'));
+        $file = $request->file('file');
 
-        return back()->with('success', "{$import->count} site(s) ont été importés avec succès.");
+        $import = new SitesImport;
+        Excel::import($import, $file);
+        $champsObligatoires = [
+            'name', 'web', 'email', 'phone', 'address',
+            'latitude', 'longitude', 'ville'
+        ];
+        $champsListe = implode(', ', $champsObligatoires);
+
+        if (count($import->errors) > 0) {
+            $total = count($import->errors);
+            return back()->with(['error' => "$total ligne(s) n'ont pas pu être importées.\n\nVeuillez vérifier que les champs obligatoires suivants d'un Site sont remplis :\n$champsListe"]);
+        }
+
+        return back()->with(['success'=> $import->count === 1 ? "1 site a été importé avec succès." : "{$import->count} sites ont été importés avec succès."]);
     }
+
 }
