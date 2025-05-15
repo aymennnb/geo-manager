@@ -1,6 +1,6 @@
 import Authenticated from "@/Layouts/AuthenticatedLayout.jsx";
 import { Head, useForm } from "@inertiajs/react";
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import SIteMap from "@/Components/SIteMap";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";

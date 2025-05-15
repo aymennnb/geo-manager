@@ -4,9 +4,9 @@ import React, { useState, useEffect } from "react";
 import Pagination from "@/Components/Pagination";
 import ConfirmDeleteSite from "@/Components/ConfirmDeleteSite";
 import ConfirmSitesDelete from "@/Components/ConfirmSitesDelete";
-import AddSite from "@/Pages/Sites/AddSite"
-import EditSite from "@/Pages/Sites/EditSite"
-import Details from "@/Pages/Sites/Details"
+import AddSite from "@/Pages/Sitesf/AddSite";
+import EditSite from "@/Pages/Sites/EditSite";
+import Details from "@/Pages/Sitesf/Details";
 import ImportSitesXLSX from "@/Pages/Sites/AddFileXLSX";
 import ModalWrapper from "@/Components/ModalWrapper";
 import toast from 'react-hot-toast';
@@ -19,13 +19,14 @@ import { CgDetailsMore } from "react-icons/cg";
 import { TfiImport } from "react-icons/tfi";
 import { useWindowWidth } from "@/hooks/useWindowWidth.js";
 
-
-
-function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
+function IndexSitesf({ auth, sitesf,Location,users, documents, flash }) {
     const { data, setData, post, get, delete: destroy } = useForm({
         sites_ids: [],
         searchTerm: '',
-        address: '',
+        villeFilter: '',
+        typeSiteFilter: '',
+        superficie_min: '',
+        superficie_max: '',
         start_date: '',
         end_date: ''
     });
@@ -38,7 +39,7 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const [showEditModal, setShowEditModal] = useState(false);
-    const [siteToEdit, setsiteToEdit] = useState(null);
+    const [siteToEdit, setSiteToEdit] = useState(null);
 
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [siteToShowDetails, setSiteToShowDetails] = useState(null);
@@ -50,17 +51,22 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
     const [currentPage, setCurrentPage] = useState(1);
     const [filteredSites, setFilteredSites] = useState([]);
 
-    const [showAddFileForm,setshowAddFileForm] = useState(false)
+    const [showAddFileForm, setShowAddFileForm] = useState(false);
 
-    const selectedSitesTodelete = sites.filter((site) =>
+    const selectedSitesToDelete = sitesf.filter((site) =>
         data.sites_ids.includes(site.id)
     );
+
+
 
     const resetFilters = () => {
         setData({
             ...data,
             searchTerm: '',
-            address: '',
+            villeFilter: '',
+            typeSiteFilter: '',
+            superficie_min: '',
+            superficie_max: '',
             start_date: '',
             end_date: ''
         });
@@ -69,12 +75,22 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
 
     // Fonction pour filtrer les sites
     useEffect(() => {
-        if (!sites) return;
+        if (!sitesf) return;
 
-        let filtered = sites.filter(site =>
+        let filtered = sitesf.filter(site =>
             (!data.searchTerm || (site.name && site.name.toLowerCase().includes(data.searchTerm.toLowerCase()))) &&
-            (!data.address || (site.address && site.address.toLowerCase().includes(data.address.toLowerCase())))
+            (!data.villeFilter || (site.ville && site.ville.toLowerCase().includes(data.villeFilter.toLowerCase()))) &&
+            (!data.typeSiteFilter || site.type_site === data.typeSiteFilter)
         );
+
+        // Filtrage par superficie terrain
+        if (data.superficie_min) {
+            filtered = filtered.filter(site => site.superficie_terrain >= parseInt(data.superficie_min));
+        }
+
+        if (data.superficie_max) {
+            filtered = filtered.filter(site => site.superficie_terrain <= parseInt(data.superficie_max));
+        }
 
         // Filtrage par date de création
         if (data.start_date) {
@@ -91,7 +107,7 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
 
         setFilteredSites(filtered);
         setCurrentPage(1); // Réinitialiser à la première page lors d'une nouvelle recherche
-    }, [data.searchTerm, data.address, data.start_date, data.end_date, sites]);
+    }, [data.searchTerm, data.villeFilter, data.typeSiteFilter, data.superficie_min, data.superficie_max, data.start_date, data.end_date, sitesf]);
 
     // Fonction pour obtenir les éléments de la page courante
     const getCurrentPageItems = () => {
@@ -126,7 +142,7 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
             return;
         }
 
-        post(route('sites.SitesDelete'), {
+        post(route('sitesf.SitesDelete'), {
             onSuccess: () => {
                 setData("sites_ids", []);
             }
@@ -141,7 +157,7 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
 
     const confirmDelete = () => {
         if (siteToDelete) {
-            destroy(`/sites/delete/${siteToDelete.id}`);
+            destroy(`/sitesf/delete/${siteToDelete.id}`);
             setIsModalOpen(false);
             setSiteToDelete(null);
         }
@@ -153,22 +169,22 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
     };
 
     // Options pour le nombre d'éléments par page
-    const sitesPerPageOptions = [5, 10, 20, 25, 50, 100, 150,200,300,400,600,1000];
+    const sitesPerPageOptions = [5, 10, 20, 25, 50, 100, 150, 200, 300, 400, 600, 1000];
     const totalSites = filteredSites.length;
     const availableOptions = sitesPerPageOptions.filter(option => option <= totalSites || option === sitesPerPageOptions[0]);
 
-    // Initialiser filteredSites avec sites au chargement
+    // Initialiser filteredSites avec sitesf au chargement
     useEffect(() => {
-        if (sites) {
-            setFilteredSites(sites);
+        if (sitesf) {
+            setFilteredSites(sitesf);
         }
-    }, [sites]);
+    }, [sitesf]);
 
     useEffect(() => {
-        if (flash.message?.success) {
+        if (flash?.message?.success) {
             toast.success(flash.message.success);
         }
-        if (flash.message?.error) {
+        if (flash?.message?.error) {
             toast.error(flash.message.error);
         }
     }, [flash]);
@@ -179,42 +195,42 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
     };
 
     return (
-        <Authenticated user={auth.user} header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Sites</h2>}>
-            <Head title="Sites" />
+        <Authenticated user={auth.user} header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Sites Fonciers</h2>}>
+            <Head title="Sites Fonciers" />
             <div className="mx-auto sm:px-6 lg:px-8">
                 <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div className="p-6 bg-white border-b border-gray-200">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="mr-1 text-lg font-medium text-gray-900">Liste des sites</h3>
+                            <h3 className="mr-1 text-lg font-medium text-gray-900">Liste des sites fonciers</h3>
                             {width < 550 ?
-                            <div className="flex space-x-3">
-                                {data.sites_ids.length > 0 && (
-                                    <>
-                                        <button
-                                            onClick={() => setShowSitesDelete(true)}
-                                            disabled={data.sites_ids.length === 0}
-                                            title={`Supprimer ${data.sites_ids.length} site${data.sites_ids.length > 1 ? 's' : ''} sélectionné${data.sites_ids.length > 1 ? 's' : ''}`}
-                                            className="px-3 py-2 bg-red-100 text-red-600 rounded-md hover:text-red-900 transition"
-                                        >
-                                            <TiDeleteOutline/>{/*Supprimer*/}
-                                        </button>
-                                    </>
-                                )}
-                                <button
-                                    onClick={() => setshowAddFileForm(true)}
-                                    title="Importer des Fichiers des Sites"
-                                    className="px-3 py-2 bg-green-100 text-green-600 rounded-md hover:text-green-900 transition"
-                                >
-                                    <TfiImport/>
-                                </button>
-                                <button
-                                    onClick={() => setShowAddForm(true)}
-                                    title="Ajouter un nouveau Site"
-                                    className="px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
-                                >
-                                    <BsHouseAdd/>{/*Ajouter un Site*/}
-                                </button>
-                            </div> :
+                                <div className="flex space-x-3">
+                                    {data.sites_ids.length > 0 && (
+                                        <>
+                                            <button
+                                                onClick={() => setShowSitesDelete(true)}
+                                                disabled={data.sites_ids.length === 0}
+                                                title={`Supprimer ${data.sites_ids.length} site${data.sites_ids.length > 1 ? 's' : ''} sélectionné${data.sites_ids.length > 1 ? 's' : ''}`}
+                                                className="px-3 py-2 bg-red-100 text-red-600 rounded-md hover:text-red-900 transition"
+                                            >
+                                                <TiDeleteOutline/>
+                                            </button>
+                                        </>
+                                    )}
+                                    <button
+                                        onClick={() => setShowAddFileForm(true)}
+                                        title="Importer des Fichiers des Sites"
+                                        className="px-3 py-2 bg-green-100 text-green-600 rounded-md hover:text-green-900 transition"
+                                    >
+                                        <TfiImport/>
+                                    </button>
+                                    <button
+                                        onClick={() => setShowAddForm(true)}
+                                        title="Ajouter un nouveau Site"
+                                        className="px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
+                                    >
+                                        <BsHouseAdd/>
+                                    </button>
+                                </div> :
                                 <div className="flex space-x-3">
                                     {data.sites_ids.length > 0 && (
                                         <>
@@ -224,12 +240,12 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
                                                 title={`Supprimer ${data.sites_ids.length} site${data.sites_ids.length > 1 ? 's' : ''} sélectionné${data.sites_ids.length > 1 ? 's' : ''}`}
                                                 className="px-4 py-2 bg-red-100 text-red-600 rounded-md hover:text-red-900 transition"
                                             >
-                                                <TiDeleteOutline/>{/*Supprimer*/}
+                                                <TiDeleteOutline/>
                                             </button>
                                         </>
                                     )}
                                     <button
-                                        onClick={() => setshowAddFileForm(true)}
+                                        onClick={() => setShowAddFileForm(true)}
                                         title="Importer des Fichiers des Sites"
                                         className="px-4 py-2 bg-green-100 text-green-600 rounded-md hover:text-green-900 transition"
                                     >
@@ -240,14 +256,13 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
                                         title="Ajouter un nouveau Site"
                                         className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
                                     >
-                                        <BsHouseAdd/>{/*Ajouter un Site*/}
+                                        <BsHouseAdd/>
                                     </button>
                                 </div>
                             }
                         </div>
 
                         {/* Barre de recherche, filtres et sélection du nombre d'éléments par page */}
-                        {/* Section de filtres avec mise en page cohérente - Page indexsite */}
                         <div className="flex flex-wrap items-end gap-3 mb-7 relative z-0">
                             {/* Filtre par nom */}
                             <div className="relative flex-1 min-w-[200px]">
@@ -268,45 +283,62 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
                                 </div>
                             </div>
 
-                            {/* Filtre par adresse */}
+                            {/* Filtre par ville */}
                             <div className="relative flex-1 min-w-[200px]">
-                                <label htmlFor="address" className="text-xs font-medium text-gray-700 mb-1 block">Recherche par adresse:</label>
+                                <label htmlFor="villeFilter" className="text-xs font-medium text-gray-700 mb-1 block">Recherche par ville:</label>
                                 <div className="relative">
                                     <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                     </svg>
                                     <input
                                         type="text"
-                                        id="address"
-                                        name="address"
-                                        value={data.address}
+                                        id="villeFilter"
+                                        name="villeFilter"
+                                        value={data.villeFilter}
                                         onChange={handleFilterChange}
                                         className="block w-full pl-10 pr-3 py-1 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                        placeholder="Adresse..."
+                                        placeholder="Ville..."
                                     />
                                 </div>
                             </div>
-                            {/* Dates de création */}
-                            <div className="flex-1 min-w-[150px]">
-                                <label htmlFor="start_date" className="text-xs font-medium text-gray-700 mb-1 block">Création début:</label>
-                                <input
-                                    type="date"
+
+                            {/* Filtre par type de site */}
+                            <div className="relative flex-1 min-w-[150px]">
+                                <label htmlFor="typeSiteFilter" className="text-xs font-medium text-gray-700 mb-1 block">Type de site:</label>
+                                <select
+                                    id="typeSiteFilter"
+                                    name="typeSiteFilter"
+                                    value={data.typeSiteFilter}
+                                    onChange={handleFilterChange}
                                     className="block w-full px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                    id="start_date"
-                                    name="start_date"
-                                    value={data.start_date}
+                                >
+                                    <option value="">Tous</option>
+                                    <option value="propre">Propriété</option>
+                                    <option value="location">Location</option>
+                                </select>
+                            </div>
+
+                            {/* Filtre par superficie terrain */}
+                            <div className="flex-1 min-w-[150px]">
+                                <label htmlFor="superficie_min" className="text-xs font-medium text-gray-700 mb-1 block">Superficie min (m²):</label>
+                                <input
+                                    type="number"
+                                    className="block w-full px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                    id="superficie_min"
+                                    name="superficie_min"
+                                    value={data.superficie_min}
                                     onChange={handleFilterChange}
                                 />
                             </div>
 
                             <div className="flex-1 min-w-[150px]">
-                                <label htmlFor="end_date" className="text-xs font-medium text-gray-700 mb-1 block">Création fin:</label>
+                                <label htmlFor="superficie_max" className="text-xs font-medium text-gray-700 mb-1 block">Superficie max (m²):</label>
                                 <input
-                                    type="date"
+                                    type="number"
                                     className="block w-full px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                    id="end_date"
-                                    name="end_date"
-                                    value={data.end_date}
+                                    id="superficie_max"
+                                    name="superficie_max"
+                                    value={data.superficie_max}
                                     onChange={handleFilterChange}
                                 />
                             </div>
@@ -347,26 +379,27 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
                                 <tr className="text-left bg-gray-50">
                                     <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
 
-                                    </th><th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Image
-                                </th>
+                                    </th>
+                                    <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Image
+                                    </th>
                                     <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Nom
                                     </th>
                                     <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Adresse
+                                        Ville
                                     </th>
                                     <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Type de site
                                     </th>
                                     <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Superficie terrain
+                                    </th>
+                                    <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Zoning urbanistique
                                     </th>
                                     <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Superficie du Terrain
-                                    </th>
-                                    <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Ajouté par
+                                        Consistance
                                     </th>
                                     <th className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Actions
@@ -385,48 +418,29 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
                                                 />
                                             </td>
                                             <td className="px-2 py-1 whitespace-nowrap text-sm text-gray-900">
-                                                {site.image ? (
-                                                    <img
-                                                        src={`/storage/${site.image}`}
-                                                        alt={site.name}
-                                                        style={{ width: '65px', height: '65px', objectFit: 'cover' }}
-                                                    />
-                                                ) : (
-                                                    <div
-                                                        style={{
-                                                            width: '65px',
-                                                            height: '65px',
-                                                            backgroundColor: '#e5e7eb',
-                                                            borderRadius: '10px',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            fontSize: '8px',
-                                                            color: '#9ca3af',
-                                                            textAlign: 'center',
-                                                        }}
-                                                    >
-                                                        Aucune image
-                                                    </div>
-                                                )}
+                                                <img
+                                                    src={`/storage/${site.image}`}
+                                                    alt={site.name}
+                                                    style={{ width: '65px', height: '65px', objectFit: 'cover' }}
+                                                />
                                             </td>
                                             <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
                                                 {site.name}
                                             </td>
                                             <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                                                {site.address ? site.address : "Aucune Adresse définie"}
+                                                {site.ville}
                                             </td>
                                             <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
                                                 {typeLabels[site.type_site]}
                                             </td>
                                             <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                                                {site.zoning_urbanistique ? site.zoning_urbanistique : "Aucune zone définie"}
+                                                {site.superficie_terrain} m²
                                             </td>
                                             <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                                                {site.superficie_terrain ? site.superficie_terrain + ' m²' : "Aucune superficie du terrain définie"}
+                                                {site.zoning_urbanistique}
                                             </td>
                                             <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                                                {users.find(user => Number(user.id) === Number(site.uploaded_by))?.name || 'Non trouvé'}
+                                                {site.consistance}
                                             </td>
                                             <td className="px-6 py-3 whitespace-nowrap text-right text-sm font-medium">
                                                 <div className="flex space-x-2">
@@ -438,24 +452,24 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
                                                         title={`Consulter les détails du site ${site.name}`}
                                                         className="text-blue-600 hover:text-blue-900 px-2 py-1 rounded bg-blue-100"
                                                     >
-                                                        <CgDetailsMore/>{/*Détails*/}
+                                                        <CgDetailsMore/>
                                                     </button>
                                                     <button
                                                         onClick={() => {
                                                             setShowEditModal(true);
-                                                            setsiteToEdit(site);
+                                                            setSiteToEdit(site);
                                                         }}
                                                         title={`Modifier les informations du site ${site.name}`}
                                                         className="text-yellow-600 hover:text-yellow-900 px-2 py-1 rounded bg-yellow-100"
                                                     >
-                                                        <TbHomeEdit/>{/*Modifier*/}
+                                                        <TbHomeEdit/>
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteClick(site)}
                                                         title={`Supprimer le site ${site.name}`}
                                                         className="text-red-600 hover:text-red-900 px-2 py-1 rounded bg-red-100"
                                                     >
-                                                        <TiDeleteOutline/>{/*Supprimer*/}
+                                                        <TiDeleteOutline/>
                                                     </button>
                                                 </div>
                                             </td>
@@ -463,7 +477,7 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan="8" className="px-6 py-4 text-center text-sm text-gray-500">
+                                        <td colSpan="11" className="px-6 py-4 text-center text-sm text-gray-500">
                                             Aucun site trouvé.
                                         </td>
                                     </tr>
@@ -509,13 +523,13 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
                         )}
                     </div>
                     {showAddFileForm && (
-                        <ModalWrapper title="Importation groupée des sites" onClose={() => setshowAddFileForm(false)}>
-                            <ImportSitesXLSX auth={auth} setshowAddFileForm={setshowAddFileForm} />
+                        <ModalWrapper title="Importation groupée des sites" onClose={() => setShowAddFileForm(false)}>
+                            <ImportSitesXLSX auth={auth} setshowAddFileForm={setShowAddFileForm} />
                         </ModalWrapper>
                     )}
                     {showAddForm && (
                         <ModalWrapper title="Ajouter un nouveau site" onClose={() => setShowAddForm(false)}>
-                            <AddSite auth={auth} setShowAddForm={setShowAddForm} />
+                            <AddSite auth={auth}  setShowAddForm={setShowAddForm} />
                         </ModalWrapper>
                     )}
                     {showEditModal && (
@@ -525,12 +539,7 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
                     )}
                     {showDetailModal && (
                         <ModalWrapper title="Détails du Site" onClose={() => setShowDetailModal(false)}>
-                            <Details auth={auth}
-                                     documents={documents}
-                                     surfaces={surfaces.find((item) => item.site_id === siteToShowDetails.id)}
-                                     siteDetails={siteToShowDetails}
-                                     locations={locations.find((item) => item.sitef_id === siteToShowDetails.id)}
-                                     setShowDetailModal={setShowDetailModal} />
+                            <Details auth={auth} documents={documents} location={Location} users={users} siteDetails={siteToShowDetails} setShowDetailModal={setShowDetailModal} />
                         </ModalWrapper>
                     )}
                     {isModalOpen && (
@@ -542,15 +551,22 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
                     )}
                     {showSitesDelete && (
                         <ConfirmSitesDelete
-                            sitesToDelete={selectedSitesTodelete}
+                            sitesToDelete={selectedSitesToDelete}
                             onConfirm={handleSitesDelete}
                             onCancel={() => setShowSitesDelete(false)}
                         />
                     )}
                 </div>
+                {import.meta.env.DEV && (
+                    <div className="mt-4 p-2 bg-gray-100 rounded">
+                        <p>Données du formulaire:</p>
+                        <pre>{JSON.stringify(sitesf, null, 2)}</pre>
+                        <pre>{JSON.stringify(Location, null, 2)}</pre>
+                    </div>
+                )}
             </div>
         </Authenticated>
     );
 }
 
-export default IndexSites;
+export default IndexSitesf;

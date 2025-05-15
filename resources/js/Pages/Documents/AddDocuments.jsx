@@ -9,6 +9,7 @@ export default function AddDocuments({ auth, sites ,setShowAddForm}) {
         site_id: "",
         uploaded_by: auth.user.id,
         description: "",
+        document_type:"",
         file_path: null,
         expiration_date: "",
         role: auth.user.role,
@@ -121,7 +122,32 @@ export default function AddDocuments({ auth, sites ,setShowAddForm}) {
                                         }
                                     </div>
 
-                                    <div className="mb-6">
+                                    <div className="mb-6 flex space-x-4">
+                                        <div className="w-1/2">
+                                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="document_type">
+                                            Type de document
+                                        </label>
+                                        <select
+                                            id="document_type"
+                                            name="document_type"
+                                            value={data.document_type}
+                                            onChange={(e) => setData('document_type', e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        >
+                                            <option value="">-- Sélectionnez un type --</option>
+                                            <option value="urbanisme">Informations Urbanistiques</option>
+                                            <option value="contrat">Contrats</option>
+                                            <option value="fiscalite">Taxes Professionnelles</option>
+                                            <option value="autre">Autre</option>
+                                        </select>
+                                        {errors.document_type && (
+                                            <p className="mt-2 text-sm text-red-600">
+                                                {errors.document_type}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <div className="w-1/2">
                                         <label htmlFor="expiration_date" className="block text-gray-700 text-sm font-medium mb-2">
                                             Date d'expiration
                                         </label>
@@ -138,6 +164,7 @@ export default function AddDocuments({ auth, sites ,setShowAddForm}) {
                                                 {errors.expiration_date}
                                             </p>
                                         }
+                                    </div>
                                     </div>
 
                                     <div className="flex items-center justify-end space-x-2">
@@ -247,6 +274,31 @@ export default function AddDocuments({ auth, sites ,setShowAddForm}) {
                                         {errors.description && (
                                             <p className="mt-1 text-[10px] text-red-600">
                                                 {errors.description}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    {/* Expiration Date */}
+                                    <div className="mb-2">
+                                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="document_type">
+                                            Type de document
+                                        </label>
+                                        <select
+                                            id="document_type"
+                                            name="document_type"
+                                            value={data.document_type}
+                                            onChange={(e) => setData('document_type', e.target.value)}
+                                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
+                                        >
+                                            <option value="">-- Sélectionnez un type --</option>
+                                            <option value="urbanisme">Informations Urbanistiques</option>
+                                            <option value="contrat">Contrats</option>
+                                            <option value="fiscalite">Taxes Professionnelles</option>
+                                            <option value="autre">Autre</option>
+                                        </select>
+                                        {errors.document_type && (
+                                            <p className="mt-2 text-sm text-red-600">
+                                                {errors.document_type}
                                             </p>
                                         )}
                                     </div>

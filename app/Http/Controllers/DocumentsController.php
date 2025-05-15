@@ -390,6 +390,60 @@ class DocumentsController extends Controller
 
         return Excel::download(
             new DocumentsExport($searchTerm, $siteIds, $startDate, $endDate, $expStartDate, $expEndDate),
+            'documents.xlsx'
+        );
+    }
+
+    public function exportCSV(Request $request)
+    {
+        $searchTerm = $request->query('searchTerm', '');
+        $siteIds = $request->query('siteIds') ? explode(',', $request->query('siteIds')) : [];
+        $startDate = $request->query('startDate', '');
+        $endDate = $request->query('endDate', '');
+        $expStartDate = $request->query('expStartDate', '');
+        $expEndDate = $request->query('expEndDate', '');
+
+        // Reproduire le même filtrage que dans DocumentsExport pour compter
+        $query = Documents::query();
+
+        if (!empty($searchTerm)) {
+            $query->where('title', 'like', '%' . $searchTerm . '%');
+        }
+
+        if (!empty($siteIds)) {
+            $query->whereIn('site_id', $siteIds);
+        }
+
+        if (!empty($startDate)) {
+            $query->whereDate('created_at', '>=', $startDate);
+        }
+
+        if (!empty($endDate)) {
+            $query->whereDate('created_at', '<=', $endDate);
+        }
+
+        if (!empty($expStartDate)) {
+            $query->whereDate('expiration_date', '>=', $expStartDate);
+        }
+
+        if (!empty($expEndDate)) {
+            $query->whereDate('expiration_date', '<=', $expEndDate);
+        }
+
+        $count = $query->count();
+
+        $word = $count === 1 ? 'document' : 'documents';
+
+        Alerts::create([
+            'user_id' => Auth::id(),
+            'role' => Auth::user()->role,
+            'action' => 'export',
+            'type' => 'document',
+            'message' => "a exporté {$count} {$word} au format Excel.",
+        ]);
+
+        return Excel::download(
+            new DocumentsExport($searchTerm, $siteIds, $startDate, $endDate, $expStartDate, $expEndDate),
             'documents.csv'
         );
     }

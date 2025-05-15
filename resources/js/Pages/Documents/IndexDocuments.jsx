@@ -20,6 +20,7 @@ import { BiDetail } from "react-icons/bi";
 import { HiDocumentAdd } from "react-icons/hi";
 import { MdEditDocument } from "react-icons/md";
 import { CiExport } from "react-icons/ci";
+import { TbFileTypeCsv } from "react-icons/tb";
 import { useWindowWidth } from "@/hooks/useWindowWidth.js";
 
 
@@ -328,6 +329,55 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
         toast.success(`Exportation de ${filteredDocuments.length} document(s) en cours...`);
     };
 
+    const handleExportCSV = () => {
+        // Vérifie si des documents correspondent aux filtres actuels
+        if (filteredDocuments.length === 0) {
+            // Affiche un toast d'erreur si aucun document ne correspond
+            toast.error("Aucun document à exporter avec ces filtres.");
+            return; // Arrête l'exécution de la fonction
+        }
+
+        // Si des documents sont présents, continue avec l'exportation
+        // Build query parameters from current filters
+        const params = new URLSearchParams();
+
+        // Add search term if present
+        if (data.searchTerm) {
+            params.append('searchTerm', data.searchTerm);
+        }
+
+        // Add selected sites if any
+        if (selectedSites.length > 0) {
+            params.append('siteIds', selectedSites.join(','));
+        }
+
+        // Add date filters if present
+        if (data.start_date) {
+            params.append('startDate', data.start_date);
+        }
+
+        if (data.end_date) {
+            params.append('endDate', data.end_date);
+        }
+
+        if (data.exp_start_date) {
+            params.append('expStartDate', data.exp_start_date);
+        }
+
+        if (data.exp_end_date) {
+            params.append('expEndDate', data.exp_end_date);
+        }
+
+        // Build the final URL with query parameters
+        const exportUrl = `${route('documents.exportCSV')}?${params.toString()}`;
+
+        // Navigate to the export URL
+        window.location.href = exportUrl;
+
+        // Optionnellement, affiche un toast de succès
+        toast.success(`Exportation de ${filteredDocuments.length} document(s) en cours...`);
+    };
+
     return (
         <Authenticated user={auth.user} header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Documents</h2>}>
             <Head title="Documents" />
@@ -368,6 +418,13 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
                                         <CiExport />
                                     </button>
                                     <button
+                                        onClick={handleExportCSV}
+                                        title="Exporter les Documents Filtrés"
+                                        className="px-2 py-2 bg-green-100 text-green-600 rounded-md hover:text-green-900 transition"
+                                    >
+                                        <TbFileTypeCsv/>
+                                    </button>
+                                    <button
                                         onClick={() => setShowAddForm(true)}
                                         title="Ajouter un nouveau Document"
                                         className="px-2 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
@@ -401,6 +458,13 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
                                             className="px-4 py-2 bg-green-100 text-green-600 rounded-md hover:text-green-900 transition"
                                         >
                                             <CiExport />
+                                        </button>
+                                        <button
+                                            onClick={handleExportCSV}
+                                            title="Exporter les Documents Filtrés"
+                                            className="px-2 py-2 bg-green-100 text-green-600 rounded-md hover:text-green-900 transition"
+                                        >
+                                            <TbFileTypeCsv/>
                                         </button>
                                         <button
                                             onClick={() => setShowAddForm(true)}

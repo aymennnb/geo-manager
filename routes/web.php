@@ -9,6 +9,7 @@ use App\Http\Controllers\SitesController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\SitesfController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -31,6 +32,10 @@ Route::middleware(['auth','verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('/dashboard', [SitesController::class, 'map'])->name('dashboard');
+
+    Route::prefix('sitesf')->controller(SitesfController::class)->group(function () {
+        Route::get('/', 'index')->name('sitesf');
+    });
 
     Route::prefix('alerts')->controller(AlertController::class)->group(function () {
         Route::post('create', 'create')->name('alert.create');
@@ -62,6 +67,7 @@ Route::middleware(['auth','verified'])->group(function () {
                 Route::post('Docs-delete', 'DocsDelete')->name('documents.DocsDelete');
                 Route::post('Docs-access', 'DocsAccess')->name('documents.DocsAccess');
                 Route::get('Docs-export', 'export')->name('documents.export');
+                Route::get('Docs-export-csv', 'exportCSV')->name('documents.exportCSV');
             });
     });
 
