@@ -18,6 +18,7 @@ import { BsHouseAdd } from "react-icons/bs";
 import { CgDetailsMore } from "react-icons/cg";
 import { TfiImport } from "react-icons/tfi";
 import { useWindowWidth } from "@/hooks/useWindowWidth.js";
+import MultiSelectDropdown from "@/Components/MultiSelectDropdown";
 
 
 
@@ -27,7 +28,9 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
         searchTerm: '',
         address: '',
         start_date: '',
-        end_date: ''
+        end_date: '',
+        type_site: '',     // Nouveau champ pour filtrer par type de site
+        uploaded_by: ''    // Nouveau champ pour filtrer par la personne qui a ajouté
     });
 
     const width = useWindowWidth();
@@ -50,7 +53,9 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
     const [currentPage, setCurrentPage] = useState(1);
     const [filteredSites, setFilteredSites] = useState([]);
 
-    const [showAddFileForm,setshowAddFileForm] = useState(false)
+    const [showAddFileForm,setshowAddFileForm] = useState(false);
+
+    const [selectedUsers, setSelectedUsers] = useState([]);
 
     const selectedSitesTodelete = sites.filter((site) =>
         data.sites_ids.includes(site.id)
@@ -62,7 +67,9 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
             searchTerm: '',
             address: '',
             start_date: '',
-            end_date: ''
+            end_date: '',
+            type_site: '',     // Réinitialiser type de site
+            uploaded_by: ''    // Réinitialiser la personne qui a ajouté
         });
         setCurrentPage(1);
     };
@@ -73,7 +80,9 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
 
         let filtered = sites.filter(site =>
             (!data.searchTerm || (site.name && site.name.toLowerCase().includes(data.searchTerm.toLowerCase()))) &&
-            (!data.address || (site.address && site.address.toLowerCase().includes(data.address.toLowerCase())))
+            (!data.address || (site.address && site.address.toLowerCase().includes(data.address.toLowerCase()))) &&
+            (!data.type_site || site.type_site === data.type_site) &&  // Filtrage par type de site
+            (!data.uploaded_by || Number(site.uploaded_by) === Number(data.uploaded_by))  // Filtrage par personne qui a ajouté
         );
 
         // Filtrage par date de création
@@ -89,9 +98,13 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
             filtered = filtered.filter(site => new Date(site.created_at) <= endDate);
         }
 
+        if (selectedUsers.length > 0) {
+            filtered = filtered.filter(site => selectedUsers.includes(site.uploaded_by));
+        }
+
         setFilteredSites(filtered);
         setCurrentPage(1); // Réinitialiser à la première page lors d'une nouvelle recherche
-    }, [data.searchTerm, data.address, data.start_date, data.end_date, sites]);
+    }, [data.searchTerm, data.address, data.start_date,selectedUsers, data.end_date, data.type_site, data.uploaded_by, sites]);
 
     // Fonction pour obtenir les éléments de la page courante
     const getCurrentPageItems = () => {
@@ -178,6 +191,13 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
         propre: "Propriété",
     };
 
+    const handleFilterSubmit = () => {
+        const filters = {
+            ...data,
+            uploaded_by: selectedUsers,
+        };
+    };
+
     return (
         <Authenticated user={auth.user} header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Sites</h2>}>
             <Head title="Sites" />
@@ -187,34 +207,34 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="mr-1 text-lg font-medium text-gray-900">Liste des sites</h3>
                             {width < 550 ?
-                            <div className="flex space-x-3">
-                                {data.sites_ids.length > 0 && (
-                                    <>
-                                        <button
-                                            onClick={() => setShowSitesDelete(true)}
-                                            disabled={data.sites_ids.length === 0}
-                                            title={`Supprimer ${data.sites_ids.length} site${data.sites_ids.length > 1 ? 's' : ''} sélectionné${data.sites_ids.length > 1 ? 's' : ''}`}
-                                            className="px-3 py-2 bg-red-100 text-red-600 rounded-md hover:text-red-900 transition"
-                                        >
-                                            <TiDeleteOutline/>{/*Supprimer*/}
-                                        </button>
-                                    </>
-                                )}
-                                <button
-                                    onClick={() => setshowAddFileForm(true)}
-                                    title="Importer des Fichiers des Sites"
-                                    className="px-3 py-2 bg-green-100 text-green-600 rounded-md hover:text-green-900 transition"
-                                >
-                                    <TfiImport/>
-                                </button>
-                                <button
-                                    onClick={() => setShowAddForm(true)}
-                                    title="Ajouter un nouveau Site"
-                                    className="px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
-                                >
-                                    <BsHouseAdd/>{/*Ajouter un Site*/}
-                                </button>
-                            </div> :
+                                <div className="flex space-x-3">
+                                    {data.sites_ids.length > 0 && (
+                                        <>
+                                            <button
+                                                onClick={() => setShowSitesDelete(true)}
+                                                disabled={data.sites_ids.length === 0}
+                                                title={`Supprimer ${data.sites_ids.length} site${data.sites_ids.length > 1 ? 's' : ''} sélectionné${data.sites_ids.length > 1 ? 's' : ''}`}
+                                                className="px-3 py-2 bg-red-100 text-red-600 rounded-md hover:text-red-900 transition"
+                                            >
+                                                <TiDeleteOutline/>{/*Supprimer*/}
+                                            </button>
+                                        </>
+                                    )}
+                                    <button
+                                        onClick={() => setshowAddFileForm(true)}
+                                        title="Importer des Fichiers des Sites"
+                                        className="px-3 py-2 bg-green-100 text-green-600 rounded-md hover:text-green-900 transition"
+                                    >
+                                        <TfiImport/>
+                                    </button>
+                                    <button
+                                        onClick={() => setShowAddForm(true)}
+                                        title="Ajouter un nouveau Site"
+                                        className="px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
+                                    >
+                                        <BsHouseAdd/>{/*Ajouter un Site*/}
+                                    </button>
+                                </div> :
                                 <div className="flex space-x-3">
                                     {data.sites_ids.length > 0 && (
                                         <>
@@ -286,6 +306,33 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
                                     />
                                 </div>
                             </div>
+
+                            {/* Filtre par type de site */}
+                            <div className="flex-1 min-w-[150px]">
+                                <label htmlFor="type_site" className="text-xs font-medium text-gray-700 mb-1 block">Type de site:</label>
+                                <select
+                                    id="type_site"
+                                    name="type_site"
+                                    value={data.type_site}
+                                    onChange={handleFilterChange}
+                                    className="block w-full px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                >
+                                    <option value="">Tous les types</option>
+                                    <option value="location">Loué</option>
+                                    <option value="propre">Propriété</option>
+                                </select>
+                            </div>
+
+                            {/* Filtre par personne qui a ajouté */}
+                            <div className="relative flex-1 min-w-[200px] z-20">
+                                <MultiSelectDropdown
+                                    label="Ajouté par :"
+                                    options={users}
+                                    selectedOptions={selectedUsers}
+                                    setSelectedOptions={setSelectedUsers}
+                                />
+                            </div>
+
                             {/* Dates de création */}
                             <div className="flex-1 min-w-[150px]">
                                 <label htmlFor="start_date" className="text-xs font-medium text-gray-700 mb-1 block">Création début:</label>
@@ -406,27 +453,27 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
                                                             textAlign: 'center',
                                                         }}
                                                     >
-                                                        Aucune image
+                                                        <span className="italic text-gray-400">Aucune image</span>
                                                     </div>
                                                 )}
                                             </td>
                                             <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                                                {site.name}
+                                                {site.name ? site.name : <span className="italic text-gray-400">Nom non défini</span>}
                                             </td>
                                             <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                                                {site.address ? site.address : "Aucune Adresse définie"}
+                                                {site.address ? site.address : <span className="italic text-gray-400">Aucune adresse définie</span>}
                                             </td>
                                             <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                                                {typeLabels[site.type_site]}
+                                                {typeLabels[site.type_site] ? typeLabels[site.type_site] : <span className="italic text-gray-400">Type inconnu</span>}
                                             </td>
                                             <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                                                {site.zoning_urbanistique ? site.zoning_urbanistique : "Aucune zone définie"}
+                                                {site.zoning_urbanistique ? site.zoning_urbanistique : <span className="italic text-gray-400">Aucune zone définie</span>}
                                             </td>
                                             <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                                                {site.superficie_terrain ? site.superficie_terrain + ' m²' : "Aucune superficie du terrain définie"}
+                                                {site.superficie_terrain ? site.superficie_terrain + ' m²' : <span className="italic text-gray-400">Aucune superficie du terrain définie</span>}
                                             </td>
                                             <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                                                {users.find(user => Number(user.id) === Number(site.uploaded_by))?.name || 'Non trouvé'}
+                                                {users.find(user => Number(user.id) === Number(site.uploaded_by))?.name || <span className="italic text-gray-400">Non trouvé</span>}
                                             </td>
                                             <td className="px-6 py-3 whitespace-nowrap text-right text-sm font-medium">
                                                 <div className="flex space-x-2">
@@ -464,7 +511,7 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
                                 ) : (
                                     <tr>
                                         <td colSpan="8" className="px-6 py-4 text-center text-sm text-gray-500">
-                                            Aucun site trouvé.
+                                            <span className="italic text-gray-400">Aucun site trouvé.</span>
                                         </td>
                                     </tr>
                                 )}
@@ -519,17 +566,21 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
                         </ModalWrapper>
                     )}
                     {showEditModal && (
-                        <ModalWrapper title="Modifier le site" onClose={() => setShowEditModal(false)}>
-                            <EditSite auth={auth} siteToEdit={siteToEdit} setShowEditModal={setShowEditModal} />
+                        <ModalWrapper title={`Modifier les information du site ${siteToEdit.name}`} onClose={() => setShowEditModal(false)}>
+                            <EditSite auth={auth}
+                                      siteToEdit={siteToEdit}
+                                      locationifExist={siteToEdit ? locations.find((item) => item.sitef_id === siteToEdit.id): null}
+                                      surface={siteToEdit ? surfaces.find((item) => item.site_id === siteToEdit.id): null}
+                                      setShowEditModal={setShowEditModal} />
                         </ModalWrapper>
                     )}
                     {showDetailModal && (
-                        <ModalWrapper title="Détails du Site" onClose={() => setShowDetailModal(false)}>
+                        <ModalWrapper title={`Détails du Site ${siteToShowDetails.name}`} onClose={() => setShowDetailModal(false)}>
                             <Details auth={auth}
                                      documents={documents}
-                                     surfaces={surfaces.find((item) => item.site_id === siteToShowDetails.id)}
+                                     surface={siteToShowDetails ? surfaces.find((item) => item.site_id === siteToShowDetails.id): null}
                                      siteDetails={siteToShowDetails}
-                                     locations={locations.find((item) => item.sitef_id === siteToShowDetails.id)}
+                                     locationifExist={siteToShowDetails ? locations.find((item) => item.sitef_id === siteToShowDetails.id): null}
                                      setShowDetailModal={setShowDetailModal} />
                         </ModalWrapper>
                     )}

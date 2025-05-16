@@ -14,6 +14,21 @@ export default function DetailsDocument({ auth, document, setshowDetailModal, si
         });
     };
 
+    const getDocumentTypeLabel = (type) => {
+        switch (type) {
+            case 'urbanisme':
+                return 'Informations Urbanistiques';
+            case 'contrat':
+                return 'Contrats';
+            case 'fiscalite':
+                return 'Taxes Professionnelles';
+            case 'autre':
+                return 'Autre';
+            default:
+                return <span className="italic text-gray-400">Type non défini</span> ;
+        }
+    };
+
     return (
         <div className="max-w-5xl mx-auto px-1 py-2">
             <div className="bg-white shadow rounded-lg overflow-hidden">
@@ -49,7 +64,7 @@ export default function DetailsDocument({ auth, document, setshowDetailModal, si
                                         </div>
                                     ) : (
                                         <div className="p-8 text-center">
-                                            <p className="text-gray-600">Aperçu non disponible</p>
+                                            <p className="text-gray-600"><span className="italic text-gray-400">Aperçu non disponible</span></p>
                                             <a
                                                 href={`/storage/${document.file_path}`}
                                                 className="mt-3 inline-block px-4 py-2 bg-blue-100 text-blue-600 rounded hover:text-blue-900"
@@ -62,8 +77,8 @@ export default function DetailsDocument({ auth, document, setshowDetailModal, si
                                     )}
                                 </>
                             ) : (
-                                <div className="p-8 text-center text-gray-500">
-                                    Aucun fichier disponible
+                                <div className="p-8  text-gray-500">
+                                    <span className="italic text-gray-400">Aucun fichier disponible</span>
                                 </div>
                             )}
                         </div>
@@ -84,14 +99,21 @@ export default function DetailsDocument({ auth, document, setshowDetailModal, si
                             <div>
                                 <h4 className="font-medium text-gray-700">Site associé</h4>
                                 <p className="text-gray-600 mt-1">
-                                    {sites.find(site => site.id === document.site_id)?.name || 'Non trouvé'}
+                                    {sites.find(site => site.id === document.site_id)?.name || <span className="italic text-gray-400">Non trouvé</span>}
+                                </p>
+                            </div>
+
+                            <div>
+                                <h4 className="font-medium text-gray-700">Type de document</h4>
+                                <p className="text-gray-600 mt-1">
+                                    {getDocumentTypeLabel(document.document_type)}
                                 </p>
                             </div>
 
                             <div>
                                 <h4 className="font-medium text-gray-700">Ajouté par</h4>
                                 <p className="text-gray-600 mt-1">
-                                    {users.find(user => Number(user.id) === Number(document.uploaded_by))?.name || 'Non trouvé'}
+                                    {users.find(user => Number(user.id) === Number(document.uploaded_by))?.name || <span className="italic text-gray-400">Non trouvé</span>}
                                 </p>
                             </div>
 

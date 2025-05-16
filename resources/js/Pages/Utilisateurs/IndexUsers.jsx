@@ -605,9 +605,17 @@ export default function IndexUsers({ auth,AccessTable,documentAccess, documents,
                                                         onChange={() => handleSelectUser(user.id)}
                                                     />
                                                 </td>
-                                                <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-900">{user.id}</td>
-                                                <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-900">{user.name}</td>
-                                                <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">{user.email}</td>
+                                                <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-900">
+                                                    {user.id ?? <span className="italic text-gray-400">Identifiant non disponible</span>}
+                                                </td>
+
+                                                <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-900">
+                                                    {user.name ?? <span className="italic text-gray-400">Nom non renseigné</span>}
+                                                </td>
+
+                                                <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
+                                                    {user.email ?? <span className="italic text-gray-400">Email non renseigné</span>}
+                                                </td>
                                                 <td className="px-6 whitespace-nowrap text-sm text-gray-500">
                                                     <select
                                                         className="border border-gray-300 rounded-[7px] py-1"
@@ -638,8 +646,17 @@ export default function IndexUsers({ auth,AccessTable,documentAccess, documents,
                                                         <MdOutlineLockReset/>{/*Réinitialiser*/}
                                                     </button>
                                                 </td>
-                                                <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">{new Date(user.created_at).toLocaleString("fr-FR")}</td>
-                                                <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">{new Date(user.updated_at).toLocaleString("fr-FR")}</td>
+                                                <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
+                                                    {user.created_at
+                                                        ? new Date(user.created_at).toLocaleString("fr-FR")
+                                                        : <span className="italic text-gray-400">Date de création inconnue</span>}
+                                                </td>
+
+                                                <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
+                                                    {user.updated_at
+                                                        ? new Date(user.updated_at).toLocaleString("fr-FR")
+                                                        : <span className="italic text-gray-400">Date de mise à jour inconnue</span>}
+                                                </td>
                                                 <td className="px-6 py-3 whitespace-nowrap text-right text-sm font-medium">
                                                     <div className="flex space-x-2">
                                                         <button
@@ -670,7 +687,7 @@ export default function IndexUsers({ auth,AccessTable,documentAccess, documents,
                                     ) : (
                                         <tr>
                                             <td colSpan="9" className="px-6 py-4 text-center text-sm text-gray-500">
-                                                Aucun utilisateur trouvé.
+                                                <span className="italic text-gray-400">Aucun utilisateur trouvé.</span>
                                             </td>
                                         </tr>
                                     )}

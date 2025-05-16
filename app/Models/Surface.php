@@ -13,7 +13,6 @@ class Surface extends Model
         'site_id',
         'total',
         'vn',
-        'show_room',
         'show_room_dacia',
         'show_room_renault',
         'show_room_nouvelle_marque',

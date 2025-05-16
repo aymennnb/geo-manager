@@ -31,7 +31,8 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
         start_date: "", // Date de début pour la création
         end_date: "",   // Date de fin pour la création
         exp_start_date: "", // Date de début pour l'expiration
-        exp_end_date: ""    // Date de fin pour l'expiration
+        exp_end_date: "",    // Date de fin pour l'expiration
+        document_type: 'all'
     });
 
     const width = useWindowWidth();
@@ -95,9 +96,13 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
             filtered = filtered.filter(doc => doc.expiration_date && new Date(doc.expiration_date) <= expEndDate);
         }
 
+        if (data.document_type && data.document_type !== "all") {
+            filtered = filtered.filter(doc => doc.document_type === data.document_type);
+        }
+
         setFilteredDocuments(filtered);
         setCurrentPage(1); // Réinitialiser à la première page lors d'une nouvelle recherche
-    }, [data.searchTerm, data.start_date, data.end_date, selectedSites, data.exp_start_date, data.exp_end_date, documents]);
+    }, [data.searchTerm, data.start_date, data.end_date, selectedSites,data.document_type, data.exp_start_date, data.exp_end_date, documents]);
 
     // Initialiser filteredDocuments avec documents au chargement
     useEffect(() => {
@@ -138,7 +143,8 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
             start_date: '',
             end_date: '',
             exp_start_date: '',
-            exp_end_date: ''
+            exp_end_date: '',
+            document_type: 'all'
         });
         // Réinitialiser également la sélection des sites
         setSelectedSites([]);
@@ -284,7 +290,7 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
         // Vérifie si des documents correspondent aux filtres actuels
         if (filteredDocuments.length === 0) {
             // Affiche un toast d'erreur si aucun document ne correspond
-            toast.error("Aucun document à exporter avec ces filtres.");
+            toast.error("Aucun document à exporter");
             return; // Arrête l'exécution de la fonction
         }
 
@@ -319,6 +325,10 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
             params.append('expEndDate', data.exp_end_date);
         }
 
+        if (data.document_type && data.document_type !== "all") {
+            params.append('documentType', data.document_type);
+        }
+
         // Build the final URL with query parameters
         const exportUrl = `${route('documents.export')}?${params.toString()}`;
 
@@ -333,7 +343,7 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
         // Vérifie si des documents correspondent aux filtres actuels
         if (filteredDocuments.length === 0) {
             // Affiche un toast d'erreur si aucun document ne correspond
-            toast.error("Aucun document à exporter avec ces filtres.");
+            toast.error("Aucun document à exporter");
             return; // Arrête l'exécution de la fonction
         }
 
@@ -377,6 +387,22 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
         // Optionnellement, affiche un toast de succès
         toast.success(`Exportation de ${filteredDocuments.length} document(s) en cours...`);
     };
+
+    const getDocumentTypeLabel = (type) => {
+        switch (type) {
+            case 'urbanisme':
+                return 'Informations Urbanistiques';
+            case 'contrat':
+                return 'Contrats';
+            case 'fiscalite':
+                return 'Taxes Professionnelles';
+            case 'autre':
+                return 'Autre';
+            default:
+                return <span className="italic text-gray-400">Type non défini</span> ;
+        }
+    };
+
 
     return (
         <Authenticated user={auth.user} header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Documents</h2>}>
@@ -454,14 +480,14 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
                                         )}
                                         <button
                                             onClick={handleExport}
-                                            title="Exporter les Documents Filtrés"
+                                            title="Exporter les Documents Filtrés  au format Exel"
                                             className="px-4 py-2 bg-green-100 text-green-600 rounded-md hover:text-green-900 transition"
                                         >
                                             <CiExport />
                                         </button>
                                         <button
                                             onClick={handleExportCSV}
-                                            title="Exporter les Documents Filtrés"
+                                            title="Exporter les documents filtrés au format CSV"
                                             className="px-2 py-2 bg-green-100 text-green-600 rounded-md hover:text-green-900 transition"
                                         >
                                             <TbFileTypeCsv/>
@@ -506,6 +532,26 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
                                         setSelectedOptions={setSelectedSites}
                                         label="Filtrer par site:"
                                     />
+                                </div>
+
+                                {/* Filtrer par type de document */}
+                                <div className="flex-1 min-w-[150px]">
+                                    <label htmlFor="document_type" className="text-xs font-medium text-gray-700 mb-1 block">
+                                        Filtrer par type :
+                                    </label>
+                                    <select
+                                        className="block w-full px-3 py-1 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                        id="document_type"
+                                        name="document_type"
+                                        value={data.document_type}
+                                        onChange={handleFilterChange}
+                                    >
+                                        <option value="all">Tous</option>
+                                        <option value="urbanisme">Informations Urbanistiques</option>
+                                        <option value="contrat">Contrats</option>
+                                        <option value="fiscalite">Taxes Professionnelles</option>
+                                        <option value="autre">Autre</option>
+                                    </select>
                                 </div>
 
                                 {/* Dates de création */}
@@ -592,7 +638,7 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
                                     <tr className="text-left bg-gray-50">
                                         <th className="px-6 py-3 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
                                         <th className="px-6 py-3 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider">Titre</th>
-                                        <th className="px-6 py-3 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                        <th className="px-6 py-3 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider">Type de document</th>
                                         <th className="px-6 py-3 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider">Date d'expiration</th>
                                         <th className="px-6 py-3 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider">Site</th>
                                         <th className="px-6 py-3 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -610,25 +656,21 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
                                                     />
                                                 </td>
                                                 <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-900">
-                                                    {document.title || "Sans titre"}
+                                                    {document.title || <span className="italic text-gray-400">Sans titre</span>}
                                                 </td>
                                                 <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                                                    {document.description
-                                                        ? (document.description.length > 50
-                                                            ? `${document.description.substring(0, 50)}...`
-                                                            : document.description)
-                                                        : "Aucune description"}
+                                                    {getDocumentTypeLabel(document.document_type)}
                                                 </td>
                                                 <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
                                                     {document.expiration_date
                                                         ? (document.expiration_date || "Non trouvé")
-                                                        : "Non spécifié"
+                                                        : <span className="italic text-gray-400">Non spécifié</span>
                                                     }
                                                 </td>
                                                 <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
                                                     {sites && document.site_id
                                                         ? (sites.find((site) => site.id === document.site_id)?.name || "Non trouvé")
-                                                        : "Non spécifié"}
+                                                        : <span className="italic text-gray-400">Non spécifié</span> }
                                                 </td>
                                                 <td className="px-6 py-3 whitespace-nowrap text-right text-sm font-medium">
                                                     <div className="flex space-x-2">
@@ -671,7 +713,7 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
                                     ) : (
                                         <tr>
                                             <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
-                                                Aucun document trouvé.
+                                                <span className="italic text-gray-400">Aucun document trouvé.</span>
                                             </td>
                                         </tr>
                                     )}

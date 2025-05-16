@@ -119,7 +119,7 @@ export default function UserDocsAccess({ auth, userId, users, documents, userDoc
                                         );
                                     })
                                 ) : (
-                                    <p className="text-gray-500">Aucun document sélectionné</p>
+                                    <p className="text-gray-500"><span className="italic text-gray-400">Aucun document sélectionné</span></p>
                                 )}
                             </div>
                         </div>
@@ -175,7 +175,7 @@ export default function UserDocsAccess({ auth, userId, users, documents, userDoc
                                         </div>
                                     ))
                                 ) : (
-                                    <p className="text-gray-500">Aucun document trouvé.</p>
+                                    <p className="text-gray-500"><span className="italic text-gray-400">Aucun document trouvé.</span></p>
                                 )}
                             </div>
 

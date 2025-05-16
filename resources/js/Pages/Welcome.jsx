@@ -23,7 +23,7 @@ export default function Welcome({ auth }) {
         'Interface claire, intuitive et facile à prendre en main pour tous les profils.',
         'Gestion des accès selon les rôles (admin, utilisateur, manager) avec authentification sécurisée.',
         'Toutes les modifications sont immédiatement visibles, sans rechargement manuel.',
-        'Export des données CSV selon les besoins métiers'
+        'Export des données selon les besoins métiers'
     ];
 
     return (

@@ -16,7 +16,6 @@ return new class extends Migration
             $table->unsignedBigInteger('site_id');
             $table->float('total')->nullable();
             $table->float('vn')->nullable();
-            $table->float('show_room')->nullable();
             $table->float('show_room_dacia')->nullable();
             $table->float('show_room_renault')->nullable();
             $table->float('show_room_nouvelle_marque')->nullable();

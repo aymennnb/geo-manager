@@ -1,13 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 
-export default function MultiSelectDropdown({ options, selectedOptions, setSelectedOptions, label = "Site:" }) {
+export default function MultiSelectDropdown({ options, selectedOptions, setSelectedOptions, label}) {
     const [query, setQuery] = useState('');
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
 
-    const filteredOptions = options.filter(option =>
-        option.name.toLowerCase().includes(query.toLowerCase())
-    );
+    const filteredOptions = query.trim() === ''
+        ? options
+        : options.filter(option => option.name.toLowerCase().includes(query.toLowerCase()));
 
     const toggleOption = (id) => {
         if (selectedOptions.includes(id)) {
@@ -54,12 +54,12 @@ export default function MultiSelectDropdown({ options, selectedOptions, setSelec
 
             {/* Dropdown */}
             {isOpen && (
-                <div className="absolute z-30 w-full mt-1 border border-gray-300 rounded-md shadow-lg bg-white">
-                {/* Barre de recherche */}
+                <div className="absolute z-50 w-full mt-1 border border-gray-300 rounded-md shadow-lg bg-white">
+                    {/* Barre de recherche */}
                     <div className="p-2 border-b border-gray-200">
                         <input
                             type="text"
-                            placeholder="Rechercher un site..."
+                            placeholder="Recherche ..."
                             className="w-full px-3 py-1 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
@@ -67,11 +67,18 @@ export default function MultiSelectDropdown({ options, selectedOptions, setSelec
                         />
                     </div>
 
-                    {/* Liste des options - avec hauteur minimale pour garantir visibilité */}
+                    {/* Liste des options - toujours afficher avec hauteur minimale */}
                     <div className="min-h-[100px] max-h-60 overflow-y-auto p-2 bg-white">
-                        {filteredOptions.length > 0 ? (
-                            filteredOptions.map((option) => (
-                                <label key={option.id} className="flex items-center px-2 py-1 hover:bg-gray-100 rounded cursor-pointer">
+                        {options.map((option) => {
+                            // Si l'option correspond à la recherche ou si la recherche est vide
+                            const isVisible = query.trim() === '' ||
+                                option.name.toLowerCase().includes(query.toLowerCase());
+
+                            return (
+                                <label
+                                    key={option.id}
+                                    className={`flex items-center px-2 py-1 hover:bg-gray-100 rounded cursor-pointer ${!isVisible ? 'hidden' : ''}`}
+                                >
                                     <input
                                         type="checkbox"
                                         checked={selectedOptions.includes(option.id)}
@@ -80,9 +87,14 @@ export default function MultiSelectDropdown({ options, selectedOptions, setSelec
                                     />
                                     <span className="ml-2 text-sm text-gray-700">{option.name}</span>
                                 </label>
-                            ))
-                        ) : (
-                            <div className="px-2 py-2 text-sm text-gray-500">Aucun site trouvé</div>
+                            );
+                        })}
+
+                        {/* Message quand aucun résultat ne correspond */}
+                        {filteredOptions.length === 0 && (
+                            <div className="px-2 py-2 text-sm text-gray-500">
+                                <span className="italic text-gray-400">Aucun site trouvé</span>
+                            </div>
                         )}
                     </div>
                 </div>

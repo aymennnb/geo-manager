@@ -62,7 +62,10 @@ export default function Authenticated({ user, header, children }) {
     }, []);
 
     const toggleSidebar = () => {
-        setIsSidebarOpen(prev => !prev);
+        setIsSidebarOpen(prev => {
+            localStorage.setItem("sidebarOpen", !prev);
+            return !prev;
+        });
     };
 
     const isExemptPage = window.location.pathname === '/dashboard';

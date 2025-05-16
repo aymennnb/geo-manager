@@ -42,29 +42,71 @@ class SitesController extends Controller
     public function create(SitesRequest $request)
     {
         $validated = $request->validated();
-        $sites = new Sites($validated);
-        $sites->name = $request->name;
-        $sites->web = $request->web;
-        $sites->email = $request->email;
-        $sites->phone = $request->phone;
-        $sites->address = $request->address;
-        $sites->latitude = $request->latitude;
-        $sites->longitude = $request->longitude;
+
+        $site = new Sites();
+
+        $site->name = $request->name;
+        $site->web = $request->web;
+        $site->email = $request->email;
+        $site->phone = $request->phone;
+        $site->address = $request->address;
+        $site->latitude = $request->latitude;
+        $site->longitude = $request->longitude;
+
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('sitesImages', 'public');
-            $sites->image = $imagePath;
+            $site->image = $imagePath;
         }
-        $sites->save();
+
+        $site->ville = $request->ville;
+        $site->titre_foncier = $request->titre_foncier;
+        $site->superficie_terrain = $request->superficie_terrain;
+        $site->zoning_urbanistique = $request->zoning_urbanistique;
+        $site->consistance = $request->consistance;
+        $site->surface_gla = $request->surface_gla;
+        $site->uploaded_by = auth()->user()->id;
+        $site->type_site = $request->type_site;
+
+        $site->save();
+
+        if ($request->type_site === 'location') {
+            Location::create([
+                'sitef_id' => $site->id,
+                'exploitant' => $request->exploitant,
+                'bailleur' => $request->bailleur,
+                'date_effet' => $request->date_effet,
+                'duree_bail' => $request->duree_bail,
+                'loyer_actuel' => $request->loyer_actuel,
+                'taux_revision' => $request->taux_revision,
+                'prochaine_revision' => $request->prochaine_revision,
+            ]);
+        }
+
+        Surface::create([
+            'site_id' => $site->id,
+            'total' => $request->total,
+            'vn' => $request->vn['total'],
+            'show_room_dacia' => $request->vn['show_room_dacia'],
+            'show_room_renault' => $request->vn['show_room_renault'],
+            'show_room_nouvelle_marque' => $request->vn['show_room_nouvelle_marque'],
+            'zone_de_preparation' => $request->vn['zone_de_preparation'],
+            'apv' => $request->apv['total'],
+            'rms' => $request->apv['rms'],
+            'atelier_mecanique' => $request->apv['atelier_mecanique'],
+            'atelier_carrosserie' => $request->apv['atelier_carrosserie'],
+            'vo' => $request->vo,
+            'parking' => $request->parking,
+        ]);
 
         Alerts::create([
             'user_id' => auth()->user()->id,
             'role' => auth()->user()->role,
             'action' => 'add',
             'type' => 'site',
-            'message' => "a ajouté un site avec le nom {$sites->name} et l'ID {$sites->id}.",
+            'message' => "a ajouté un nouveau site avec le nom {$site->name} et l'id {$site->id}.",
         ]);
 
-        return redirect('sites')->with(['success' => "Le site {$sites->name} a été créé."]);
+        return redirect('sites')->with(['success' => "Le site {$site->name} a été créé."]);
     }
 
     public function edit($id)
@@ -74,9 +116,10 @@ class SitesController extends Controller
         return inertia('Sites/EditSite',compact('site'));
     }
 
-    public function update(SiteUpdateRequest $request)
-    {
-        $item = Sites::where('id',$request->id)->first();
+    public function update(SiteUpdateRequest $request) {
+        $item = Sites::where('id', $request->id)->first();
+        $oldType = $item->type_site;
+
         $item->name = $request->name;
         $item->web = $request->web;
         $item->email = $request->email;
@@ -84,6 +127,13 @@ class SitesController extends Controller
         $item->address = $request->address;
         $item->latitude = $request->latitude;
         $item->longitude = $request->longitude;
+        $item->ville = $request->ville;
+        $item->titre_foncier = $request->titre_foncier;
+        $item->superficie_terrain = $request->superficie_terrain;
+        $item->zoning_urbanistique = $request->zoning_urbanistique;
+        $item->consistance = $request->consistance;
+        $item->surface_gla = $request->surface_gla;
+        $item->type_site = $request->type_site;
 
         if ($request->hasFile('image')) {
             if ($item->image && Storage::disk('public')->exists($item->image)) {
@@ -95,6 +145,40 @@ class SitesController extends Controller
         }
 
         $item->save();
+
+        if ($oldType === 'location' && $item->type_site === 'propre') {
+            Location::where('sitef_id', $item->id)->delete();
+        }
+
+        if ($item->type_site === 'location') {
+            Location::updateOrCreate(
+                ['sitef_id' => $item->id],
+                [
+                    'exploitant' => $request->exploitant,
+                    'bailleur' => $request->bailleur,
+                    'date_effet' => $request->date_effet,
+                    'duree_bail' => $request->duree_bail,
+                    'loyer_actuel' => $request->loyer_actuel,
+                    'taux_revision' => $request->taux_revision,
+                    'prochaine_revision' => $request->prochaine_revision,
+                ]
+            );
+        }
+
+        Surface::updateOrCreate(
+            ['site_id' => $item->id],
+            [
+                'show_room_dacia' => $request->input('vn.show_room_dacia'),
+                'show_room_renault' => $request->input('vn.show_room_renault'),
+                'show_room_nouvelle_marque' => $request->input('vn.show_room_nouvelle_marque'),
+                'zone_de_preparation' => $request->input('vn.zone_de_preparation'),
+                'rms' => $request->input('apv.rms'),
+                'atelier_mecanique' => $request->input('apv.atelier_mecanique'),
+                'atelier_carrosserie' => $request->input('apv.atelier_carrosserie'),
+                'vo' => $request->vo,
+                'parking' => $request->parking,
+            ]
+        );
 
         Alerts::create([
             'user_id' => auth()->user()->id,
@@ -136,11 +220,15 @@ class SitesController extends Controller
         $sitesMaps = Sites::all();
         $documents = Documents::all();
         $documentAccess = DocumentsAccess::select('id','document_id','user_id')->get();
+        $surfaces = Surface::all();
+        $locations = Location::all();
 
         return Inertia::render('Dashboard', [
             'sitesMaps' => $sitesMaps,
             'documents'=>$documents,
-            'documentAccess'=>$documentAccess
+            'documentAccess'=>$documentAccess,
+            'surfaces'=>$surfaces,
+            'locations'=>$locations
         ]);
     }
 

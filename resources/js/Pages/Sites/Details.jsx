@@ -3,8 +3,8 @@ import { Head } from "@inertiajs/react";
 import React from "react";
 import { useWindowWidth } from "@/hooks/useWindowWidth.js";
 
-function Details({ auth, site, siteDetails,surfaces,locations, documents, setShowDetailModal }) {
-    // Format de date réutilisable
+function Details({ auth, site, siteDetails,surface,locationifExist, documents, setShowDetailModal }) {
+
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleString("fr-FR", {
             day: "2-digit",
@@ -23,16 +23,15 @@ function Details({ auth, site, siteDetails,surfaces,locations, documents, setSho
     };
 
     return (
-        <div className="max-w-6xl mx-auto px-2 py-2">
-            {/* En-tête avec nom du site */}
+        <div className="max-w-6xl mx-auto px-2 py-1">
+
             <div className="bg-white rounded-lg shadow mb-6">
                 <div className="bg-blue-600 rounded-t-lg p-4">
                     <h2 className="text-xl font-bold text-white">{siteDetails.name}</h2>
                 </div>
 
-                {/* Informations du site */}
+
                 <div className="md:flex">
-                    {/* Image du site */}
                     <div className="md:w-2/5 p-4">
                         <div className="rounded-lg overflow-hidden shadow bg-gray-100">
                             {siteDetails.image ? (
@@ -43,19 +42,21 @@ function Details({ auth, site, siteDetails,surfaces,locations, documents, setSho
                                 />
                             ) : (
                                 <div className="w-full h-64 bg-gray-200 flex items-center justify-center">
-                                    <span className="text-gray-400">Aucune image disponible</span>
+                                    <span className="italic text-gray-400">Aucune image disponible</span>
                                 </div>
                             )}
                         </div>
                     </div>
 
-                    {/* Détails du site */}
                     <div className="md:w-3/5 p-4">
                         <div className="space-y-3">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+
                                 <div>
                                     <p className="text-gray-500 text-sm">Adresse</p>
-                                    <p className="font-medium">{siteDetails.address || "-"}</p>
+                                    <p className="font-medium">
+                                        {siteDetails.address ? siteDetails.address : <span className="italic text-gray-400">Aucune adresse définie</span>}
+                                    </p>
                                 </div>
 
                                 <div>
@@ -70,18 +71,22 @@ function Details({ auth, site, siteDetails,surfaces,locations, documents, setSho
                                             {siteDetails.web}
                                         </a>
                                     ) : (
-                                        <p className="font-medium">-</p>
+                                        <span className="italic text-gray-400">Aucun site web défini</span>
                                     )}
                                 </div>
 
                                 <div>
                                     <p className="text-gray-500 text-sm">Téléphone</p>
-                                    <p className="font-medium">{siteDetails.phone || "-"}</p>
+                                    <p className="font-medium">
+                                        {siteDetails.phone ? siteDetails.phone : <span className="italic text-gray-400">Aucun téléphone défini</span>}
+                                    </p>
                                 </div>
 
                                 <div>
                                     <p className="text-gray-500 text-sm">Email</p>
-                                    <p className="font-medium">{siteDetails.email || "-"}</p>
+                                    <p className="font-medium">
+                                        {siteDetails.email ? siteDetails.email : <span className="italic text-gray-400">Aucun email défini</span>}
+                                    </p>
                                 </div>
 
                                 <div>
@@ -89,197 +94,265 @@ function Details({ auth, site, siteDetails,surfaces,locations, documents, setSho
                                     <p className="font-medium">
                                         {siteDetails.latitude && siteDetails.longitude
                                             ? `${siteDetails.latitude}, ${siteDetails.longitude}`
-                                            : "-" }
+                                            : <span className="italic text-gray-400">Aucune coordonnée définie</span>}
                                     </p>
                                 </div>
 
                                 <div>
-                                    <p className="text-gray-500 text-sm">Création</p>
+                                    <p className="text-gray-500 text-sm">Date de l'insertion</p>
                                     <p className="font-medium">
-                                        {formatDate(siteDetails.created_at)}
+                                        {siteDetails.created_at ? formatDate(siteDetails.created_at) : <span className="italic text-gray-400">Non définie</span>}
                                     </p>
                                 </div>
 
-                                <div >
-                                    <p className="text-gray-500 text-sm">Dernière mise à jour</p>
+                                <div>
+                                    <p className="text-gray-500 text-sm">Date de dernière mise à jour</p>
                                     <p className="font-medium">
-                                        {formatDate(siteDetails.updated_at)}
+                                        {siteDetails.updated_at ? formatDate(siteDetails.updated_at) : <span className="italic text-gray-400">Non définie</span>}
                                     </p>
                                 </div>
 
-                                {/* Nouveau champs */}
                                 <div>
                                     <p className="text-gray-500 text-sm">Ville</p>
-                                    <p className="font-medium">{siteDetails.ville || "Aucune ville définie"}</p>
+                                    <p className="font-medium">
+                                        {siteDetails.ville ? siteDetails.ville : <span className="italic text-gray-400">Aucune ville définie</span>}
+                                    </p>
                                 </div>
 
-                                <div >
+                                <div>
                                     <p className="text-gray-500 text-sm">Titre Foncier</p>
-                                    <p className="font-medium">{siteDetails.titre_foncier || "Aucun titre foncier défini"}</p>
+                                    <p className="font-medium">
+                                        {siteDetails.titre_foncier ? siteDetails.titre_foncier : <span className="italic text-gray-400">Aucun titre foncier défini</span>}
+                                    </p>
                                 </div>
 
                                 <div>
                                     <p className="text-gray-500 text-sm">Superficie du terrain</p>
                                     <p className="font-medium">
-                                        {siteDetails.superficie_terrain ? siteDetails.superficie_terrain + " m²" : "Aucune superficie du terrain définie"}
+                                        {siteDetails.superficie_terrain
+                                            ? `${siteDetails.superficie_terrain} m²`
+                                            : <span className="italic text-gray-400">Aucune superficie définie</span>}
                                     </p>
                                 </div>
 
-                                <div >
+                                <div>
                                     <p className="text-gray-500 text-sm">Zoning Urbanistique</p>
-                                    <p className="font-medium">{siteDetails.zoning_urbanistique || "Aucun zoning urbanistique défini"}</p>
+                                    <p className="font-medium">
+                                        {siteDetails.zoning_urbanistique
+                                            ? siteDetails.zoning_urbanistique
+                                            : <span className="italic text-gray-400">Aucun zoning défini</span>}
+                                    </p>
                                 </div>
 
                                 <div>
                                     <p className="text-gray-500 text-sm">Consistance</p>
-                                    <p className="font-medium">{siteDetails.consistance || "Aucune consistance définie"}</p>
+                                    <p className="font-medium">
+                                        {siteDetails.consistance
+                                            ? siteDetails.consistance
+                                            : <span className="italic text-gray-400">Aucune consistance définie</span>}
+                                    </p>
                                 </div>
 
                                 <div>
                                     <p className="text-gray-500 text-sm">Surface GLA</p>
-                                    <p className="font-medium">{siteDetails.surface_gla ? siteDetails.surface_gla + " m²" : "Aucune surface GLA définie"}</p>
+                                    <p className="font-medium">
+                                        {siteDetails.surface_gla
+                                            ? `${siteDetails.surface_gla} m²`
+                                            : <span className="italic text-gray-400">Aucune surface GLA définie</span>}
+                                    </p>
                                 </div>
 
                                 <div>
                                     <p className="text-gray-500 text-sm">Type de site</p>
                                     <p className="font-medium">
-                                        {typeLabels[siteDetails.type_site] || "Aucun type de site défini"}
+                                        {typeLabels[siteDetails.type_site]
+                                            ? typeLabels[siteDetails.type_site]
+                                            : <span className="italic text-gray-400">Aucun type de site défini</span>}
                                     </p>
                                 </div>
 
+
+
                                 {/* Informations sur la surface (si présentes) */}
-                                {surfaces && (
-                                    <>
-                                        <div className="col-span-full">
-                                            <h3 className="text-lg font-semibold mb-2 text-gray-700">Surfaces détaillées</h3>
-                                        </div>
+                                <div className="grid grid-cols-1 md:grid-cols-1 gap-3">
+                                    {surface && (
+                                        <>
+                                            <div className="col-span-full">
+                                                <h3 className="text-lg font-semibold mb-2 text-gray-700">Surfaces détaillées</h3>
+                                            </div>
 
-                                        <div>
-                                            <p className="text-gray-500 text-sm">Total</p>
-                                            <p className="font-medium">{surfaces.total ? surfaces.total + ' m²' : 'Aucun'}</p>
-                                        </div>
+                                            {/* TOTAL */}
+                                            <div>
+                                                <p className="text-gray-500 text-sm font-semibold">
+                                                    Total : {surface.total ? surface.total + " m²" : <span className="italic text-gray-400">Aucun</span>}
+                                                </p>
+                                            </div>
 
-                                        <div>
-                                            <p className="text-gray-500 text-sm">VN</p>
-                                            <p className="font-medium">{surfaces.vn ? surfaces.vn + ' m²' : 'Aucun'}</p>
-                                        </div>
+                                            {/* VN */}
+                                            <div className="pl-4">
+                                                <p className="text-gray-500 text-sm font-semibold">
+                                                    VN : {surface.vn ? surface.vn + " m²" : <span className="italic text-gray-400">Aucun</span>}
+                                                </p>
 
-                                        <div>
-                                            <p className="text-gray-500 text-sm">Show Room Dacia</p>
-                                            <p className="font-medium">{surfaces.show_room_dacia ? surfaces.show_room_dacia + ' m²' : 'Aucun'}</p>
-                                        </div>
+                                                {/* Sous-niveaux SHOW ROOM */}
+                                                <div className="pl-4">
+                                                    <p className="text-gray-500 text-sm flex justify-between whitespace-nowrap font-semibold">
+                                                        Show Room Dacia : <span className="font-medium">{surface.show_room_dacia ? surface.show_room_dacia + " m²" : <span className="italic text-gray-400">Aucun</span>}</span>
+                                                    </p>
 
-                                        <div>
-                                            <p className="text-gray-500 text-sm">Show Room Renault</p>
-                                            <p className="font-medium">{surfaces.show_room_renault ? surfaces.show_room_renault + ' m²' : 'Aucun'}</p>
-                                        </div>
+                                                    <p className="text-gray-500 text-sm flex justify-between whitespace-nowrap font-semibold">
+                                                        Show Room Renault : <span className="font-medium">{surface.show_room_renault ? surface.show_room_renault + " m²" : <span className="italic text-gray-400">Aucun</span>}</span>
+                                                    </p>
 
-                                        <div>
-                                            <p className="text-gray-500 text-sm">Show Room Nouvelle Marque</p>
-                                            <p className="font-medium">{surfaces.show_room_nouvelle_marque ? surfaces.show_room_nouvelle_marque + ' m²' : 'Aucun'}</p>
-                                        </div>
+                                                    <p className="text-gray-500 text-sm flex justify-between whitespace-nowrap font-semibold">
+                                                        Show Room Nouvelle Marque : <span className="font-medium">{surface.show_room_nouvelle_marque ? surface.show_room_nouvelle_marque + " m²" : <span className="italic text-gray-400">Aucun</span>}</span>
+                                                    </p>
 
-                                        <div>
-                                            <p className="text-gray-500 text-sm">Zone de préparation</p>
-                                            <p className="font-medium">{surfaces.zone_de_preparation ? surfaces.zone_de_preparation + ' m²' : 'Aucun'}</p>
-                                        </div>
+                                                    <p className="text-gray-500 text-sm flex justify-between whitespace-nowrap font-semibold">
+                                                        Zone de préparation : <span className="font-medium">{surface.zone_de_preparation ? surface.zone_de_preparation + " m²" : <span className="italic text-gray-400">Aucun</span>}</span>
+                                                    </p>
+                                                </div>
+                                            </div>
 
-                                        <div>
-                                            <p className="text-gray-500 text-sm">APV</p>
-                                            <p className="font-medium">{surfaces.apv ? surfaces.apv + ' m²' : 'Aucun'}</p>
-                                        </div>
+                                            {/* APV */}
+                                            <div className="pl-4">
+                                                <p className="text-gray-500 text-sm font-semibold">
+                                                    APV : {surface.apv ? surface.apv + " m²" : <span className="italic text-gray-400">Aucun</span>}
+                                                </p>
 
-                                        <div>
-                                            <p className="text-gray-500 text-sm">RMS</p>
-                                            <p className="font-medium">{surfaces.rms ? surfaces.rms + ' m²' : 'Aucun'}</p>
-                                        </div>
+                                                {/* Sous-niveaux APV */}
+                                                <div className="pl-4">
+                                                    <p className="text-gray-500 text-sm flex justify-between whitespace-nowrap font-semibold">
+                                                        RMS : <span className="font-medium">{surface.rms ? surface.rms + " m²" : <span className="italic text-gray-400">Aucun</span>}</span>
+                                                    </p>
 
-                                        <div>
-                                            <p className="text-gray-500 text-sm">Atelier mécanique</p>
-                                            <p className="font-medium">{surfaces.atelier_mecanique ? surfaces.atelier_mecanique + ' m²' : 'Aucun'}</p>
-                                        </div>
+                                                    <p className="text-gray-500 text-sm flex justify-between whitespace-nowrap font-semibold">
+                                                        Atelier mécanique : <span className="font-medium">{surface.atelier_mecanique ? surface.atelier_mecanique + " m²" : <span className="italic text-gray-400">Aucun</span>}</span>
+                                                    </p>
 
-                                        <div>
-                                            <p className="text-gray-500 text-sm">Atelier carrosserie</p>
-                                            <p className="font-medium">{surfaces.atelier_carrosserie ? surfaces.atelier_carrosserie + ' m²' : 'Aucun'}</p>
-                                        </div>
+                                                    <p className="text-gray-500 text-sm flex justify-between whitespace-nowrap font-semibold">
+                                                        Atelier carrosserie : <span className="font-medium">{surface.atelier_carrosserie ? surface.atelier_carrosserie + " m²" : <span className="italic text-gray-400">Aucun</span>}</span>
+                                                    </p>
+                                                </div>
+                                            </div>
 
-                                        <div>
-                                            <p className="text-gray-500 text-sm">VO</p>
-                                            <p className="font-medium">{surfaces.vo ? surfaces.vo + ' m²' : 'Aucun'}</p>
-                                        </div>
+                                            {/* VO */}
+                                            <div className="pl-4">
+                                                <p className="text-gray-500 text-sm font-semibold">
+                                                    VO : {surface.vo ? surface.vo + " m²" : <span className="italic text-gray-400">Aucun</span>}
+                                                </p>
+                                            </div>
 
-                                        <div>
-                                            <p className="text-gray-500 text-sm">Parking</p>
-                                            <p className="font-medium">{surfaces.parking ? surfaces.parking + ' m²' : 'Aucun'}</p>
-                                        </div>
-                                    </>
-                                )}
+                                            {/* PARKING */}
+                                            <div className="pl-4">
+                                                <p className="text-gray-500 text-sm font-semibold">
+                                                    Parking : {surface.parking ? surface.parking + " m²" : <span className="italic text-gray-400">Aucun</span>}
+                                                </p>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
 
                                 {/* Informations sur la location (si présentes) */}
-                                {locations && (
+                                {locationifExist && (
                                     <>
-                                            <div className="col-span-full">
-                                                <h3 className="text-lg font-semibold mb-2 text-gray-700">Informations de location</h3>
+                                        <div className="col-span-full">
+                                            <h3 className="text-lg font-semibold mb-1 text-gray-700">Informations de location</h3>
+                                        </div>
+
+                                        {/* Container pour les informations de location - modifié pour être sur toute la largeur */}
+                                        <div className="col-span-full">
+                                            {/* Exploitant */}
+                                            <div className="py-2 border-gray-100">
+                                                <p className="text-gray-500 text-sm">
+                                                    <span className="font-semibold">Exploitant :</span>
+                                                    <span className="ml-2">
+                                                        {locationifExist.exploitant
+                                                            ? locationifExist.exploitant
+                                                            : <span className="italic text-gray-400">Aucun exploitant renseigné</span>}
+                                                    </span>
+                                                </p>
                                             </div>
-                                            {locations.exploitant && (
-                                                <div>
-                                                    <p className="text-gray-500 text-sm">Exploitant</p>
-                                                    <p className="font-medium">{locations.exploitant}</p>
-                                                </div>
-                                            )}
-                                            {locations.bailleur && (
-                                                <div>
-                                                    <p className="text-gray-500 text-sm">Bailleur</p>
-                                                    <p className="font-medium">{locations.bailleur}</p>
-                                                </div>
-                                            )}
-                                            {locations.date_effet && (
-                                                <div>
-                                                    <p className="text-gray-500 text-sm">Date d'effet</p>
-                                                    <p className="font-medium">{new Date(locations.date_effet).toLocaleDateString()}</p>
-                                                </div>
-                                            )}
-                                            {locations.duree_bail && (
-                                                <div>
-                                                    <p className="text-gray-500 text-sm">Durée du bail</p>
-                                                    <p className="font-medium">{locations.duree_bail} ans</p>
-                                                </div>
-                                            )}
-                                            {locations.loyer_actuel && (
-                                                <div>
-                                                    <p className="text-gray-500 text-sm">Loyer actuel</p>
-                                                    <p className="font-medium">{locations.loyer_actuel} MAD</p>
-                                                </div>
-                                            )}
-                                            {locations.taux_revision && (
-                                                <div>
-                                                    <p className="text-gray-500 text-sm">Taux de révision</p>
-                                                    <p className="font-medium">{locations.taux_revision} %</p>
-                                                </div>
-                                            )}
-                                            {locations.prochaine_revision && (
-                                                <div>
-                                                    <p className="text-gray-500 text-sm">Prochaine révision</p>
-                                                    <p className="font-medium">{new Date(locations.prochaine_revision).toLocaleDateString()}</p>
-                                                </div>
-                                            )}
+
+                                            {/* Bailleur */}
+                                            <div className="py-2 border-gray-100">
+                                                <p className="text-gray-500 text-sm">
+                                                    <span className="font-semibold">Bailleur :</span>
+                                                    <span className="ml-2">
+                                                        {locationifExist.bailleur
+                                                            ? locationifExist.bailleur
+                                                            : <span className="italic text-gray-400">Aucun bailleur renseigné</span>}
+                                                    </span>
+                                                </p>
+                                            </div>
+
+                                            {/* Date d'effet */}
+                                            <div className="py-2 border-gray-100">
+                                                <p className="text-gray-500 text-sm">
+                                                    <span className="font-semibold">Date d'effet :</span>
+                                                    <span className="ml-2">
+                                                        {locationifExist.date_effet
+                                                            ? new Date(locationifExist.date_effet).toLocaleDateString()
+                                                            : <span className="italic text-gray-400">Aucune date d'effet renseignée</span>}
+                                                    </span>
+                                                </p>
+                                            </div>
+
+                                            {/* Durée du bail */}
+                                            <div className="py-2 border-gray-100">
+                                                <p className="text-gray-500 text-sm">
+                                                    <span className="font-semibold">Durée du bail :</span>
+                                                    <span className="ml-2">
+                                                        {locationifExist.duree_bail
+                                                            ? `${locationifExist.duree_bail} ans`
+                                                            : <span className="italic text-gray-400">Aucune durée de bail renseignée</span>}
+                                                    </span>
+                                                </p>
+                                            </div>
+
+                                            {/* Loyer actuel */}
+                                            <div className="py-2 border-gray-100">
+                                                <p className="text-gray-500 text-sm">
+                                                    <span className="font-semibold">Loyer actuel :</span>
+                                                    <span className="ml-2">
+                                                        {locationifExist.loyer_actuel
+                                                            ? `${locationifExist.loyer_actuel} MAD`
+                                                            : <span className="italic text-gray-400">Aucun loyer actuel renseigné</span>}
+                                                    </span>
+                                                </p>
+                                            </div>
+
+                                            {/* Taux de révision */}
+                                            <div className="py-2 border-gray-100">
+                                                <p className="text-gray-500 text-sm">
+                                                    <span className="font-semibold">Taux de révision :</span>
+                                                    <span className="ml-2">
+                                                        {locationifExist.taux_revision
+                                                            ? `${locationifExist.taux_revision} %`
+                                                            : <span className="italic text-gray-400">Aucun taux de révision renseigné</span>}
+                                                    </span>
+                                                </p>
+                                            </div>
+
+                                            {/* Prochaine révision */}
+                                            <div className="py-2 border-gray-100">
+                                                <p className="text-gray-500 text-sm">
+                                                    <span className="font-semibold">Prochaine révision :</span>
+                                                    <span className="ml-2">
+                                                        {locationifExist.prochaine_revision
+                                                            ? new Date(locationifExist.prochaine_revision).toLocaleDateString()
+                                                            : <span className="italic text-gray-400">Aucune prochaine révision renseignée</span>}
+                                                    </span>
+                                                </p>
+                                            </div>
+                                        </div>
                                     </>
                                 )}
-
 
                             </div>
                         </div>
                     </div>
                 </div>
-                {/*{import.meta.env.DEV && (*/}
-                {/*    <div className="mt-4 p-2 bg-gray-100 rounded">*/}
-                {/*        <p>Données du formulaire:</p>*/}
-                {/*        <pre>{JSON.stringify(siteDetails, null, 2)}</pre>*/}
-                {/*        <pre>{JSON.stringify(surfaces, null, 2)}</pre>*/}
-                {/*        <pre>{JSON.stringify(locations, null, 2)}</pre>*/}
-                {/*    </div>*/}
-                {/*)}*/}
             </div>
         </div>
     );
