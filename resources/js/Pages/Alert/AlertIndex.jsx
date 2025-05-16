@@ -202,15 +202,15 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
     };
 
     return (
-        <Authenticated user={auth.user} header={<h2>Liste des Alertes</h2>}>
-            <Head title="Alerts" />
+        <Authenticated user={auth.user} header={<h2>Jornaux</h2>}>
+            <Head title="Jornaux" />
 
             <div className="mx-auto sm:px-6 lg:px-8">
                 <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div className="p-6 bg-white border-b border-gray-200">
                         <div className="p-6 bg-white border-b border-gray-200">
                             <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-lg font-medium text-gray-900">Liste des alertes</h3>
+                                <h3 className="text-lg font-medium text-gray-900">Liste des Jornaux</h3>
                             </div>
 
                             {/* Première ligne de filtres */}
@@ -404,7 +404,7 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
                                 ) : (
                                     <tr>
                                         <td colSpan="2" className="px-6 py-4 text-center text-sm text-gray-500">
-                                            Aucune alerte trouvée.
+                                            <span className="italic text-gray-400">Aucune alerte trouvée.</span>
                                         </td>
                                     </tr>
                                 )}

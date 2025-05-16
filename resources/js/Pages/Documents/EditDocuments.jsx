@@ -9,6 +9,7 @@ export default function EditDocuments({ auth, document, sites, setShowEditForm }
         title: document.title,
         site_id: document.site_id,
         uploaded_by: document.uploaded_by,
+        document_type: document.document_type,
         description: document.description,
         expiration_date: document.expiration_date,
         file_path: null,
@@ -24,10 +25,8 @@ export default function EditDocuments({ auth, document, sites, setShowEditForm }
     const handleSubmit = (e) => {
         e.preventDefault();
         post(route("documents.update"), {
-            data,
-            preserveScroll: true,
-            onSuccess: () => {
-                setShowEditForm(false)
+         onSuccess: () => {
+                setShowEditForm(false);
             },
             onError: () => {
                 console.error('Erreur lors de la mise à jour du document');
@@ -156,8 +155,32 @@ export default function EditDocuments({ auth, document, sites, setShowEditForm }
                                         )}
                                     </div>
 
+                                    <div className="mb-2">
+                                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="document_type">
+                                            Type de document
+                                        </label>
+                                        <select
+                                            id="document_type"
+                                            name="document_type"
+                                            value={data.document_type}
+                                            onChange={(e) => setData('document_type', e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        >
+                                            <option value="">-- Sélectionnez un type --</option>
+                                            <option value="urbanisme">Informations Urbanistiques</option>
+                                            <option value="contrat">Contrats</option>
+                                            <option value="fiscalite">Taxes Professionnelles</option>
+                                            <option value="autre">Autre</option>
+                                        </select>
+                                        {errors.document_type && (
+                                            <p className="mt-2 text-sm text-red-600">
+                                                {errors.document_type}
+                                            </p>
+                                        )}
+                                    </div>
+
                                     <div className="mb-6">
-                                        <label htmlFor="expiration_date" className="block text-gray-700 text-sm font-medium mb-2">
+                                        <label htmlFor="expiration_date" className="block text-gray-700 text-sm font-bold mb-2">
                                             Date d'expiration
                                         </label>
                                         <input
@@ -290,6 +313,30 @@ export default function EditDocuments({ auth, document, sites, setShowEditForm }
                                         />
                                         {errors.description && (
                                             <p className="mt-1 text-[10px] text-red-600">{errors.description}</p>
+                                        )}
+                                    </div>
+
+                                    <div className="mb-2">
+                                        <label className="block text-gray-700 text-xs font-bold mb-1" htmlFor="document_type">
+                                            Type de document
+                                        </label>
+                                        <select
+                                            id="document_type"
+                                            name="document_type"
+                                            value={data.document_type}
+                                            onChange={(e) => setData('document_type', e.target.value)}
+                                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
+                                        >
+                                            <option value="">-- Sélectionnez un type --</option>
+                                            <option value="urbanisme">Informations Urbanistiques</option>
+                                            <option value="contrat">Contrats</option>
+                                            <option value="fiscalite">Taxes Professionnelles</option>
+                                            <option value="autre">Autre</option>
+                                        </select>
+                                        {errors.document_type && (
+                                            <p className="mt-2 text-sm text-red-600">
+                                                {errors.document_type}
+                                            </p>
                                         )}
                                     </div>
 

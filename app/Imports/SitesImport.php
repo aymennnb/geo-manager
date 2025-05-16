@@ -40,7 +40,6 @@ class SitesImport implements ToModel, WithHeadingRow, WithEvents
         // Surface
         'total' => 'total',
         'vn' => 'vn',
-        'show room' => 'show_room',
         'show room dacia' => 'show_room_dacia',
         'show room renault' => 'show_room_renault',
         'show room nouvelle marque' => 'show_room_nouvelle_marque',
@@ -110,30 +109,50 @@ class SitesImport implements ToModel, WithHeadingRow, WithEvents
                 'consistance'         => $this->getColumnValue($row, 'consistance'),
                 'surface_gla'         => $this->getColumnValue($row, 'surface_gla'),
                 'uploaded_by'         => Auth::id(),
-                'type_site'           => $this->getColumnValue($row, 'type_site') ?: 'propre',
+                'type_site' => $this->getColumnValue($row, 'type_site')
+                    ?: (
+                    $this->getColumnValue($row, 'exploitant') !== null &&
+                    $this->getColumnValue($row, 'bailleur') !== null &&
+                    $this->getColumnValue($row, 'date_effet') !== null
+                        ? 'location'
+                        : 'propre'
+                    )
             ]);
 
             $site->save();
 
             $this->sitesCreated[] = $site;
 
-            // Création de la surface
+            $showRoomDacia = floatval($this->getColumnValue($row, 'show_room_dacia'));
+            $showRoomRenault = floatval($this->getColumnValue($row, 'show_room_renault'));
+            $showRoomNouvelleMarque = floatval($this->getColumnValue($row, 'show_room_nouvelle_marque'));
+            $zoneDePreparation = floatval($this->getColumnValue($row, 'zone_de_preparation'));
+            $atelierMecanique = floatval($this->getColumnValue($row, 'atelier_mecanique'));
+            $atelierCarrosserie = floatval($this->getColumnValue($row, 'atelier_carrosserie'));
+            $rms = floatval($this->getColumnValue($row, 'rms'));
+            $vo = floatval($this->getColumnValue($row, 'vo'));
+            $parking = floatval($this->getColumnValue($row, 'parking'));
+
+            $vn = $showRoomDacia + $showRoomRenault + $showRoomNouvelleMarque;
+            $apv = $atelierMecanique + $atelierCarrosserie;
+            $total = $vn + $zoneDePreparation + $apv + $rms + $vo + $parking;
+
             $surface = new Surface([
-                'site_id'                => $site->id,
-                'total'                  => $this->getColumnValue($row, 'total'),
-                'vn'                     => $this->getColumnValue($row, 'vn'),
-                'show_room'              => $this->getColumnValue($row, 'show_room'),
-                'show_room_dacia'        => $this->getColumnValue($row, 'show_room_dacia'),
-                'show_room_renault'      => $this->getColumnValue($row, 'show_room_renault'),
-                'show_room_nouvelle_marque' => $this->getColumnValue($row, 'show_room_nouvelle_marque'),
-                'zone_de_preparation'    => $this->getColumnValue($row, 'zone_de_preparation'),
-                'apv'                    => $this->getColumnValue($row, 'apv'),
-                'rms'                    => $this->getColumnValue($row, 'rms'),
-                'atelier_mecanique'      => $this->getColumnValue($row, 'atelier_mecanique'),
-                'atelier_carrosserie'    => $this->getColumnValue($row, 'atelier_carrosserie'),
-                'vo'                     => $this->getColumnValue($row, 'vo'),
-                'parking'                => $this->getColumnValue($row, 'parking'),
+                'site_id'                    => $site->id,
+                'total'                      => $total,
+                'vn'                         => $vn,
+                'show_room_dacia'            => $showRoomDacia,
+                'show_room_renault'          => $showRoomRenault,
+                'show_room_nouvelle_marque'  => $showRoomNouvelleMarque,
+                'zone_de_preparation'        => $zoneDePreparation,
+                'apv'                        => $apv,
+                'rms'                        => $rms,
+                'atelier_mecanique'          => $atelierMecanique,
+                'atelier_carrosserie'        => $atelierCarrosserie,
+                'vo'                         => $vo,
+                'parking'                    => $parking,
             ]);
+
 
             $surface->save();
 

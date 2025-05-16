@@ -280,7 +280,7 @@ export default function AddDocuments({ auth, sites ,setShowAddForm}) {
 
                                     {/* Expiration Date */}
                                     <div className="mb-2">
-                                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="document_type">
+                                        <label className="block text-gray-700 text-xs font-bold mb-1" htmlFor="document_type">
                                             Type de document
                                         </label>
                                         <select

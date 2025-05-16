@@ -21,7 +21,7 @@ function MapFlyTo({ position, zoom }) {
     return null;
 }
 
-export default function Dashboard({ auth, sitesMaps, documents, documentAccess }) {
+export default function Dashboard({ auth, surfaces,locations,sitesMaps, documents, documentAccess }) {
     const { data, setData, post, processing, errors } = useForm({
         user_id: auth.user.id,
         role: auth.user.role,
@@ -108,9 +108,11 @@ export default function Dashboard({ auth, sitesMaps, documents, documentAccess }
         }
 
         // Filtrer les sites selon le terme de recherche
-        const filteredSites = sitesMaps.filter(site =>
-            site.name.toLowerCase().includes(value.toLowerCase())
-        );
+        const filteredSites = sitesMaps.filter(site => site.name.toLowerCase().includes(value.toLowerCase()));
+
+        const filterSurfaces = surfaces.find(surface => surface.site_id === selectedSite.id);
+
+        const filterlocations = locations.find(location => location.sitef_id === selectedSite.id);
 
         setSearchResults(filteredSites);
         setShowResults(true);
@@ -290,6 +292,8 @@ export default function Dashboard({ auth, sitesMaps, documents, documentAccess }
                                                     selectedSite={selectedSite}
                                                     documents={documents}
                                                     documentAccess={documentAccess}
+                                                    filterSurfaces={selectedSite ? surfaces.find((item) => item.site_id === selectedSite.id): null}
+                                                    filterLocations={selectedSite ? locations.find((item) => item.sitef_id === selectedSite.id): null}
                                                 />
                                             </motion.div>
                                         </div>

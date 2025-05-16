@@ -86,7 +86,7 @@ export default function DocumentsAccesGroup({ documentIds, users, setShowAccessG
                                     ) : null;
                                 })
                             ) : (
-                                <p className="text-gray-500">Aucun utilisateur sélectionné</p>
+                                <p className="text-gray-500"><span className="italic text-gray-400">Aucun utilisateur sélectionné</span></p>
                             )}
                         </div>
                     </div>
@@ -141,7 +141,7 @@ export default function DocumentsAccesGroup({ documentIds, users, setShowAccessG
                                     </div>
                                 ))
                             ) : (
-                                <p className="text-gray-500">Aucun utilisateur trouvé.</p>
+                                <p className="text-gray-500"><span className="italic text-gray-400">Aucun utilisateur trouvé.</span></p>
                             )}
                         </div>
 

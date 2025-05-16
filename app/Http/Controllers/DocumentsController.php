@@ -24,11 +24,11 @@ class DocumentsController extends Controller
         $user = Auth::user();
 
         if ($user->role === 'admin') {
-            $documents = Documents::select('id', 'title', 'description', 'file_path', 'expiration_date', 'site_id', 'uploaded_by', 'created_at', 'updated_at')
+            $documents = Documents::select('id', 'title', 'description', 'file_path', 'expiration_date', 'site_id', 'uploaded_by','document_type', 'created_at', 'updated_at')
                 ->get();
             $usersAccess = User::whereIn('role', ['user', 'manager'])->select('id', 'name')->get();
         } else {
-            $documents = Documents::select('id', 'title', 'description', 'file_path', 'expiration_date', 'site_id', 'uploaded_by', 'created_at', 'updated_at')
+            $documents = Documents::select('id', 'title', 'description', 'file_path', 'expiration_date', 'site_id', 'uploaded_by','document_type', 'created_at', 'updated_at')
                 ->whereHas('documentAccesses', function ($query) use ($user) {
                     $query->where('user_id', $user->id);
                 })
@@ -70,6 +70,7 @@ class DocumentsController extends Controller
         $document->expiration_date = $request->expiration_date;
         $document->site_id = $request->site_id;
         $document->uploaded_by = $request->uploaded_by;
+        $document->document_type = $request->document_type;
 
         $filePath = $request->file('file_path')->store('documents', 'public');
         $document->file_path = $filePath;
@@ -110,6 +111,7 @@ class DocumentsController extends Controller
         $item->expiration_date = $request->expiration_date;
         $item->site_id = $request->site_id;
         $item->uploaded_by = $request->uploaded_by;
+        $item->document_type = $request->document_type;
 
         if ($request->hasFile('file_path')) {
             if ($item->file_path && Storage::disk('public')->exists($item->file_path)) {
