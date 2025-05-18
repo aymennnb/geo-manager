@@ -33,10 +33,6 @@ Route::middleware(['auth','verified'])->group(function () {
 
     Route::get('/dashboard', [SitesController::class, 'map'])->name('dashboard');
 
-    Route::prefix('sitesf')->controller(SitesfController::class)->group(function () {
-        Route::get('/', 'index')->name('sitesf');
-    });
-
     Route::prefix('alerts')->controller(AlertController::class)->group(function () {
         Route::post('create', 'create')->name('alert.create');
     });
@@ -89,6 +85,8 @@ Route::middleware(['auth','verified'])->group(function () {
 
         Route::prefix('alerts')->controller(AlertController::class)->group(function(){
             Route::get('/','index')->name('alerts');
+            Route::get('Logs-export', 'export')->name('logs.export');
+            Route::get('Logs-export-csv', 'exportCSV')->name('logs.export.csv');
         });
 
     });

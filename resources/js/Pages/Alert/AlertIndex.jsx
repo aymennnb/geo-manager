@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Head, useForm, Link } from "@inertiajs/react";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
-import { TbPlayerTrackNextFilled, TbZoomReset } from "react-icons/tb";
-import { FaBackward } from "react-icons/fa6";
+import {TbFileTypeCsv, TbPlayerTrackNextFilled, TbZoomReset} from "react-icons/tb";
+import {FaBackward, FaFileShield} from "react-icons/fa6";
 import { useWindowWidth } from "@/hooks/useWindowWidth.js";
+import {TiDocumentDelete} from "react-icons/ti";
+import {CiExport} from "react-icons/ci";
+import {HiDocumentAdd} from "react-icons/hi";
+import toast from "react-hot-toast";
 
 export default function AlertIndex({ auth, alerts, users, documents, filters }) {
     const { data, setData } = useForm({
@@ -22,11 +26,9 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
     const [currentPage, setCurrentPage] = useState(1);
     const [filteredAlerts, setFilteredAlerts] = useState([]);
 
-    // Options disponibles basées sur les sélections actuelles
     const [availableTypes, setAvailableTypes] = useState([]);
     const [availableActions, setAvailableActions] = useState([]);
 
-    // Configuration des filtres relationnels
     const filterRelations = {
         roles: {
             all: ["document", "site", "user"],
@@ -55,42 +57,34 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
         setCurrentPage(1);
     };
 
-    // Mettre à jour les types disponibles en fonction du rôle sélectionné
     useEffect(() => {
         const types = filterRelations.roles[data.role] || [];
         setAvailableTypes(types);
 
-        // Si le type actuellement sélectionné n'est pas disponible pour ce rôle, réinitialiser
         if (data.type !== 'all' && !types.includes(data.type)) {
             setData('type', 'all');
         }
     }, [data.role]);
 
-    // Mettre à jour les actions disponibles en fonction du type sélectionné
     useEffect(() => {
         if (data.type === 'all') {
-            // Si 'all' est sélectionné, obtenir toutes les actions possibles
             const allActions = Object.values(filterRelations.types).flat();
-            // Éliminer les doublons avec Set
             setAvailableActions([...new Set(allActions)]);
         } else {
             const actions = filterRelations.types[data.type] || [];
             setAvailableActions(actions);
 
-            // Si l'action actuellement sélectionnée n'est pas disponible pour ce type, réinitialiser
             if (data.action !== 'all' && !actions.includes(data.action)) {
                 setData('action', 'all');
             }
         }
     }, [data.type]);
 
-    // Filtrer les alertes en fonction des critères
     useEffect(() => {
         if (!alerts) return;
 
         let filtered = [...alerts];
 
-        // Filtre par rôle
         if (data.role !== 'all') {
             filtered = filtered.filter(alert => {
                 const user = users.find(u => u.id === alert.user_id);
@@ -98,24 +92,20 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
             });
         }
 
-        // Filtre par type
         if (data.type !== 'all') {
             filtered = filtered.filter(alert => alert.type === data.type);
         }
 
-        // Filtre par action
         if (data.action !== 'all') {
             filtered = filtered.filter(alert => alert.action === data.action);
         }
 
-        // Filtre par date
         if (data.date === 'recent') {
             filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         } else if (data.date === 'ancien') {
             filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
         }
 
-        // Filtre par plage de dates
         if (data.start_date) {
             const startDate = new Date(data.start_date);
             filtered = filtered.filter(alert => new Date(alert.created_at) >= startDate);
@@ -123,12 +113,10 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
 
         if (data.end_date) {
             const endDate = new Date(data.end_date);
-            // Ajuster la fin de la journée pour inclure toute la journée
             endDate.setHours(23, 59, 59, 999);
             filtered = filtered.filter(alert => new Date(alert.created_at) <= endDate);
         }
 
-        // Filtre par recherche de nom
         if (data.nomserch) {
             filtered = filtered.filter(alert => {
                 const user = users.find(u => u.id === alert.user_id);
@@ -191,7 +179,6 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
         return actionLabels[actionValue] || actionValue;
     };
 
-    // Fonction pour traduire les valeurs de type en texte pour l'interface
     const getTypeLabel = (typeValue) => {
         const typeLabels = {
             'document': 'Document',
@@ -200,6 +187,95 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
         };
         return typeLabels[typeValue] || typeValue;
     };
+
+    const handleExportCSV = () => {
+        if (filteredAlerts.length === 0) {
+            toast.error("Aucune alerte à exporter");
+            return;
+        }
+
+        const params = new URLSearchParams();
+
+        if (data.role && data.role !== "all") {
+            params.append('role', data.role);
+        }
+
+        if (data.type && data.type !== "all") {
+            params.append('type', data.type);
+        }
+
+        if (data.action && data.action !== "all") {
+            params.append('action', data.action);
+        }
+
+        if (data.date) {
+            params.append('date', data.date);
+        }
+
+        if (data.nomserch) {
+            params.append('nomserch', data.nomserch);
+        }
+
+        if (data.start_date) {
+            params.append('start_date', data.start_date);
+        }
+
+        if (data.end_date) {
+            params.append('end_date', data.end_date);
+        }
+
+        const exportUrl = `${route('logs.export.csv')}?${params.toString()}`;
+
+        window.location.href = exportUrl;
+
+        // Message de succès
+        toast.success(`Exportation de ${filteredAlerts.length} alerte(s) au format CSV en cours...`);
+    };
+
+    const handleExport = () => {
+        if (filteredAlerts.length === 0) {
+            toast.error("Aucune alerte à exporter");
+            return;
+        }
+
+        const params = new URLSearchParams();
+
+        if (data.role && data.role !== "all") {
+            params.append('role', data.role);
+        }
+
+        if (data.type && data.type !== "all") {
+            params.append('type', data.type);
+        }
+
+        if (data.action && data.action !== "all") {
+            params.append('action', data.action);
+        }
+
+        if (data.date) {
+            params.append('date', data.date);
+        }
+
+        if (data.nomserch) {
+            params.append('nomserch', data.nomserch);
+        }
+
+        if (data.start_date) {
+            params.append('start_date', data.start_date);
+        }
+
+        if (data.end_date) {
+            params.append('end_date', data.end_date);
+        }
+
+        const exportUrl = `${route('logs.export')}?${params.toString()}`;
+
+        window.location.href = exportUrl;
+
+        // Message de succès
+        toast.success(`Exportation de ${filteredAlerts.length} alerte(s) en cours...`);
+    };
+
 
     return (
         <Authenticated user={auth.user} header={<h2>Jornaux</h2>}>
@@ -211,6 +287,40 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
                         <div className="p-6 bg-white border-b border-gray-200">
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-lg font-medium text-gray-900">Liste des Jornaux</h3>
+                                {width < 550 ? (
+                                <div className="flex space-x-3">
+                                    <button
+                                        onClick={handleExport}
+                                        title="Exporter les Logs Filtrés"
+                                        className="px-2 py-2 bg-green-100 text-green-600 rounded-md hover:text-green-900 transition"
+                                    >
+                                        <CiExport />
+                                    </button>
+                                    <button
+                                        onClick={handleExportCSV}
+                                        title="Exporter les Logs Filtrés"
+                                        className="px-2 py-2 bg-green-100 text-green-600 rounded-md hover:text-green-900 transition"
+                                    >
+                                        <TbFileTypeCsv/>
+                                    </button>
+                                </div>) :
+                                    <div className="flex space-x-3">
+                                        <button
+                                            onClick={handleExport}
+                                            title="Exporter les Logs Filtrés  au format Exel"
+                                            className="px-4 py-2 bg-green-100 text-green-600 rounded-md hover:text-green-900 transition"
+                                        >
+                                            <CiExport />
+                                        </button>
+                                        <button
+                                            onClick={handleExportCSV}
+                                            title="Exporter les Logs filtrés au format CSV"
+                                            className="px-2 py-2 bg-green-100 text-green-600 rounded-md hover:text-green-900 transition"
+                                        >
+                                            <TbFileTypeCsv/>
+                                        </button>
+                                    </div>
+                                }
                             </div>
 
                             {/* Première ligne de filtres */}

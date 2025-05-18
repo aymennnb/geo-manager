@@ -8,7 +8,7 @@ export default function DocumentAcces({ auth, users, documentId, usersWithAccess
     const { data, setData, post, processing, errors } = useForm({
         document_id: documentId,
         users: usersWithAccess,
-        searchTerm: "" // Ajout du champ pour la recherche
+        searchTerm: ""
     });
 
     const Width = useWindowWidth();
@@ -111,7 +111,7 @@ export default function DocumentAcces({ auth, users, documentId, usersWithAccess
                                     placeholder="Rechercher par nom..."
                                 />
 
-                                {/* Bouton X (réinitialisation) */}
+                                {/* Bouton de réinitialisation */}
                                 {data.searchTerm && (
                                     <div
                                         className="absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer"

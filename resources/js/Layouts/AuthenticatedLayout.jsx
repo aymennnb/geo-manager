@@ -167,7 +167,6 @@ export default function Authenticated({ user, header, children }) {
                         <h2 className="text-lg font-semibold text-gray-700">{header}</h2>
                     </div>
                     <div className="flex items-center gap-3">
-                        {/* Tu peux ajouter des boutons, notifications, etc. ici */}
                     </div>
                 </header>
 

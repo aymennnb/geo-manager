@@ -198,7 +198,6 @@ export default function EditDocuments({ auth, document, sites, setShowEditForm }
                                         }
                                     </div>
 
-                                    {/* Boutons */}
                                     <div className="flex items-center justify-end space-x-2">
                                         <button
                                             onClick={() => setShowEditForm(false)}
@@ -355,7 +354,6 @@ export default function EditDocuments({ auth, document, sites, setShowEditForm }
                                         )}
                                     </div>
 
-                                    {/* Boutons */}
                                     <div className="flex space-x-2 mt-3">
                                         <button
                                             type="button"

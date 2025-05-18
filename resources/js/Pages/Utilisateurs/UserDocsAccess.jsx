@@ -3,7 +3,7 @@ import { useForm } from "@inertiajs/react";
 import toast from "react-hot-toast";
 import { useWindowWidth } from "@/hooks/useWindowWidth.js";
 
-export default function UserDocsAccess({ auth, userId, users, documents, userDocumentsAccess, setShowAccessModal }) {
+export default function UserDocsAccess({ auth, userId, UserAccess, users, documents, userDocumentsAccess, setShowAccessModal }) {
     const { data, setData, post, processing, errors } = useForm({
         user_id: userId,
         documents: [], // Initialize as empty array
@@ -17,7 +17,6 @@ export default function UserDocsAccess({ auth, userId, users, documents, userDoc
 
     // S'assurer que data.documents est toujours initialisé correctement
     useEffect(() => {
-        // userDocumentsAccess should be an array of document IDs
         if (Array.isArray(userDocumentsAccess)) {
             setData("documents", userDocumentsAccess);
         } else {
@@ -26,7 +25,6 @@ export default function UserDocsAccess({ auth, userId, users, documents, userDoc
         }
     }, [userDocumentsAccess]);
 
-    // Filtrer les documents en fonction du terme de recherche
     useEffect(() => {
         if (!documents) return;
 
@@ -49,13 +47,11 @@ export default function UserDocsAccess({ auth, userId, users, documents, userDoc
         }
     }, [documents]);
 
-    // Gestionnaire pour le champ de recherche
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
         setData(name, value);
     };
 
-    // Gérer la sélection des documents
     const handleSelect = (e) => {
         const documentId = parseInt(e.target.value, 10);
         const isChecked = e.target.checked;
@@ -87,10 +83,6 @@ export default function UserDocsAccess({ auth, userId, users, documents, userDoc
         });
     };
 
-    // Trouver l'utilisateur concerné
-    const user = auth?.user;
-
-    // Vérifier si un document est sélectionné
     const isDocumentSelected = (docId) => {
         return Array.isArray(data.documents) && data.documents.includes(docId);
     };
@@ -105,7 +97,7 @@ export default function UserDocsAccess({ auth, userId, users, documents, userDoc
                         {/* Affichage des documents sélectionnés */}
                         <div className="mb-4">
                             <label className="block mb-2">
-                                Documents sélectionnés pour l'utilisateur <b>{users.find((u)=>u.id===userId)?.name}</b>{" "}
+                                Documents sélectionnés pour l'utilisateur <b>{UserAccess}</b>{" "}
                                 ({Array.isArray(data.documents) ? data.documents.length : 0}) :
                             </label>
                             <div className="flex flex-wrap gap-2">
@@ -131,8 +123,6 @@ export default function UserDocsAccess({ auth, userId, users, documents, userDoc
                                 <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
-
-                                {/* Champ de recherche */}
                                 <input
                                     style={{ height: '33px' }}
                                     type="text"
@@ -143,7 +133,7 @@ export default function UserDocsAccess({ auth, userId, users, documents, userDoc
                                     placeholder="Rechercher par nom de document..."
                                 />
 
-                                {/* Bouton X (réinitialisation) */}
+                                {/* Bouton de réinitialisation */}
                                 {data.searchTerm && (
                                     <div
                                         className="absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer"

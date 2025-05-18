@@ -48,34 +48,6 @@ export default function AddSite({ auth, setShowAddForm }) {
 
     const Width = useWindowWidth();
 
-    // S'assurer que le préfixe +212 est toujours présent
-    const handlePhoneChange = (e) => {
-        let value = e.target.value;
-
-        // Si la valeur ne commence pas par +212, la restaurer
-        if (!value.startsWith("+212")) {
-            value = "+212 " + value.replace("+212 ", "");
-        }
-
-        setData("phone", value);
-    };
-
-    // Empêcher la suppression du préfixe avec le clavier
-    const handlePhoneKeyDown = (e) => {
-        const cursorPosition = e.target.selectionStart;
-
-        // Empêcher la suppression du préfixe avec Backspace ou Delete
-        if ((e.key === "Backspace" && cursorPosition <= 5) ||
-            (e.key === "Delete" && cursorPosition < 5)) {
-            e.preventDefault();
-        }
-
-        // Empêcher la sélection et le remplacement du préfixe
-        if (e.target.selectionStart < 5) {
-            e.target.setSelectionRange(5, 5);
-        }
-    };
-
     const handleSubmit = (e) => {
         e.preventDefault();
         post(route("sites.create"),{
@@ -85,7 +57,7 @@ export default function AddSite({ auth, setShowAddForm }) {
         });
     };
 
-    // Fonction à ajouter à votre composant pour calculer les totaux
+    // Fonction pour calculer les totaux
     const calculateVNTotal = () => {
         const { vn } = data;
         let total = 0;
@@ -1204,8 +1176,8 @@ export default function AddSite({ auth, setShowAddForm }) {
                             </div>
 
                             <div className="mb-2">
-                                    <label htmlFor="vo" className="block text-gray-700 text-xs font-bold mb-1">VO</label>
-                                    <input
+                                <h3 className="text-md font-semibold mb-2">VO</h3>
+                                <input
                                         id="vo"
                                         type="number"
                                         step="0.01"
@@ -1219,10 +1191,9 @@ export default function AddSite({ auth, setShowAddForm }) {
                                         className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"                                    />
                                     {errors.vo && <p className="text-sm text-red-600 mt-1">{errors.vo}</p>}
                                 </div>
-
                             <div className="mb-2">
-                                    <label htmlFor="parking" className="block text-gray-700 text-xs font-bold mb-1">Parking</label>
-                                    <input
+                                <h3 className="text-md font-semibold mb-2">Parking</h3>
+                                <input
                                         id="parking"
                                         type="number"
                                         step="0.01"

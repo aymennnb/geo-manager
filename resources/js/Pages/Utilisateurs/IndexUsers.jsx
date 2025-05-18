@@ -4,8 +4,6 @@ import Authenticated from "@/Layouts/AuthenticatedLayout";
 import AddUser from "@/Pages/Utilisateurs/AddUser.jsx";
 import EditUser from "@/Pages/Utilisateurs/EditUser.jsx";
 import { useWindowWidth } from "@/hooks/useWindowWidth.js";
-
-// Les Messages de Confirmation
 import ConfirmResetPassword from "@/components/ConfirmResetPassword";
 import ConfirmSupprimeUser from "@/components/ConfirmSupprimeUser";
 import ChangeRoleConfirm from "@/components/ChangeRoleConfirm";
@@ -15,16 +13,14 @@ import ModalWrapper from "@/Components/ModalWrapper";
 import toast from 'react-hot-toast';
 import {FaBackward, FaFileShield} from "react-icons/fa6";
 import {TbPlayerTrackNextFilled, TbZoomReset} from "react-icons/tb";
-import { IoMdPersonAdd } from "react-icons/io";
 import { AiOutlineUsergroupDelete } from "react-icons/ai";
 import { AiOutlineUserDelete } from "react-icons/ai";
 import { LiaUserEditSolid } from "react-icons/lia";
 import { IoPersonAddOutline } from "react-icons/io5";
 import { MdOutlineLockReset } from "react-icons/md";
 import UserDocsAccess from "@/pages/Utilisateurs/UserDocsAccess"
-import DocumentAcces from "@/Pages/Documents/DocumentAcces.jsx";
 
-export default function IndexUsers({ auth,AccessTable,documentAccess, documents,users, flash }) {
+export default function IndexUsers({ auth,AccessTable, documents,users, flash }) {
     const { data, setData, post, processing, errors, delete: destroy } = useForm({
         users_ids:[],
         user_id: "",
@@ -59,7 +55,6 @@ export default function IndexUsers({ auth,AccessTable,documentAccess, documents,
     const [UsersToDelete,setUsersToDelete] = useState([]);
     const [showConfirmGroupModal, setShowConfirmGroupModal] = useState(false);
 
-    const [selectedRole, setSelectedRole] = useState('');
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [usersToChange, setUsersToChange] = useState([]);
 
@@ -67,6 +62,7 @@ export default function IndexUsers({ auth,AccessTable,documentAccess, documents,
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
     const [filteredUsers, setFilteredUsers] = useState([]);
+    const [UserAccess, setUserAccess] = useState(null);
 
     // Fonction pour réinitialiser tous les filtres
     const resetFilters = () => {
@@ -99,32 +95,27 @@ export default function IndexUsers({ auth,AccessTable,documentAccess, documents,
         if (!users) return;
 
         let filtered = users.filter(user =>
-            user.id !== auth.user.id && // Exclure l'utilisateur actuel
-            user.name && user.name.toLowerCase().includes(data.searchTerm.toLowerCase())
+            user.id !== auth.user.id && user.name && user.name.toLowerCase().includes(data.searchTerm.toLowerCase())
         );
 
-        // Filtrage par ID
         if (data.searchId) {
             filtered = filtered.filter(user =>
                 user.id.toString().includes(data.searchId)
             );
         }
 
-        // Filtrage par email
         if (data.searchEmail) {
             filtered = filtered.filter(user =>
                 user.email && user.email.toLowerCase().includes(data.searchEmail.toLowerCase())
             );
         }
 
-        // Filtrage par rôle
         if (data.filterRole) {
             filtered = filtered.filter(user =>
                 user.role === data.filterRole
             );
         }
 
-        // Filtrage par date de création
         if (data.start_date) {
             const startDate = new Date(data.start_date);
             filtered = filtered.filter(user => new Date(user.created_at) >= startDate);
@@ -132,16 +123,14 @@ export default function IndexUsers({ auth,AccessTable,documentAccess, documents,
 
         if (data.end_date) {
             const endDate = new Date(data.end_date);
-            // Ajuster la fin de la journée pour inclure toute la journée
             endDate.setHours(23, 59, 59, 999);
             filtered = filtered.filter(user => new Date(user.created_at) <= endDate);
         }
 
         setFilteredUsers(filtered);
-        setCurrentPage(1); // Réinitialiser à la première page lors d'une nouvelle recherche
+        setCurrentPage(1);
     }, [data.searchTerm, data.searchId, data.searchEmail, data.filterRole, data.start_date, data.end_date, users, auth.user.id]);
 
-    // Initialiser filteredUsers avec users au chargement (en excluant l'utilisateur actuel)
     useEffect(() => {
         if (users) {
             setFilteredUsers(users.filter(user => user.id !== auth.user.id));
@@ -283,28 +272,23 @@ export default function IndexUsers({ auth,AccessTable,documentAccess, documents,
 
         if (!userToDelete) return;
 
-        // Filtrer les accès de l'utilisateur
         const accessEntries = AccessTable.filter((entry) => entry.user_id === userToDelete.id);
 
         if (accessEntries.length > 0) {
-            // Trouver l'utilisateur à supprimer
             const User = users.find((user) => user.id === userToDelete.id);
             const UserName = User.name;
 
-            // Récupérer les noms des documents associés à l'utilisateur
             const documentNames = accessEntries.map((entry) => {
                 const doc = documents.find((document) => document.id === entry.document_id);
                 return doc ? doc.title : "Document inconnu";
             });
 
-            // Limiter l'affichage à 5 documents et ajouter "..."
             const maxDocuments = 5;
             const displayedDocuments = documentNames.slice(0, maxDocuments);
             const remainingDocuments = documentNames.length - maxDocuments > 0;
 
-            // Créer une liste formatée pour l'affichage
             const documentList = displayedDocuments.map((doc, index) => `• ${doc}`).join('\n');
-            const additionalMessage = remainingDocuments ? "\n...\n" : "";  // Afficher "..." si plus de 5 documents
+            const additionalMessage = remainingDocuments ? "\n...\n" : "";
 
             toast.error(
                 `L'utilisateur ${UserName} a ${accessEntries.length} document${accessEntries.length > 1 ? "s" : ""} auquel il a accès, ${accessEntries.length > 1 ? "ces documents" : "cet document"} : \n\n${documentList}${additionalMessage}\n\nVeuillez supprimer ces accès avant de pouvoir supprimer cet utilisateur.`,
@@ -321,10 +305,6 @@ export default function IndexUsers({ auth,AccessTable,documentAccess, documents,
         setShowConfirmDelete(false);
         setUserToDelete(null);
     };
-
-
-
-
 
     const cancelDelete = () => {
         setShowConfirmDelete(false);
@@ -445,9 +425,6 @@ export default function IndexUsers({ auth,AccessTable,documentAccess, documents,
                                 }
                             </div>
 
-
-                            {/* Nouvelle section de filtres responsive */}
-                            {/* Section de filtres avec mise en page cohérente - Page indexuser */}
                             <div className="flex flex-wrap items-end gap-3 mb-7 relative z-0">
                                 {/* Filtre par ID */}
                                 <div className="relative flex-1 min-w-[150px]">
@@ -626,6 +603,12 @@ export default function IndexUsers({ auth,AccessTable,documentAccess, documents,
                                                             user.role,
                                                             e.target.value
                                                         )}
+                                                        title={
+                                                            user.role === "admin"
+                                                                ? `Changement du rôle de l'admin ${user.name} non autorisée`
+                                                                : `Changer le rôle ${user.role === "manager" ? "du manager" : "de l'utilisateur"} ${user.name}`
+                                                        }
+                                                        disabled={user.role === "admin"}
                                                     >
                                                         <option value="admin">Admin</option>
                                                         <option value="manager">Manager</option>
@@ -640,8 +623,13 @@ export default function IndexUsers({ auth,AccessTable,documentAccess, documents,
                                                     <button
                                                         type="button"
                                                         onClick={() => askResetPassword(user.id, user.name)}
-                                                        title={`Réinitialiser le mot de passe de ${user.name}`}
                                                         className="text-indigo-600 hover:text-indigo-900 px-2 py-1 rounded bg-indigo-100"
+                                                        title={
+                                                            user.role === "admin"
+                                                                ? `Réinitialisation du mot de passe de ${user.name} non autorisée`
+                                                                : `Réinitialiser le mot de passe de ${user.name}`
+                                                        }
+                                                        disabled={user.role === "admin"}
                                                     >
                                                         <MdOutlineLockReset/>{/*Réinitialiser*/}
                                                     </button>
@@ -658,27 +646,42 @@ export default function IndexUsers({ auth,AccessTable,documentAccess, documents,
                                                         : <span className="italic text-gray-400">Date de mise à jour inconnue</span>}
                                                 </td>
                                                 <td className="px-6 py-3 whitespace-nowrap text-right text-sm font-medium">
-                                                    <div className="flex space-x-2">
+                                                    <div className="flex space-x-2 justify-center">
                                                         <button
-                                                            onClick={() => openAccessModal(user.id)}
-                                                            title={`Gérer l'accès aux documents pour ${user.name}`}
-                                                            className="text-green-600 hover:text-green-900 px-2 py-1 rounded bg-green-100"
-                                                        >
-                                                            <FaFileShield />
+                                                               onClick={() => {openAccessModal(user.id);setUserAccess(user.name)}}
+                                                               className="text-green-600 hover:text-green-900 px-2 py-1 rounded bg-green-100"
+                                                               title={
+                                                                   user.role === "admin"
+                                                                       ? `Géstion de l'accès aux documents pour l'admin ${user.name} non autorisée`
+                                                                       : `Gérer l'accès aux documents pour ${user.name}`
+                                                               }
+                                                               disabled={user.role === "admin"}
+                                                               >
+                                                               <FaFileShield />
                                                         </button>
                                                         <button
-                                                            onClick={() => openEditUser(user)}
-                                                            title={`Modifier les informations de ${user.name}`}
-                                                            className="text-yellow-600 hover:text-yellow-900 px-2 py-1 rounded bg-yellow-100"
-                                                        >
-                                                            <LiaUserEditSolid/>{/*Modifier*/}
+                                                               onClick={() => openEditUser(user)}
+                                                               className="text-yellow-600 hover:text-yellow-900 px-2 py-1 rounded bg-yellow-100"
+                                                               title={
+                                                                   user.role === "admin"
+                                                                       ? `Modification des informations pour l'admin ${user.name} non autorisée`
+                                                                       : `Modifier les informations de ${user.name}`
+                                                               }
+                                                               disabled={user.role === "admin"}
+                                                               >
+                                                               <LiaUserEditSolid/>{/*Modifier*/}
                                                         </button>
                                                         <button
-                                                            onClick={() => deleteUser(user.id, user.role, user.name)}
-                                                            title={`Supprimer l'utilisateur ${user.name}`}
-                                                            className="text-red-600 hover:text-red-900 px-2 py-1 rounded bg-red-100"
-                                                        >
-                                                            <AiOutlineUserDelete/>{/*Supprimer*/}
+                                                               onClick={() => deleteUser(user.id, user.role, user.name)}
+                                                               className="text-red-600 hover:text-red-900 px-2 py-1 rounded bg-red-100"
+                                                               title={
+                                                                   user.role === "admin"
+                                                                       ? `Suppression de l'admin ${user.name} non autorisée`
+                                                                       : `Supprimer l'utilisateur ${user.name}`
+                                                               }
+                                                               disabled={user.role === "admin"}
+                                                               >
+                                                               <AiOutlineUserDelete/>{/*Supprimer*/}
                                                         </button>
                                                     </div>
                                                 </td>
@@ -733,7 +736,7 @@ export default function IndexUsers({ auth,AccessTable,documentAccess, documents,
                 </div>
             </div>
             {showEditForm && userToEdit && (
-                <ModalWrapper title="Editer un utilisateur" onClose={() => setShowEditForm(false)}>
+                <ModalWrapper title={`Modifier les information de l'utilisateur ${userToEdit.name}`} onClose={() => setShowEditForm(false)}>
                     <EditUser auth={auth} user={userToEdit} setShowEditForm={setShowEditForm} showEditForm={showEditForm}/>
                 </ModalWrapper>
             )}
@@ -752,7 +755,6 @@ export default function IndexUsers({ auth,AccessTable,documentAccess, documents,
                     cancelChangeRole={cancelChangeRole}
                 />
             )}
-            {/* Div de confirmation du réinitialisation du mot de passe */}
             {showConfirmReset && (
                 <ConfirmResetPassword
                     userToReset={userToReset}
@@ -760,7 +762,6 @@ export default function IndexUsers({ auth,AccessTable,documentAccess, documents,
                     onCancel={() => setShowConfirmReset(false)}
                 />
             )}
-            {/* Div de confirmation suppression */}
             {showConfirmDelete && (
                 <ConfirmSupprimeUser
                     userToDelete={userToDelete}
@@ -784,10 +785,11 @@ export default function IndexUsers({ auth,AccessTable,documentAccess, documents,
                 />
             )}
             {showDocsAccessModal && currentUserDocuments && (
-                <ModalWrapper title="Gérer les accès aux documents" onClose={() => setShowDocsAccessModal(false)}>
+                <ModalWrapper title={`Gérer les accès des documents pour l'utilisateur ${UserAccess}`} onClose={() => setShowDocsAccessModal(false)}>
                     <UserDocsAccess
                         auth={auth}
                         users={users}
+                        UserAccess={UserAccess}
                         userId={currentUserDocuments.userId}
                         documents={documents}
                         userDocumentsAccess={currentUserDocuments.userDocumentsAccess}

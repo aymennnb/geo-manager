@@ -173,7 +173,6 @@ function Details({ auth, site, siteDetails,surface,locationifExist, documents, s
 
 
 
-                                {/* Informations sur la surface (si présentes) */}
                                 <div className="grid grid-cols-1 md:grid-cols-1 gap-3">
                                     {surface && (
                                         <>
@@ -260,7 +259,6 @@ function Details({ auth, site, siteDetails,surface,locationifExist, documents, s
                                             <h3 className="text-lg font-semibold mb-1 text-gray-700">Informations de location</h3>
                                         </div>
 
-                                        {/* Container pour les informations de location - modifié pour être sur toute la largeur */}
                                         <div className="col-span-full">
                                             {/* Exploitant */}
                                             <div className="py-2 border-gray-100">

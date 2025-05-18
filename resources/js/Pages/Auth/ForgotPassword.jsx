@@ -15,10 +15,9 @@ export default function ForgotPassword({ status }) {
 
     return (
         <div className="min-h-screen flex flex-col md:flex-row">
-            {/* Left side - Form */}
             <motion.div
-                initial={{ x: '100%', opacity: 0 }}  // Commence depuis la droite
-                animate={{ x: 0, opacity: 1 }}      // Arrive au centre
+                initial={{ x: '100%', opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
                 transition={{
                     type: "spring",
                     stiffness: 200,

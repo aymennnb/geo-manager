@@ -29,8 +29,8 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
         address: '',
         start_date: '',
         end_date: '',
-        type_site: '',     // Nouveau champ pour filtrer par type de site
-        uploaded_by: ''    // Nouveau champ pour filtrer par la personne qui a ajouté
+        type_site: '',
+        uploaded_by: ''
     });
 
     const width = useWindowWidth();
@@ -68,8 +68,8 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
             address: '',
             start_date: '',
             end_date: '',
-            type_site: '',     // Réinitialiser type de site
-            uploaded_by: ''    // Réinitialiser la personne qui a ajouté
+            type_site: '',
+            uploaded_by: ''
         });
         setCurrentPage(1);
     };
@@ -85,7 +85,6 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
             (!data.uploaded_by || Number(site.uploaded_by) === Number(data.uploaded_by))  // Filtrage par personne qui a ajouté
         );
 
-        // Filtrage par date de création
         if (data.start_date) {
             const startDate = new Date(data.start_date);
             filtered = filtered.filter(site => new Date(site.created_at) >= startDate);
@@ -93,7 +92,6 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
 
         if (data.end_date) {
             const endDate = new Date(data.end_date);
-            // Ajuster la fin de la journée pour inclure toute la journée
             endDate.setHours(23, 59, 59, 999);
             filtered = filtered.filter(site => new Date(site.created_at) <= endDate);
         }
@@ -266,8 +264,6 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
                             }
                         </div>
 
-                        {/* Barre de recherche, filtres et sélection du nombre d'éléments par page */}
-                        {/* Section de filtres avec mise en page cohérente - Page indexsite */}
                         <div className="flex flex-wrap items-end gap-3 mb-7 relative z-0">
                             {/* Filtre par nom */}
                             <div className="relative flex-1 min-w-[200px]">
@@ -476,7 +472,7 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
                                                 {users.find(user => Number(user.id) === Number(site.uploaded_by))?.name || <span className="italic text-gray-400">Non trouvé</span>}
                                             </td>
                                             <td className="px-6 py-3 whitespace-nowrap text-right text-sm font-medium">
-                                                <div className="flex space-x-2">
+                                                <div className="flex space-x-2 justify-center">
                                                     <button
                                                         onClick={() => {
                                                             setShowDetailModal(true);

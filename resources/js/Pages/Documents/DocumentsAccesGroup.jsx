@@ -2,11 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "@inertiajs/react";
 import { useWindowWidth } from "@/hooks/useWindowWidth.js";
 
-export default function DocumentsAccesGroup({ documentIds, users, setShowAccessGroup, existingAccesses = [] }) {
+export default function DocumentsAccesGroup({ documentIds,documents, users, setShowAccessGroup, existingAccesses = [] }) {
     const { data, setData, post, processing, errors } = useForm({
         document_ids: documentIds,
         user_ids: [],
-        searchTerm: "" // Ajout du champ pour la recherche
+        searchTerm: ""
     });
 
     // État pour stocker les utilisateurs filtrés
@@ -69,11 +69,25 @@ export default function DocumentsAccesGroup({ documentIds, users, setShowAccessG
         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div className="p-6">
-                    <h3 className="text-lg font-medium mb-4">Attribuer l'accès à plusieurs documents</h3>
-
+                    <h3 className="text-lg font-medium mb-4">
+                        {data.document_ids.length === 1
+                            ? "Attribuer l'accès au document sélectionné"
+                            : `Attribuer l'accès à ${data.document_ids.length} documents sélectionnés`}
+                    </h3>
+                    <div className="mb-4">
+                        <label className="text-sm font-medium mb-4">Documents sélectionnés :</label>
+                        <div className="flex flex-wrap gap-2">
+                            {documents
+                                .filter(doc => documentIds.includes(doc.id))
+                                .map(doc => (
+                                    <li key={doc.id}> {doc.title} </li>
+                                ))
+                            }
+                        </div>
+                    </div>
                     <div className="mb-4">
                         <label className="block mb-2">
-                            Utilisateurs sélectionnés pour <b>{data.document_ids.length}</b> document(s) sélectionnés :
+                            Utilisateurs sélectionnés pour <b>{data.document_ids.length}</b> {data.document_ids.length === 1 ? "document" : "documents" } sélectionnés :
                         </label>
                         <div className="flex flex-wrap gap-2">
                             {data.user_ids.length > 0 ? (
@@ -98,8 +112,6 @@ export default function DocumentsAccesGroup({ documentIds, users, setShowAccessG
                             <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
-
-                            {/* Champ de recherche */}
                             <input
                                 style={{ height: '33px' }}
                                 type="text"

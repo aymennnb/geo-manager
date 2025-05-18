@@ -28,10 +28,10 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
     const { data, setData, delete: destroy, post } = useForm({
         document_ids: [],
         searchTerm: '',
-        start_date: "", // Date de début pour la création
-        end_date: "",   // Date de fin pour la création
-        exp_start_date: "", // Date de début pour l'expiration
-        exp_end_date: "",    // Date de fin pour l'expiration
+        start_date: "",
+        end_date: "",
+        exp_start_date: "",
+        exp_end_date: "",
         document_type: 'all'
     });
 
@@ -50,12 +50,13 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
     const [showConfirmGroupModal, setShowConfirmGroupModal] = useState(false);
     const [docsToDelete, setDocsToDelete] = useState([]);
 
+    const [documentAccess, setdocumentAccess] = useState(null);
+
     // Ajout pour la pagination
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
     const [filteredDocuments, setFilteredDocuments] = useState([]);
 
-    // Utiliser un tableau d'IDs pour le filtre par site au lieu d'un seul ID
     const [selectedSites, setSelectedSites] = useState([]);
 
     // Filtrer les documents en fonction des critères de recherche et dates
@@ -71,7 +72,6 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
             filtered = filtered.filter(doc => selectedSites.includes(doc.site_id));
         }
 
-        // Filtrage par date de création
         if (data.start_date) {
             const startDate = new Date(data.start_date);
             filtered = filtered.filter(doc => new Date(doc.created_at) >= startDate);
@@ -79,12 +79,10 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
 
         if (data.end_date) {
             const endDate = new Date(data.end_date);
-            // Ajuster la fin de la journée pour inclure toute la journée
             endDate.setHours(23, 59, 59, 999);
             filtered = filtered.filter(doc => new Date(doc.created_at) <= endDate);
         }
 
-        // Filtrage par date d'expiration
         if (data.exp_start_date) {
             const expStartDate = new Date(data.exp_start_date);
             filtered = filtered.filter(doc => doc.expiration_date && new Date(doc.expiration_date) >= expStartDate);
@@ -101,7 +99,7 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
         }
 
         setFilteredDocuments(filtered);
-        setCurrentPage(1); // Réinitialiser à la première page lors d'une nouvelle recherche
+        setCurrentPage(1);
     }, [data.searchTerm, data.start_date, data.end_date, selectedSites,data.document_type, data.exp_start_date, data.exp_end_date, documents]);
 
     // Initialiser filteredDocuments avec documents au chargement
@@ -146,7 +144,6 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
             exp_end_date: '',
             document_type: 'all'
         });
-        // Réinitialiser également la sélection des sites
         setSelectedSites([]);
     };
 
@@ -181,8 +178,6 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
 
     const confirmDocsGroupDelete = () => {
         if (data.document_ids.length === 0) return;
-
-        // Filtrer les documents avec accès
         const docsWithAccess = data.document_ids
             .map((id) => {
                 const accessCount = AccessTable.filter(entry => entry.document_id === id).length;
@@ -192,16 +187,13 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
             .filter(Boolean);
 
         if (docsWithAccess.length > 0) {
-            // Limiter l'affichage à 5 documents et ajouter "..."
             const maxDocuments = 5;
             const displayedDocuments = docsWithAccess.slice(0, maxDocuments);
             const remainingDocuments = docsWithAccess.length - maxDocuments > 0;
 
-            // Créer une liste formatée pour l'affichage
             const documentList = displayedDocuments.map(d => `• ${d.title} : ${d.accessCount} utilisateur${d.accessCount > 1 ? 's' : ''} ayant accès`).join('\n');
-            const additionalMessage = remainingDocuments ? "\n...\n" : "";  // Afficher "..." si plus de 5 documents
+            const additionalMessage = remainingDocuments ? "\n...\n" : "";
 
-            // Afficher le message d'erreur avec la liste des documents
             toast.error(
                 `Impossible de supprimer certains documents car des utilisateurs y ont encore accès :\n${documentList}${additionalMessage}\n\nVeuillez d'abord supprimer ces accès.`,
                 { duration: 10000 }
@@ -211,7 +203,6 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
             return;
         }
 
-        // Aucun accès trouvé → suppression possible
         post(route("documents.DocsDelete"), {
             onSuccess: () => {
                 setData("document_ids", []);
@@ -285,30 +276,22 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
     }, [flash]);
 
 
-// This function constructs the export URL with all current filters
     const handleExport = () => {
-        // Vérifie si des documents correspondent aux filtres actuels
         if (filteredDocuments.length === 0) {
-            // Affiche un toast d'erreur si aucun document ne correspond
             toast.error("Aucun document à exporter");
-            return; // Arrête l'exécution de la fonction
+            return;
         }
 
-        // Si des documents sont présents, continue avec l'exportation
-        // Build query parameters from current filters
         const params = new URLSearchParams();
 
-        // Add search term if present
         if (data.searchTerm) {
             params.append('searchTerm', data.searchTerm);
         }
 
-        // Add selected sites if any
         if (selectedSites.length > 0) {
             params.append('siteIds', selectedSites.join(','));
         }
 
-        // Add date filters if present
         if (data.start_date) {
             params.append('startDate', data.start_date);
         }
@@ -329,39 +312,29 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
             params.append('documentType', data.document_type);
         }
 
-        // Build the final URL with query parameters
         const exportUrl = `${route('documents.export')}?${params.toString()}`;
 
-        // Navigate to the export URL
         window.location.href = exportUrl;
 
-        // Optionnellement, affiche un toast de succès
         toast.success(`Exportation de ${filteredDocuments.length} document(s) en cours...`);
     };
 
     const handleExportCSV = () => {
-        // Vérifie si des documents correspondent aux filtres actuels
         if (filteredDocuments.length === 0) {
-            // Affiche un toast d'erreur si aucun document ne correspond
             toast.error("Aucun document à exporter");
-            return; // Arrête l'exécution de la fonction
+            return;
         }
 
-        // Si des documents sont présents, continue avec l'exportation
-        // Build query parameters from current filters
         const params = new URLSearchParams();
 
-        // Add search term if present
         if (data.searchTerm) {
             params.append('searchTerm', data.searchTerm);
         }
 
-        // Add selected sites if any
         if (selectedSites.length > 0) {
             params.append('siteIds', selectedSites.join(','));
         }
 
-        // Add date filters if present
         if (data.start_date) {
             params.append('startDate', data.start_date);
         }
@@ -378,13 +351,10 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
             params.append('expEndDate', data.exp_end_date);
         }
 
-        // Build the final URL with query parameters
         const exportUrl = `${route('documents.exportCSV')}?${params.toString()}`;
 
-        // Navigate to the export URL
         window.location.href = exportUrl;
 
-        // Optionnellement, affiche un toast de succès
         toast.success(`Exportation de ${filteredDocuments.length} document(s) en cours...`);
     };
 
@@ -503,7 +473,6 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
                                 }
                             </div>
 
-                            {/* Nouvelle section de filtres sur une même ligne - Version corrigée */}
                             <div className="flex flex-wrap items-end gap-3 mb-7 relative z-0">
                                 {/* Filtre par titre */}
                                 <div className="relative flex-1 min-w-[170px]">
@@ -673,7 +642,7 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
                                                         : <span className="italic text-gray-400">Non spécifié</span> }
                                                 </td>
                                                 <td className="px-6 py-3 whitespace-nowrap text-right text-sm font-medium">
-                                                    <div className="flex space-x-2">
+                                                    <div className="flex space-x-2 justify-center">
                                                         <button
                                                             onClick={() => openDetailModal(document)}
                                                             title={`Consulter les détails du document ${document.title}`}
@@ -689,7 +658,7 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
                                                             <MdEditDocument/>{/*Modifier*/}
                                                         </button>
                                                         <button
-                                                            onClick={() => openAccessModal(document.id)}
+                                                            onClick={() => {openAccessModal(document.id);setdocumentAccess(document.title)}}
                                                             title={`Gérer l'accès au document ${document.title}`}
                                                             className="text-green-600 hover:text-green-900 px-2 py-1 rounded bg-green-100"
                                                         >
@@ -759,27 +728,27 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
                 </div>
             </div>
             {showAccessGroup && (
-                <ModalWrapper title="Gérer les accès" onClose={() => setShowAccessGroup(false)}>
-                    <DocumentsAccesGroup documentIds={data.document_ids} users={usersAccess} setShowAccessGroup={setShowAccessGroup} />
+                <ModalWrapper title="Gérer les accès aux plusieurs documents" onClose={() => setShowAccessGroup(false)}>
+                    <DocumentsAccesGroup documentIds={data.document_ids} documents={documents} users={usersAccess} setShowAccessGroup={setShowAccessGroup} />
                 </ModalWrapper>
             )}
             {showDetailModal && documentDetail && (
-                <ModalWrapper title="Détails du document" onClose={() => setShowDetailModal(false)}>
+                <ModalWrapper title={`Détails du document ${documentDetail.title}`} onClose={() => setShowDetailModal(false)}>
                     <DetailsDocument auth={auth} document={documentDetail} users={users} sites={sites} setshowDetailModal={setShowDetailModal} />
                 </ModalWrapper>
             )}
             {showEditModal && documentToEdit && (
-                <ModalWrapper title="Modifier le document" onClose={() => setShowEditModal(false)}>
+                <ModalWrapper title={`Modifier les information du document ${documentToEdit.title}`} onClose={() => setShowEditModal(false)}>
                     <EditDocuments auth={auth} document={documentToEdit} sites={sites} setShowEditForm={setShowEditModal} />
                 </ModalWrapper>
             )}
             {showAddForm && (
-                <ModalWrapper title="Ajouter un document" onClose={() => setShowAddForm(false)}>
+                <ModalWrapper title="Ajouter un nouveau document" onClose={() => setShowAddForm(false)}>
                     <AddDocuments auth={auth} sites={sites} setShowAddForm={setShowAddForm} />
                 </ModalWrapper>
             )}
             {showAccessModal && currentDocumentAccess && (
-                <ModalWrapper title="Gérer les accès" onClose={() => setShowAccessModal(false)}>
+                <ModalWrapper title={`Gérer les accès du document ${documentAccess}`} onClose={() => setShowAccessModal(false)}>
                     <DocumentAcces
                         auth={auth}
                         users={usersAccess}

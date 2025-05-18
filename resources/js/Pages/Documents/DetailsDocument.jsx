@@ -32,12 +32,10 @@ export default function DetailsDocument({ auth, document, setshowDetailModal, si
     return (
         <div className="max-w-5xl mx-auto px-1 py-2">
             <div className="bg-white shadow rounded-lg overflow-hidden">
-                {/* En-tête */}
                 <div className="bg-blue-100 p-4">
                     <h2 className="text-xl font-semibold text-blue-600">{document.title}</h2>
                 </div>
 
-                {/* Contenu principal */}
                 <div className="md:flex">
                     {/* Aperçu du document */}
                     <div className="md:w-2/3 p-4 border-b md:border-b-0 md:border-r border-gray-200">

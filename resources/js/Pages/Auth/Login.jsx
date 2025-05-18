@@ -1,6 +1,6 @@
 import InputError from "@/Components/InputError";
 import { Head, Link, useForm } from "@inertiajs/react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useWindowWidth } from "@/hooks/useWindowWidth.js";
 import { motion } from "framer-motion";
@@ -27,7 +27,6 @@ export default function Login({ status, canResetPassword }) {
 
     return (
         <div className="min-h-screen flex flex-col md:flex-row ">
-            {/* Left side - Form avec animation */}
             <motion.div
                 className="w-full h-[95vh] flex items-center justify-center p-8"
                 initial={{ x: '100%', opacity: 0 }}  // Commence depuis la droite
@@ -72,7 +71,11 @@ export default function Login({ status, canResetPassword }) {
                                 placeholder="votre email"
                                 onChange={(e) => setData("email", e.target.value)}
                             />
-                            <InputError message={errors.email} className="mt-1 text-xs" />
+                            {errors.email && (
+                                <p className="mt-2 text-sm text-red-600">
+                                    {errors.email}
+                                </p>
+                            )}
                         </div>
 
                         <div className="mb-4 relative">
@@ -95,7 +98,11 @@ export default function Login({ status, canResetPassword }) {
                             >
                                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                             </div>
-                            <InputError message={errors.password} className="mt-1 text-xs" />
+                            {errors.password && (
+                                <p className="mt-2 text-sm text-red-600">
+                                    {errors.password}
+                                </p>
+                            )}
                         </div>
 
                         <div className="flex items-center justify-between mb-4">
