@@ -11,12 +11,11 @@ export default function ImportSitesXLSX({ auth, setshowAddFileForm }) {
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        // Utilisation de la nouvelle route pour l'importation
         post(route("sites.import"), {
             forceFormData: true,
             onSuccess: () => {
                 setshowAddFileForm(false);
-                reset(); // Réinitialiser le formulaire après une importation réussie
+                reset();
             },
         });
     };

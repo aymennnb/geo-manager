@@ -7,7 +7,7 @@ import TextInput from '@/Components/TextInput';
 import { useForm } from '@inertiajs/react';
 import { useRef, useState } from 'react';
 
-export default function DeleteUserForm({ className = '' }) {
+    export default function DeleteUserForm({ className = '' }) {
     const [confirmingUserDeletion, setConfirmingUserDeletion] = useState(false);
     const passwordInput = useRef();
 
@@ -56,9 +56,12 @@ export default function DeleteUserForm({ className = '' }) {
                 </p>
             </header>
 
-            <DangerButton onClick={confirmUserDeletion}>
+            <button
+                onClick={confirmUserDeletion}
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+            >
                 Supprimer le compte
-            </DangerButton>
+            </button>
 
             <Modal show={confirmingUserDeletion} onClose={closeModal}>
                 <form onSubmit={deleteUser} className="p-6 space-y-6">
@@ -72,25 +75,36 @@ export default function DeleteUserForm({ className = '' }) {
 
                     <div className="mt-6">
                         <InputLabel htmlFor="password" value="Mot de passe" className="sr-only" />
-                        <TextInput
+                        <input
                             id="password"
                             type="password"
                             name="password"
                             ref={passwordInput}
                             value={data.password}
                             onChange={(e) => setData('password', e.target.value)}
-                            className="mt-1 block w-3/4"
-                            isFocused
+                            className="w-full border rounded px-3 py-1"
                             placeholder="Mot de passe"
                         />
                         <InputError message={errors.password} className="mt-2" />
                     </div>
 
-                    <div className="mt-6 flex justify-end gap-3">
-                        <SecondaryButton onClick={closeModal}>Annuler</SecondaryButton>
-                        <DangerButton className="ms-3" disabled={processing}>
-                            Supprimer le compte
-                        </DangerButton>
+                    <div className="flex justify-end space-x-4">
+                        <div className="flex justify-end space-x-4">
+                            <button
+                                type="button"
+                                onClick={closeModal}
+                                className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                            >
+                                Annuler
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={processing}
+                                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-75"
+                            >
+                                Supprimer le compte
+                            </button>
+                        </div>
                     </div>
                 </form>
             </Modal>

@@ -28,7 +28,7 @@ class StoreDocumentRequest extends FormRequest
             'uploaded_by' => 'required|exists:users,id',
             'file_path' => 'required|file|mimes:pdf,doc,docx,xls,csv,xlsx,png,jpg,jpeg|max:20480',
             'expiration_date' => 'nullable|date|after_or_equal:today',
-            'document_type' => 'nullable|in:urbanisme,contrat,fiscalite,autre',
+            'document_type' => 'required|in:urbanisme,contrat,fiscalite,autre',
         ];
     }
 }

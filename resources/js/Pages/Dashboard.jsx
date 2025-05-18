@@ -40,7 +40,6 @@ export default function Dashboard({ auth, surfaces,locations,sitesMaps, document
     const [isMobile, setIsMobile] = useState(false);
     const [pendingAlert, setPendingAlert] = useState(null);
 
-    // Nouvel useEffect pour gérer l'envoi d'alertes en attente
     useEffect(() => {
         if (pendingAlert) {
             post(route('alert.create'), pendingAlert);
@@ -48,19 +47,15 @@ export default function Dashboard({ auth, surfaces,locations,sitesMaps, document
         }
     }, [pendingAlert, post]);
 
-    // Détecte la taille de l'écran pour ajuster l'interface mobile/desktop
     useEffect(() => {
         const checkScreenSize = () => {
             setIsMobile(window.innerWidth < 768);
         };
 
-        // Vérification initiale
         checkScreenSize();
 
-        // Ajouter un écouteur pour les changements de taille d'écran
         window.addEventListener('resize', checkScreenSize);
 
-        // Nettoyer l'écouteur
         return () => window.removeEventListener('resize', checkScreenSize);
     }, []);
 
@@ -72,7 +67,6 @@ export default function Dashboard({ auth, surfaces,locations,sitesMaps, document
         }
     }, [selectedSite]);
 
-    // Fix pour les icônes Leaflet
     useEffect(() => {
         delete L.Icon.Default.prototype._getIconUrl;
         L.Icon.Default.mergeOptions({
@@ -107,40 +101,26 @@ export default function Dashboard({ auth, surfaces,locations,sitesMaps, document
             return;
         }
 
-        // Filtrer les sites selon le terme de recherche
         const filteredSites = sitesMaps.filter(site => site.name.toLowerCase().includes(value.toLowerCase()));
-
-        const filterSurfaces = surfaces.find(surface => surface.site_id === selectedSite.id);
-
-        const filterlocations = locations.find(location => location.sitef_id === selectedSite.id);
-
         setSearchResults(filteredSites);
         setShowResults(true);
     };
 
-    // Sélectionner un site depuis la recherche
     const handleSelectSite = (site) => {
         setSelectedSite(site);
         setSearchTerm(site.name);
         setShowResults(false);
         setMapCenter([site.latitude, site.longitude]);
-        setMapZoom(15); // Zoom plus proche
+        setMapZoom(13);
     };
 
     // Fonction pour gérer le clic sur un marqueur
     const handleMarkerClick = (site) => {
-        // Mise à jour immédiate du site sélectionné
         setSelectedSite(site);
-        // Centrer la carte sur le site sélectionné
         setMapCenter([site.latitude, site.longitude]);
 
-        // Construction du message d'alerte
         const message = `a consulté les informations du site ${site.name} qui a l'id ${site.id}.`;
-
-        // Mettre à jour l'état avec le message pour cohérence
         setData('message', message);
-
-        // Créer un objet avec toutes les données d'alerte
         const alertData = {
             user_id: auth.user.id,
             role: auth.user.role,
@@ -263,7 +243,6 @@ export default function Dashboard({ auth, surfaces,locations,sitesMaps, document
                                 <AnimatePresence>
                                     {selectedSite && (
                                         <div className="fixed inset-0" style={{ pointerEvents: "none", zIndex: 1100 }}>
-                                            {/* Overlay semi-transparent avec animation */}
                                             <motion.div
                                                 className="absolute inset-0 bg-black bg-opacity-40"
                                                 style={{ pointerEvents: "auto" }}
@@ -273,7 +252,6 @@ export default function Dashboard({ auth, surfaces,locations,sitesMaps, document
                                                 exit={{ opacity: 0 }}
                                                 transition={{ duration: 0.3 }}
                                             />
-                                            {/* Panneau latéral avec animation - plein écran sur mobile, latéral sur desktop */}
                                             <motion.div
                                                 className={`absolute ${isMobile ? 'inset-0' : 'right-0 top-0 bottom-0 max-w-md'} bg-white overflow-y-auto shadow-lg`}
                                                 style={{

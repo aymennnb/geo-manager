@@ -136,95 +136,114 @@ export default function SiteMap({ auth, filterSurfaces, filterLocations, selecte
                             />
                         )}
 
-                        <div className="space-y-2 text-sm sm:text-sm text-gray-700">
-                            <div className="divide-y divide-gray-100">
-                                <div className="py-2">
-                                    <p className="font-semibold">Adresse :</p>
-                                    <p>{selectedSite.address || "Non disponible"}</p>
+                        <div className="space-y-3 text-xs sm:text-sm text-gray-700">
+                            <div className="divide-y divide-gray-200">
+
+                                <div className="py-3">
+                                    <p className="font-semibold text-sm sm:text-base">Adresse :</p>
+                                    {selectedSite.address ? (
+                                        <p>{selectedSite.address}</p>
+                                    ) : (
+                                        <span className="italic text-gray-400">L'adresse n'a pas encore été renseignée pour ce site.</span>
+                                    )}
                                 </div>
 
-                                {selectedSite.phone && (
-                                    <div className="py-2">
-                                        <p className="font-semibold">Téléphone :</p>
+                                <div className="py-3">
+                                    <p className="font-semibold text-sm sm:text-base">Ville :</p>
+                                    {selectedSite.ville ? (
+                                        <p>{selectedSite.ville}</p>
+                                    ) : (
+                                        <span className="italic text-gray-400">La ville associée à ce site est inconnue.</span>
+                                    )}
+                                </div>
+
+                                <div className="py-3">
+                                    <p className="font-semibold text-sm sm:text-base">Numéro de téléphone :</p>
+                                    {selectedSite.phone ? (
                                         <p>{selectedSite.phone}</p>
-                                    </div>
-                                )}
+                                    ) : (
+                                        <span className="italic text-gray-400">Aucun numéro de téléphone disponible pour ce site.</span>
+                                    )}
+                                </div>
 
-                                {selectedSite.email && (
-                                    <div className="py-2">
-                                        <p className="font-semibold">Email :</p>
+                                <div className="py-3">
+                                    <p className="font-semibold text-sm sm:text-base">Email :</p>
+                                    {selectedSite.email ? (
                                         <p>{selectedSite.email}</p>
-                                    </div>
-                                )}
+                                    ) : (
+                                        <span className="italic text-gray-400">Aucune adresse email enregistrée pour ce site.</span>
+                                    )}
+                                </div>
 
-                                {selectedSite.web && (
-                                    <div className="py-2">
-                                        <p className="font-semibold">Site web :</p>
+                                <div className="py-3">
+                                    <p className="font-semibold text-sm sm:text-base">Site web :</p>
+                                    {selectedSite.web ? (
                                         <a
                                             href={selectedSite.web}
                                             className="text-blue-600 hover:underline break-words"
                                             target="_blank"
+                                            rel="noopener noreferrer"
                                         >
                                             {selectedSite.web.replace(/^https?:\/\//, "")}
                                         </a>
-                                    </div>
-                                )}
+                                    ) : (
+                                        <span className="italic text-gray-400">Ce site ne possède pas de site web référencé.</span>
+                                    )}
+                                </div>
 
-                                {selectedSite.ville && (
-                                    <div className="py-2">
-                                        <p className="font-semibold">Ville :</p>
-                                        <p>{selectedSite.ville}</p>
-                                    </div>
-                                )}
-
-                                {selectedSite.titre_foncier && (
-                                    <div className="py-2">
-                                        <p className="font-semibold">Titre Foncier :</p>
+                                <div className="py-3">
+                                    <p className="font-semibold text-sm sm:text-base">Titre Foncier :</p>
+                                    {selectedSite.titre_foncier ? (
                                         <p>{selectedSite.titre_foncier}</p>
-                                    </div>
-                                )}
+                                    ) : (
+                                        <span className="italic text-gray-400">Le titre foncier de ce site n'est pas disponible.</span>
+                                    )}
+                                </div>
 
-                                {selectedSite.superficie_terrain && (
-                                    <div className="py-2">
-                                        <p className="font-semibold">Superficie du terrain :</p>
+                                <div className="py-3">
+                                    <p className="font-semibold text-sm sm:text-base">Superficie du terrain :</p>
+                                    {selectedSite.superficie_terrain ? (
                                         <p>{selectedSite.superficie_terrain} m²</p>
-                                    </div>
-                                )}
+                                    ) : (
+                                        <span className="italic text-gray-400">La superficie du terrain n'a pas été renseignée.</span>
+                                    )}
+                                </div>
 
-                                {selectedSite.zoning_urbanistique && (
-                                    <div className="py-2">
-                                        <p className="font-semibold">Zoning Urbanistique :</p>
+                                <div className="py-3">
+                                    <p className="font-semibold text-sm sm:text-base">Zoning Urbanistique :</p>
+                                    {selectedSite.zoning_urbanistique ? (
                                         <p>{selectedSite.zoning_urbanistique}</p>
-                                    </div>
-                                )}
+                                    ) : (
+                                        <span className="italic text-gray-400">Les informations de zoning urbanistique sont absentes.</span>
+                                    )}
+                                </div>
 
-                                {selectedSite.consistance && (
-                                    <div className="py-2">
-                                        <p className="font-semibold">Consistance :</p>
+                                <div className="py-3">
+                                    <p className="font-semibold text-sm sm:text-base">Consistance :</p>
+                                    {selectedSite.consistance ? (
                                         <p>{selectedSite.consistance}</p>
-                                    </div>
-                                )}
+                                    ) : (
+                                        <span className="italic text-gray-400">La consistance du site n'a pas été spécifiée.</span>
+                                    )}
+                                </div>
 
-                                {selectedSite.surface_gla && (
-                                    <div className="py-2">
-                                        <p className="font-semibold">Surface GLA :</p>
+                                <div className="py-3">
+                                    <p className="font-semibold text-sm sm:text-base">Surface GLA :</p>
+                                    {selectedSite.surface_gla ? (
                                         <p>{selectedSite.surface_gla} m²</p>
-                                    </div>
-                                )}
+                                    ) : (
+                                        <span className="italic text-gray-400">La surface GLA n'est pas renseignée pour ce site.</span>
+                                    )}
+                                </div>
 
-                                {selectedSite.type_site && (
-                                    <div className="py-2">
-                                        <p className="font-semibold">Type de site :</p>
+                                <div className="py-3">
+                                    <p className="font-semibold text-sm sm:text-base">Type de site :</p>
+                                    {selectedSite.type_site ? (
                                         <p>{typeLabels[selectedSite.type_site] || selectedSite.type_site}</p>
-                                    </div>
-                                )}
-
-                                {selectedSite.latitude && selectedSite.longitude && (
-                                    <div className="py-2">
-                                        <p className="font-semibold">Coordonnées :</p>
-                                        <p>{selectedSite.latitude}, {selectedSite.longitude}</p>
-                                    </div>
-                                )}
+                                    ) : (
+                                        <span className="italic text-gray-400">Le type de site n'a pas été défini.</span>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </>
@@ -354,80 +373,102 @@ export default function SiteMap({ auth, filterSurfaces, filterLocations, selecte
 
                 {/* Onglet Documents */}
                 {activeTab === 'documents' && (
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                         <h4 className="font-semibold text-gray-800 mb-2 text-sm sm:text-base">Documents liés à ce site</h4>
 
                         {filteredDocuments.length > 0 ? (
-                            <div className="relative">
-                                {showArrows && scrollPosition > 0 && (
-                                    <button
-                                        onClick={() => scroll("left")}
-                                        className="absolute left-0 top-1/2 -translate-y-1/2 bg-white rounded-full p-0.5 sm:p-1 shadow-md z-10"
-                                        aria-label="Précédent"
-                                    >
-                                        <ChevronLeft size={isMobile ? 18 : 24} className="text-gray-500" />
-                                    </button>
-                                )}
+                            <>
+                                {/* Définition des types et leurs labels */}
+                                {[
+                                    { key: 'urbanisme', label: 'Informations Urbanistiques' },
+                                    { key: 'contrat', label: 'Contrats' },
+                                    { key: 'fiscalite', label: 'Taxes Professionnelles' },
+                                    { key: 'autre', label: 'Autres' },
+                                ].map(({ key, label }) => {
+                                    // Filtrer les documents par type
+                                    const docsByType = filteredDocuments.filter(doc => doc.document_type === key);
 
-                                <div
-                                    ref={carouselRef}
-                                    className="flex overflow-x-auto scrollbar-hide gap-2 sm:gap-4 py-2 px-1"
-                                    onScroll={handleScroll}
-                                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                                >
-                                    {filteredDocuments.map((doc, index) => (
-                                        <div
-                                            key={index}
-                                            className="flex flex-col justify-between flex-shrink-0 w-2/3 sm:w-64 bg-white rounded-2xl shadow-md p-3 sm:p-4 border border-gray-200 hover:shadow-xl transition duration-300 ease-in-out"
-                                        >
-                                            <div>
-                                                {/* En-tête avec icône */}
-                                                <div className="flex items-start gap-3">
-                                                    <div className="w-8 h-7 rounded-full bg-blue-100 flex items-center justify-center">
-                                                        <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                        </svg>
-                                                    </div>
-                                                    <div className="flex-1">
-                                                        <h5 className="text-sm sm:text-base font-semibold text-gray-800 line-clamp-1">
-                                                            {doc.title}
-                                                        </h5>
-                                                    </div>
+                                    if (docsByType.length === 0) return null; // Ne pas afficher la section si vide
+
+                                    return (
+                                        <div key={key} className="space-y-4">
+                                            <h5 className="text-gray-700 font-medium text-sm sm:text-base border-b border-gray-300 pb-1">{label}</h5>
+
+                                            <div className="relative">
+                                                {showArrows && scrollPosition > 0 && (
+                                                    <button
+                                                        onClick={() => scroll("left")}
+                                                        className="absolute left-0 top-1/2 -translate-y-1/2 bg-white rounded-full p-0.5 sm:p-1 shadow-md z-10"
+                                                        aria-label="Précédent"
+                                                    >
+                                                        <ChevronLeft size={isMobile ? 18 : 24} className="text-gray-500" />
+                                                    </button>
+                                                )}
+
+                                                <div
+                                                    ref={carouselRef}
+                                                    className="flex overflow-x-auto scrollbar-hide gap-2 sm:gap-4 py-2 px-1"
+                                                    onScroll={handleScroll}
+                                                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                                                >
+                                                    {docsByType.map((doc, index) => (
+                                                        <div
+                                                            key={index}
+                                                            className="flex flex-col justify-between flex-shrink-0 w-2/3 sm:w-64 bg-white rounded-2xl shadow-md p-3 sm:p-4 border border-gray-200 hover:shadow-xl transition duration-300 ease-in-out"
+                                                        >
+                                                            <div>
+                                                                {/* En-tête avec icône */}
+                                                                <div className="flex items-start gap-3">
+                                                                    <div className="w-8 h-7 rounded-full bg-blue-100 flex items-center justify-center">
+                                                                        <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                        </svg>
+                                                                    </div>
+                                                                    <div className="flex-1">
+                                                                        <h5 className="text-sm sm:text-base font-semibold text-gray-800 line-clamp-1">
+                                                                            {doc.title}
+                                                                        </h5>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Description */}
+                                                                <p className="text-xs sm:text-sm text-gray-600 mt-2 line-clamp-2">
+                                                                    {doc.description || "Aucune description disponible."}
+                                                                </p>
+                                                            </div>
+
+                                                            {/* Bouton Consulter */}
+                                                            <a
+                                                                href={`/storage/${doc.file_path}`}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                title={`Ouvrir le document "${doc.title}"`}
+                                                                className="mt-3 w-full justify-center inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-600 text-xs sm:text-sm rounded-full hover:bg-blue-200 transition"
+                                                            >
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                                </svg>
+                                                                Consulter
+                                                            </a>
+                                                        </div>
+                                                    ))}
                                                 </div>
 
-                                                {/* Description */}
-                                                <p className="text-xs sm:text-sm text-gray-600 mt-2 line-clamp-2">
-                                                    {doc.description || "Aucune description disponible."}
-                                                </p>
+                                                {showArrows && (
+                                                    <button
+                                                        onClick={() => scroll("right")}
+                                                        className="absolute right-0 top-1/2 -translate-y-1/2 bg-white rounded-full p-0.5 sm:p-1 shadow-md z-10"
+                                                        aria-label="Suivant"
+                                                    >
+                                                        <ChevronRight size={isMobile ? 18 : 24} className="text-gray-500" />
+                                                    </button>
+                                                )}
                                             </div>
-
-                                            {/* Bouton Consulter */}
-                                            <a
-                                                href={`/storage/${doc.file_path}`}
-                                                target="_blank"
-                                                title={`Ouvrir le document "${doc.title}"`}
-                                                className="mt-3 w-full justify-center inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-600 text-xs sm:text-sm rounded-full hover:bg-blue-200 transition"
-                                            >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                </svg>
-                                                Consulter
-                                            </a>
                                         </div>
-                                    ))}
-                                </div>
-
-                                {showArrows && (
-                                    <button
-                                        onClick={() => scroll("right")}
-                                        className="absolute right-0 top-1/2 -translate-y-1/2 bg-white rounded-full p-0.5 sm:p-1 shadow-md z-10"
-                                        aria-label="Suivant"
-                                    >
-                                        <ChevronRight size={isMobile ? 18 : 24} className="text-gray-500" />
-                                    </button>
-                                )}
-                            </div>
+                                    );
+                                })}
+                            </>
                         ) : (
                             <div className="m-4 sm:m-3">
                                 <div className="bg-gray-50 rounded-lg p-4 sm:p-6 text-center">

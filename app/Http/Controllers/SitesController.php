@@ -168,10 +168,13 @@ class SitesController extends Controller
         Surface::updateOrCreate(
             ['site_id' => $item->id],
             [
+                'total' => $request->input('total'),
+                'vn' => $request->input('vn.total'),
                 'show_room_dacia' => $request->input('vn.show_room_dacia'),
                 'show_room_renault' => $request->input('vn.show_room_renault'),
                 'show_room_nouvelle_marque' => $request->input('vn.show_room_nouvelle_marque'),
                 'zone_de_preparation' => $request->input('vn.zone_de_preparation'),
+                'apv' => $request->input('apv.total'),
                 'rms' => $request->input('apv.rms'),
                 'atelier_mecanique' => $request->input('apv.atelier_mecanique'),
                 'atelier_carrosserie' => $request->input('apv.atelier_carrosserie'),

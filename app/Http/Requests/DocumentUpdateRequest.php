@@ -27,7 +27,7 @@ class DocumentUpdateRequest extends FormRequest
             'site_id' => 'required|exists:sites,id',
             'uploaded_by' => 'required|exists:users,id',
             'expiration_date' => 'nullable|date|after_or_equal:today',
-            'document_type' => 'nullable|in:urbanisme,contrat,fiscalite,autre',
+            'document_type' => 'required|in:urbanisme,contrat,fiscalite,autre',
         ];
     }
 }

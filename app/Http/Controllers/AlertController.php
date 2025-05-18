@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\LogsExport;
 use App\Http\Requests\AlertInsertRequest;
 use App\Models\Alerts;
 use App\Models\Documents;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AlertController extends Controller
 {
@@ -97,5 +99,42 @@ class AlertController extends Controller
         }
 
         return response()->json($expiringDocuments);
+    }
+
+    public function export(Request $request)
+    {
+        $role = $request->input('role', 'all');
+        $type = $request->input('type', 'all');
+        $action = $request->input('action', 'all');
+        $startDate = $request->input('start_date', '');
+        $endDate = $request->input('end_date', '');
+        $nameSearch = $request->input('nomserch', '');
+        $sortOrder = $request->input('date', 'recent');
+
+        $filename = 'Logs_' . now()->format('d-m-Y_H-i-s') . '.xlsx';
+
+        return Excel::download(
+            new LogsExport($role, $type, $action, $startDate, $endDate, $nameSearch, $sortOrder),
+            $filename
+        );
+    }
+
+    public function exportCSV(Request $request)
+    {
+        $role = $request->input('role', 'all');
+        $type = $request->input('type', 'all');
+        $action = $request->input('action', 'all');
+        $startDate = $request->input('start_date', '');
+        $endDate = $request->input('end_date', '');
+        $nameSearch = $request->input('nomserch', '');
+        $sortOrder = $request->input('date', 'recent');
+
+        $filename = 'Logs_' . now()->format('d-m-Y_H-i-s') . '.csv';
+
+        return Excel::download(
+            new LogsExport($role, $type, $action, $startDate, $endDate, $nameSearch, $sortOrder),
+            $filename,
+            \Maatwebsite\Excel\Excel::CSV
+        );
     }
 }

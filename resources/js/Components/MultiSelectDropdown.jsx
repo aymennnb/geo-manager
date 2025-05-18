@@ -34,7 +34,7 @@ export default function MultiSelectDropdown({ options, selectedOptions, setSelec
     // Gérer les sélections
     const selectedText = selectedOptions.length === 0
         ? "Sélectionner..."
-        : `${selectedOptions.length} site${selectedOptions.length > 1 ? 's' : ''} sélectionné${selectedOptions.length > 1 ? 's' : ''}`;
+        : `${selectedOptions.length} sélectionné${selectedOptions.length > 1 ? 's' : ''}`;
 
     return (
         <div className="relative w-full" ref={dropdownRef}>

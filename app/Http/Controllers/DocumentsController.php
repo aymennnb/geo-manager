@@ -390,9 +390,11 @@ class DocumentsController extends Controller
             'message' => "a exporté {$count} {$word} au format Excel.",
         ]);
 
+        $filename = 'documents_' . now()->format('d-m-Y_H-i') . '.xlsx';
+
         return Excel::download(
             new DocumentsExport($searchTerm, $siteIds, $startDate, $endDate, $expStartDate, $expEndDate),
-            'documents.xlsx'
+            $filename
         );
     }
 
@@ -444,9 +446,11 @@ class DocumentsController extends Controller
             'message' => "a exporté {$count} {$word} au format Excel.",
         ]);
 
+        $filename = 'documents_' . now()->format('d-m-Y_H-i') . '.csv';
+
         return Excel::download(
             new DocumentsExport($searchTerm, $siteIds, $startDate, $endDate, $expStartDate, $expEndDate),
-            'documents.csv'
+            $filename
         );
     }
 }

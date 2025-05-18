@@ -36,7 +36,7 @@ export default function Register() {
                  backgroundImage: "url('/storage/megane.webp')",
                  backgroundSize: "cover",
                  backgroundPosition: "center",
-                 backgroundAttachment: "fixed" // Pour éviter les problèmes de hauteur sur iOS
+                 backgroundAttachment: "fixed"
              } : {}}>
             {/* Partie gauche - Formulaire avec animation */}
             <motion.div

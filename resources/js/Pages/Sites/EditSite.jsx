@@ -1,6 +1,6 @@
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 import { Head, useForm } from "@inertiajs/react";
-import React from "react";
+import React, {useEffect} from "react";
 import {useWindowWidth} from "@/hooks/useWindowWidth.js";
 
 function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }) {
@@ -30,14 +30,14 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
         prochaine_revision: locationifExist?.prochaine_revision,
         total: surface?.total,
         vn: {
-            total: surface?.vn.total,
+            total: surface?.vn,
             show_room_dacia: surface?.show_room_dacia,
             show_room_renault: surface?.show_room_renault,
             show_room_nouvelle_marque: surface?.show_room_nouvelle_marque,
             zone_de_preparation: surface?.zone_de_preparation,
         },
         apv: {
-            total: surface?.apv.total,
+            total: surface?.apv,
             rms: surface?.rms,
             atelier_mecanique: surface?.atelier_mecanique,
             atelier_carrosserie: surface?.atelier_carrosserie,
@@ -51,10 +51,10 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
         const { vn } = data;
         let total = 0;
 
-        if (vn.show_room_dacia) total += parseFloat(vn.show_room_dacia);
-        if (vn.show_room_renault) total += parseFloat(vn.show_room_renault);
-        if (vn.show_room_nouvelle_marque) total += parseFloat(vn.show_room_nouvelle_marque);
-        if (vn.zone_de_preparation) total += parseFloat(vn.zone_de_preparation);
+        if (vn.show_room_dacia) total += parseFloat(vn.show_room_dacia) || 0;
+        if (vn.show_room_renault) total += parseFloat(vn.show_room_renault) || 0;
+        if (vn.show_room_nouvelle_marque) total += parseFloat(vn.show_room_nouvelle_marque) || 0;
+        if (vn.zone_de_preparation) total += parseFloat(vn.zone_de_preparation) || 0;
 
         return total;
     };
@@ -63,9 +63,9 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
         const { apv } = data;
         let total = 0;
 
-        if (apv.rms) total += parseFloat(apv.rms);
-        if (apv.atelier_mecanique) total += parseFloat(apv.atelier_mecanique);
-        if (apv.atelier_carrosserie) total += parseFloat(apv.atelier_carrosserie);
+        if (apv.rms) total += parseFloat(apv.rms) || 0;
+        if (apv.atelier_mecanique) total += parseFloat(apv.atelier_mecanique) || 0;
+        if (apv.atelier_carrosserie) total += parseFloat(apv.atelier_carrosserie) || 0;
 
         return total;
     };
@@ -73,8 +73,10 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
     const updateTotals = () => {
         const vnTotal = calculateVNTotal();
         const apvTotal = calculateAPVTotal();
-        const voTotal = data.vo || 0;
-        const parkingTotal = data.parking || 0;
+        const voTotal = parseFloat(data.vo) || 0;
+        const parkingTotal = parseFloat(data.parking) || 0;
+
+        const grandTotal = vnTotal + apvTotal + voTotal + parkingTotal;
 
         setData(prevData => ({
             ...prevData,
@@ -86,9 +88,100 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                 ...prevData.apv,
                 total: apvTotal
             },
-            total: vnTotal + apvTotal + voTotal + parkingTotal
+            total: grandTotal
         }));
     };
+
+// Fonction pour gérer les changements de valeurs VN
+    const handleVNChange = (field, value) => {
+        const numValue = value === '' ? null : parseFloat(value);
+
+        setData(prevData => {
+            const newData = {
+                ...prevData,
+                vn: {
+                    ...prevData.vn,
+                    [field]: numValue
+                }
+            };
+
+            // Recalculer le total VN
+            let vnTotal = 0;
+            if (newData.vn.show_room_dacia) vnTotal += parseFloat(newData.vn.show_room_dacia);
+            if (newData.vn.show_room_renault) vnTotal += parseFloat(newData.vn.show_room_renault);
+            if (newData.vn.show_room_nouvelle_marque) vnTotal += parseFloat(newData.vn.show_room_nouvelle_marque);
+            if (newData.vn.zone_de_preparation) vnTotal += parseFloat(newData.vn.zone_de_preparation);
+
+            // Mettre à jour le total VN
+            newData.vn.total = vnTotal;
+
+            // Calculer le grand total
+            const apvTotal = parseFloat(newData.apv.total) || 0;
+            const voTotal = parseFloat(newData.vo) || 0;
+            const parkingTotal = parseFloat(newData.parking) || 0;
+            newData.total = vnTotal + apvTotal + voTotal + parkingTotal;
+
+            return newData;
+        });
+    };
+
+// Fonction pour gérer les changements de valeurs APV
+    const handleAPVChange = (field, value) => {
+        const numValue = value === '' ? null : parseFloat(value);
+
+        setData(prevData => {
+            const newData = {
+                ...prevData,
+                apv: {
+                    ...prevData.apv,
+                    [field]: numValue
+                }
+            };
+
+            // Recalculer le total APV
+            let apvTotal = 0;
+            if (newData.apv.rms) apvTotal += parseFloat(newData.apv.rms);
+            if (newData.apv.atelier_mecanique) apvTotal += parseFloat(newData.apv.atelier_mecanique);
+            if (newData.apv.atelier_carrosserie) apvTotal += parseFloat(newData.apv.atelier_carrosserie);
+
+            // Mettre à jour le total APV
+            newData.apv.total = apvTotal;
+
+            // Calculer le grand total
+            const vnTotal = parseFloat(newData.vn.total) || 0;
+            const voTotal = parseFloat(newData.vo) || 0;
+            const parkingTotal = parseFloat(newData.parking) || 0;
+            newData.total = vnTotal + apvTotal + voTotal + parkingTotal;
+
+            return newData;
+        });
+    };
+
+// Fonction pour gérer les changements de VO et parking
+    const handleSimpleChange = (field, value) => {
+        const numValue = value === '' ? null : parseFloat(value);
+
+        setData(prevData => {
+            const newData = {
+                ...prevData,
+                [field]: numValue
+            };
+
+            // Calculer le grand total
+            const vnTotal = parseFloat(newData.vn.total) || 0;
+            const apvTotal = parseFloat(newData.apv.total) || 0;
+            const voTotal = parseFloat(newData.vo) || 0;
+            const parkingTotal = parseFloat(newData.parking) || 0;
+            newData.total = vnTotal + apvTotal + voTotal + parkingTotal;
+
+            return newData;
+        });
+    };
+
+// Assurons-nous que les totaux sont calculés lors de l'initialisation
+    useEffect(() => {
+        updateTotals();
+    }, []);
 
     const Width = useWindowWidth();
 
@@ -97,32 +190,6 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
         post(route("sites.update"), {
             onSuccess: () => setShowEditModal(false),
         });
-    };
-
-    const handlePhoneKeyDown = (e) => {
-        const cursorPosition = e.target.selectionStart;
-
-        // Empêcher la suppression du préfixe avec Backspace ou Delete
-        if ((e.key === "Backspace" && cursorPosition <= 5) ||
-            (e.key === "Delete" && cursorPosition < 5)) {
-            e.preventDefault();
-        }
-
-        // Empêcher la sélection et le remplacement du préfixe
-        if (e.target.selectionStart < 5) {
-            e.target.setSelectionRange(5, 5);
-        }
-    };
-
-    const handlePhoneChange = (e) => {
-        let value = e.target.value;
-
-        // Si la valeur ne commence pas par +212, la restaurer
-        if (!value.startsWith("+212")) {
-            value = "+212 " + value.replace("+212 ", "");
-        }
-
-        setData("phone", value);
     };
 
     return (
@@ -182,7 +249,7 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                         type="email"
                                         value={data.email}
                                         onChange={(e) => setData("email", e.target.value)}
-                                                className="w-full border rounded px-3 py-1"
+                                        className="w-full border rounded px-3 py-1"
                                     />
                                     {errors.email && <p className="mt-2 text-sm text-red-600">{errors.email}</p>}
                                 </div>
@@ -470,14 +537,7 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                             step="0.01"
                                             value={data.vn.show_room_dacia || ""}
                                             placeholder="Surface en m²"
-                                            onChange={(e) => {
-                                                const value = e.target.value ? parseFloat(e.target.value) : null;
-                                                setData("vn", {
-                                                    ...data.vn,
-                                                    show_room_dacia: value
-                                                });
-                                                updateTotals();
-                                            }}
+                                            onChange={(e) => handleVNChange("show_room_dacia", e.target.value)}
                                             className="w-full border rounded px-3 py-1"
                                         />
                                         {errors.vn?.show_room_dacia && <p className="text-sm text-red-600 mt-1">{errors.vn.show_room_dacia}</p>}
@@ -491,14 +551,7 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                             step="0.01"
                                             value={data.vn.show_room_renault || ""}
                                             placeholder="Surface en m²"
-                                            onChange={(e) => {
-                                                const value = e.target.value ? parseFloat(e.target.value) : null;
-                                                setData("vn", {
-                                                    ...data.vn,
-                                                    show_room_renault: value
-                                                });
-                                                updateTotals();
-                                            }}
+                                            onChange={(e) => handleVNChange("show_room_renault", e.target.value)}
                                             className="w-full border rounded px-3 py-1"
                                         />
                                         {errors.vn?.show_room_renault && <p className="text-sm text-red-600 mt-1">{errors.vn.show_room_renault}</p>}
@@ -514,14 +567,7 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                             step="0.01"
                                             value={data.vn.show_room_nouvelle_marque || ""}
                                             placeholder="Surface en m²"
-                                            onChange={(e) => {
-                                                const value = e.target.value ? parseFloat(e.target.value) : null;
-                                                setData("vn", {
-                                                    ...data.vn,
-                                                    show_room_nouvelle_marque: value
-                                                });
-                                                updateTotals();
-                                            }}
+                                            onChange={(e) => handleVNChange("show_room_nouvelle_marque", e.target.value)}
                                             className="w-full border rounded px-3 py-1"
                                         />
                                         {errors.vn?.show_room_nouvelle_marque && <p className="text-sm text-red-600 mt-1">{errors.vn.show_room_nouvelle_marque}</p>}
@@ -535,14 +581,7 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                             step="0.01"
                                             value={data.vn.zone_de_preparation || ""}
                                             placeholder="Surface en m²"
-                                            onChange={(e) => {
-                                                const value = e.target.value ? parseFloat(e.target.value) : null;
-                                                setData("vn", {
-                                                    ...data.vn,
-                                                    zone_de_preparation: value
-                                                });
-                                                updateTotals();
-                                            }}
+                                            onChange={(e) => handleVNChange("zone_de_preparation", e.target.value)}
                                             className="w-full border rounded px-3 py-1"
                                         />
                                         {errors.vn?.zone_de_preparation && <p className="text-sm text-red-600 mt-1">{errors.vn.zone_de_preparation}</p>}
@@ -559,14 +598,7 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                             step="0.01"
                                             value={data.apv.rms || ""}
                                             placeholder="Surface en m²"
-                                            onChange={(e) => {
-                                                const value = e.target.value ? parseFloat(e.target.value) : null;
-                                                setData("apv", {
-                                                    ...data.apv,
-                                                    rms: value
-                                                });
-                                                updateTotals();
-                                            }}
+                                            onChange={(e) => handleAPVChange("rms", e.target.value)}
                                             className="w-full border rounded px-3 py-1"
                                         />
                                         {errors.apv?.rms && <p className="text-sm text-red-600 mt-1">{errors.apv.rms}</p>}
@@ -580,14 +612,7 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                             step="0.01"
                                             value={data.apv.atelier_mecanique || ""}
                                             placeholder="Surface en m²"
-                                            onChange={(e) => {
-                                                const value = e.target.value ? parseFloat(e.target.value) : null;
-                                                setData("apv", {
-                                                    ...data.apv,
-                                                    atelier_mecanique: value
-                                                });
-                                                updateTotals();
-                                            }}
+                                            onChange={(e) => handleAPVChange("atelier_mecanique", e.target.value)}
                                             className="w-full border rounded px-3 py-1"
                                         />
                                         {errors.apv?.atelier_mecanique && <p className="text-sm text-red-600 mt-1">{errors.apv.atelier_mecanique}</p>}
@@ -601,14 +626,7 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                             step="0.01"
                                             value={data.apv.atelier_carrosserie || ""}
                                             placeholder="Surface en m²"
-                                            onChange={(e) => {
-                                                const value = e.target.value ? parseFloat(e.target.value) : null;
-                                                setData("apv", {
-                                                    ...data.apv,
-                                                    atelier_carrosserie: value
-                                                });
-                                                updateTotals();
-                                            }}
+                                            onChange={(e) => handleAPVChange("atelier_carrosserie", e.target.value)}
                                             className="w-full border rounded px-3 py-1"
                                         />
                                         {errors.apv?.atelier_carrosserie && <p className="text-sm text-red-600 mt-1">{errors.apv.atelier_carrosserie}</p>}
@@ -624,11 +642,7 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                             step="0.01"
                                             value={data.vo || ""}
                                             placeholder="Surface en m²"
-                                            onChange={(e) => {
-                                                const value = e.target.value ? parseFloat(e.target.value) : null;
-                                                setData("vo", value);
-                                                updateTotals();
-                                            }}
+                                            onChange={(e) => handleSimpleChange("vo", e.target.value)}
                                             className="w-full border rounded px-3 py-1"
                                         />
                                         {errors.vo && <p className="text-sm text-red-600 mt-1">{errors.vo}</p>}
@@ -642,11 +656,7 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                             step="0.01"
                                             value={data.parking || ""}
                                             placeholder="Surface en m²"
-                                            onChange={(e) => {
-                                                const value = e.target.value ? parseFloat(e.target.value) : null;
-                                                setData("parking", value);
-                                                updateTotals();
-                                            }}
+                                            onChange={(e) => handleSimpleChange("parking", e.target.value)}
                                             className="w-full border rounded px-3 py-1"
                                         />
                                         {errors.parking && <p className="text-sm text-red-600 mt-1">{errors.parking}</p>}
@@ -859,7 +869,7 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                         onChange={(e) => setData("ville", e.target.value)}
                                         className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
                                     />
-                                    {errors.ville && <p className="text-sm text-red-600 mt-1">{errors.ville}</p>}
+                                    {errors.ville && <p className="mt-1 text-[10px] text-red-600">{errors.ville}</p>}
                                 </div>
 
                                 <div className="mb-2">
@@ -872,7 +882,7 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                         onChange={(e) => setData("titre_foncier", e.target.value)}
                                         className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
                                     />
-                                    {errors.titre_foncier && <p className="text-sm text-red-600 mt-1">{errors.titre_foncier}</p>}
+                                    {errors.titre_foncier && <p className="mt-1 text-[10px] text-red-600">{errors.titre_foncier}</p>}
                                 </div>
 
                                 <div className="mb-2">
@@ -886,7 +896,7 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                         onChange={(e) => setData("superficie_terrain", e.target.value ? parseFloat(e.target.value) : null)}
                                         className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
                                     />
-                                    {errors.superficie_terrain && <p className="text-sm text-red-600 mt-1">{errors.superficie_terrain}</p>}
+                                    {errors.superficie_terrain && <p className="mt-1 text-[10px] text-red-600">{errors.superficie_terrain}</p>}
                                 </div>
 
                                 <div className="mb-2">
@@ -899,7 +909,7 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                         onChange={(e) => setData("zoning_urbanistique", e.target.value)}
                                         className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
                                     />
-                                    {errors.zoning_urbanistique && <p className="text-sm text-red-600 mt-1">{errors.zoning_urbanistique}</p>}
+                                    {errors.zoning_urbanistique && <p className="mt-1 text-[10px] text-red-600">{errors.zoning_urbanistique}</p>}
                                 </div>
 
                                 <div className="mb-2">
@@ -912,7 +922,7 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                         onChange={(e) => setData("consistance", e.target.value)}
                                         className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
                                     />
-                                    {errors.consistance && <p className="text-sm text-red-600 mt-1">{errors.consistance}</p>}
+                                    {errors.consistance && <p className="mt-1 text-[10px] text-red-600">{errors.consistance}</p>}
                                 </div>
 
                                 <div className="mb-2">
@@ -926,7 +936,7 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                         onChange={(e) => setData("surface_gla", e.target.value ? parseFloat(e.target.value) : null)}
                                         className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
                                     />
-                                    {errors.surface_gla && <p className="text-sm text-red-600 mt-1">{errors.surface_gla}</p>}
+                                    {errors.surface_gla && <p className="mt-1 text-[10px] text-red-600">{errors.surface_gla}</p>}
                                 </div>
 
                                 <div className="mb-6">
@@ -957,7 +967,7 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                         <option value="propre">Propriété</option>
                                         <option value="location">Loué</option>
                                     </select>
-                                    {errors.type_site && <p className="text-sm text-red-600 mt-1">{errors.type_site}</p>}
+                                    {errors.type_site && <p className="mt-1 text-[10px] text-red-600">{errors.type_site}</p>}
                                 </div>
 
                                 {data.type_site && data.type_site === "location" ? (
@@ -972,7 +982,7 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                                 onChange={(e) => setData("exploitant", e.target.value)}
                                                 className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
                                             />
-                                            {errors.exploitant && <p className="text-sm text-red-600 mt-1">{errors.exploitant}</p>}
+                                            {errors.exploitant && <p className="mt-1 text-[10px] text-red-600">{errors.exploitant}</p>}
                                         </div>
 
                                         <div className="mb-2">
@@ -985,7 +995,7 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                                 onChange={(e) => setData("bailleur", e.target.value)}
                                                 className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
                                             />
-                                            {errors.bailleur && <p className="text-sm text-red-600 mt-1">{errors.bailleur}</p>}
+                                            {errors.bailleur && <p className="mt-1 text-[10px] text-red-600">{errors.bailleur}</p>}
                                         </div>
 
                                         <div className="mb-2">
@@ -997,7 +1007,7 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                                 onChange={(e) => setData("date_effet", e.target.value)}
                                                 className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
                                             />
-                                            {errors.date_effet && <p className="text-sm text-red-600 mt-1">{errors.date_effet}</p>}
+                                            {errors.date_effet && <p className="mt-1 text-[10px] text-red-600">{errors.date_effet}</p>}
                                         </div>
 
                                         <div className="mb-2">
@@ -1010,7 +1020,7 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                                 onChange={(e) => setData("duree_bail", e.target.value)}
                                                 className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
                                             />
-                                            {errors.duree_bail && <p className="text-sm text-red-600 mt-1">{errors.duree_bail}</p>}
+                                            {errors.duree_bail && <p className="mt-1 text-[10px] text-red-600">{errors.duree_bail}</p>}
                                         </div>
 
                                         <div className="mb-2">
@@ -1024,7 +1034,7 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                                 onChange={(e) => setData("loyer_actuel", e.target.value ? parseFloat(e.target.value) : null)}
                                                 className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
                                             />
-                                            {errors.loyer_actuel && <p className="text-sm text-red-600 mt-1">{errors.loyer_actuel}</p>}
+                                            {errors.loyer_actuel && <p className="mt-1 text-[10px] text-red-600">{errors.loyer_actuel}</p>}
                                         </div>
 
                                         <div className="mb-2">
@@ -1038,7 +1048,7 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                                 onChange={(e) => setData("taux_revision", e.target.value ? parseFloat(e.target.value) : null)}
                                                 className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
                                             />
-                                            {errors.taux_revision && <p className="text-sm text-red-600 mt-1">{errors.taux_revision}</p>}
+                                            {errors.taux_revision && <p className="mt-1 text-[10px] text-red-600">{errors.taux_revision}</p>}
                                         </div>
 
                                         <div className="mb-6">
@@ -1050,7 +1060,7 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                                 onChange={(e) => setData("prochaine_revision", e.target.value)}
                                                 className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
                                             />
-                                            {errors.prochaine_revision && <p className="text-sm text-red-600 mt-1">{errors.prochaine_revision}</p>}
+                                            {errors.prochaine_revision && <p className="mt-1 text-[10px] text-red-600">{errors.prochaine_revision}</p>}
                                         </div>
                                     </>
                                 ) : null}
@@ -1072,8 +1082,9 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                             });
                                             updateTotals();
                                         }}
-                                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"                                    />
-                                    {errors.vn?.show_room_dacia && <p className="text-sm text-red-600 mt-1">{errors.vn.show_room_dacia}</p>}
+                                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
+                                    />
+                                    {errors.vn?.show_room_dacia && <p className="mt-1 text-[10px] text-red-600">{errors.vn.show_room_dacia}</p>}
                                 </div>
 
                                 <div className="mb-2">
@@ -1092,8 +1103,9 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                             });
                                             updateTotals();
                                         }}
-                                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"                                    />
-                                    {errors.vn?.show_room_renault && <p className="text-sm text-red-600 mt-1">{errors.vn.show_room_renault}</p>}
+                                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
+                                    />
+                                    {errors.vn?.show_room_renault && <p className="mt-1 text-[10px] text-red-600">{errors.vn.show_room_renault}</p>}
                                 </div>
 
                                 <div className="mb-2">
@@ -1112,8 +1124,9 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                             });
                                             updateTotals();
                                         }}
-                                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"                                    />
-                                    {errors.vn?.show_room_nouvelle_marque && <p className="text-sm text-red-600 mt-1">{errors.vn.show_room_nouvelle_marque}</p>}
+                                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
+                                    />
+                                    {errors.vn?.show_room_nouvelle_marque && <p className="mt-1 text-[10px] text-red-600">{errors.vn.show_room_nouvelle_marque}</p>}
                                 </div>
 
                                 <div className="mb-2">
@@ -1132,8 +1145,9 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                             });
                                             updateTotals();
                                         }}
-                                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"                                    />
-                                    {errors.vn?.zone_de_preparation && <p className="text-sm text-red-600 mt-1">{errors.vn.zone_de_preparation}</p>}
+                                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
+                                    />
+                                    {errors.vn?.zone_de_preparation && <p className="mt-1 text-[10px] text-red-600">{errors.vn.zone_de_preparation}</p>}
                                 </div>
 
                                 <h3 className="text-md font-semibold mb-4">Après-Vente (APV)</h3>
@@ -1153,8 +1167,9 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                             });
                                             updateTotals();
                                         }}
-                                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"                                    />
-                                    {errors.apv?.rms && <p className="text-sm text-red-600 mt-1">{errors.apv.rms}</p>}
+                                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
+                                    />
+                                    {errors.apv?.rms && <p className="mt-1 text-[10px] text-red-600">{errors.apv.rms}</p>}
                                 </div>
 
                                 <div className="mb-2">
@@ -1173,8 +1188,9 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                             });
                                             updateTotals();
                                         }}
-                                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"                                    />
-                                    {errors.apv?.atelier_mecanique && <p className="text-sm text-red-600 mt-1">{errors.apv.atelier_mecanique}</p>}
+                                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
+                                    />
+                                    {errors.apv?.atelier_mecanique && <p className="mt-1 text-[10px] text-red-600">{errors.apv.atelier_mecanique}</p>}
                                 </div>
 
                                 <div className="mb-2">
@@ -1193,12 +1209,13 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                             });
                                             updateTotals();
                                         }}
-                                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"                                    />
-                                    {errors.apv?.atelier_carrosserie && <p className="text-sm text-red-600 mt-1">{errors.apv.atelier_carrosserie}</p>}
+                                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
+                                    />
+                                    {errors.apv?.atelier_carrosserie && <p className="mt-1 text-[10px] text-red-600">{errors.apv.atelier_carrosserie}</p>}
                                 </div>
 
                                 <div className="mb-2">
-                                    <label htmlFor="vo" className="block text-gray-700 text-xs font-bold mb-1">VO</label>
+                                    <h3 className="text-md font-semibold mb-2">VO</h3>
                                     <input
                                         id="vo"
                                         type="number"
@@ -1210,12 +1227,13 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                             setData("vo", value);
                                             updateTotals();
                                         }}
-                                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"                                    />
-                                    {errors.vo && <p className="text-sm text-red-600 mt-1">{errors.vo}</p>}
+                                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
+                                    />
+                                    {errors.vo && <p className="mt-1 text-[10px] text-red-600">{errors.vo}</p>}
                                 </div>
 
                                 <div className="mb-2">
-                                    <label htmlFor="parking" className="block text-gray-700 text-xs font-bold mb-1">Parking</label>
+                                    <h3 className="text-md font-semibold mb-2">Parking</h3>
                                     <input
                                         id="parking"
                                         type="number"
@@ -1227,11 +1245,11 @@ function EditSite({ auth, siteToEdit,surface,locationifExist, setShowEditModal }
                                             setData("parking", value);
                                             updateTotals();
                                         }}
-                                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"                                    />
-                                    {errors.parking && <p className="text-sm text-red-600 mt-1">{errors.parking}</p>}
+                                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
+                                    />
+                                    {errors.parking && <p className="mt-1 text-[10px] text-red-600">{errors.parking}</p>}
                                 </div>
 
-                                {/* Action Buttons */}
                                 <div className="flex space-x-2 mt-3">
                                     <button
                                         type="button"
