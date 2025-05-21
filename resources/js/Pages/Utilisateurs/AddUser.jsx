@@ -29,7 +29,7 @@ export default function AddUser({ auth, setShowAddForm }) {
                         <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                             <div className="p-6 bg-white border-b border-gray-200">
                                 <h3 className="text-lg font-medium mb-4">Fournir les informations suivantes</h3>
-                                <div className="h-96 overflow-y-auto">
+                                <div className="h-96 overflow-y-auto p-2">
                                     <form onSubmit={handleSubmit} className="space-y-6">
                                         <div className="mb-6">
                                             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
@@ -38,8 +38,7 @@ export default function AddUser({ auth, setShowAddForm }) {
                                             <input
                                                 id="name"
                                                 type="text"
-                                                className="w-full px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                value={data.name}
+                                                className="w-full border rounded px-3 py-1"                                                value={data.name}
                                                 onChange={(e) => setData("name", e.target.value)}
                                                 placeholder="Entrez le nom de l'utilisateur"
                                             />
@@ -53,8 +52,7 @@ export default function AddUser({ auth, setShowAddForm }) {
                                             <input
                                                 id="email"
                                                 type="email"
-                                                className="w-full px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                value={data.email}
+                                                className="w-full border rounded px-3 py-1"                                                value={data.email}
                                                 onChange={(e) => setData("email", e.target.value)}
                                                 placeholder="Entrez l'email de l'utilisateur"
                                             />
@@ -68,8 +66,7 @@ export default function AddUser({ auth, setShowAddForm }) {
                                             <input
                                                 id="password"
                                                 type="password"
-                                                className="w-full px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                value={data.password}
+                                                className="w-full border rounded px-3 py-1"                                                value={data.password}
                                                 onChange={(e) => setData("password", e.target.value)}
                                                 placeholder="Entrez le mot de passe"
                                             />
@@ -82,8 +79,7 @@ export default function AddUser({ auth, setShowAddForm }) {
                                             </label>
                                             <select
                                                 id="role"
-                                                className="w-full px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                value={data.role}
+                                                className="w-full border rounded px-3 py-1"                                                value={data.role}
                                                 onChange={(e) => setData("role", e.target.value)}
                                             >
                                                 <option value="admin">Admin</option>

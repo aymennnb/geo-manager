@@ -1,14 +1,18 @@
-import React from 'react';
+import React,{useState } from 'react';
 import { useForm } from '@inertiajs/react';
 import {useWindowWidth} from "@/hooks/useWindowWidth.js";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function EditUser({ auth, user, setShowEditForm }) {
     const { data, setData, post, processing, errors } = useForm({
         id: user.id,
         name: user.name,
         email: user.email,
+        password:'',
         role: user.role,
     });
+
+    const [showPassword, setShowPassword] = useState(false);
 
     const Width = useWindowWidth();
 
@@ -39,7 +43,7 @@ export default function EditUser({ auth, user, setShowEditForm }) {
                                     <input
                                         id="name"
                                         type="text"
-                                        className="w-full px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                className="w-full border rounded px-3 py-1"
                                         value={data.name}
                                         onChange={(e) => setData("name", e.target.value)}
                                     />
@@ -53,11 +57,34 @@ export default function EditUser({ auth, user, setShowEditForm }) {
                                     <input
                                         id="email"
                                         type="email"
-                                        className="w-full px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                className="w-full border rounded px-3 py-1"
                                         value={data.email}
                                         onChange={(e) => setData("email", e.target.value)}
                                     />
                                     {errors.email && <p className="mt-2 text-sm text-red-600">{errors.email}</p>}
+                                </div>
+
+                                <div className="mb-6">
+                                    <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
+                                        Mot de passe
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            id="password"
+                                            type={showPassword ? "text" : "password"}
+                                            className="w-full border rounded px-3 py-1 pr-10"
+                                            value={data.password}
+                                            onChange={(e) => setData("password", e.target.value)}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-2 top-1.5 text-gray-600"
+                                        >
+                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
+                                    {errors.password && <p className="mt-2 text-sm text-red-600">{errors.password}</p>}
                                 </div>
 
                                 <div className="mb-6">
@@ -66,7 +93,7 @@ export default function EditUser({ auth, user, setShowEditForm }) {
                                     </label>
                                     <select
                                         id="role"
-                                        className="w-full px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full border rounded px-3 py-1"
                                         value={data.role}
                                         onChange={(e) => setData("role", e.target.value)}
                                     >
@@ -133,6 +160,29 @@ export default function EditUser({ auth, user, setShowEditForm }) {
                                     />
                                     {errors.email && <p className="mt-1 text-[10px] text-red-600">{errors.email}</p>}
                                 </div>
+
+                                <div className="mb-2">
+                                    <label className="block text-gray-700 text-xs font-bold mb-1" htmlFor="password">
+                                        Mot de passe
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            id="password"
+                                            type={showPassword ? "text" : "password"}
+                                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-blue-400 pr-8"
+                                            value={data.password}
+                                            onChange={(e) => setData("password", e.target.value)}
+                                        />
+                                        <div
+                                            className="absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                        >
+                                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                        </div>
+                                    </div>
+                                    {errors.password && <p className="mt-1 text-[10px] text-red-600">{errors.password}</p>}
+                                </div>
+
 
                                 {/* Rôle Selection */}
                                 <div className="mb-2">

@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -61,6 +62,7 @@ class UserController extends Controller
         $request->validate([
             'user_id' => 'required|exists:users,id',
             'role' => 'required|in:admin,manager,user',
+            'password' => 'required|string|min:8',
         ]);
 
         $user = User::findOrFail($request->user_id);
@@ -117,6 +119,9 @@ class UserController extends Controller
         $item->name = $request->name;
         $item->email = $request->email;
         $item->role = $request->role;
+        if ($request->filled('password')) {
+            $item->password = Hash::make($request->password);
+        }
         $item->save();
 
         Alerts::create([
