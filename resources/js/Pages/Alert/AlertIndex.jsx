@@ -8,6 +8,9 @@ import {TiDocumentDelete} from "react-icons/ti";
 import {CiExport} from "react-icons/ci";
 import {HiDocumentAdd} from "react-icons/hi";
 import toast from "react-hot-toast";
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
+import dayjs from "dayjs";
 
 export default function AlertIndex({ auth, alerts, users, documents, filters }) {
     const { data, setData } = useForm({
@@ -189,91 +192,67 @@ export default function AlertIndex({ auth, alerts, users, documents, filters }) 
     };
 
     const handleExportCSV = () => {
-        if (filteredAlerts.length === 0) {
-            toast.error("Aucune alerte à exporter");
-            return;
-        }
+        const dataToExportCSV = filteredAlerts.map((alert) => {
+            const user = users.find(user => user.id === alert.user_id);
+            const userRole = user?.role || "inconnu";
+            const userName = user?.name || "Utilisateur inconnu";
 
-        const params = new URLSearchParams();
+            let fullMessage = "";
+            if (userRole === "admin") {
+                fullMessage = `L'admin ${userName} ${alert.message}`;
+            } else if (userRole === "manager") {
+                fullMessage = `Le manager ${userName} ${alert.message}`;
+            } else {
+                fullMessage = `${userName} ${alert.message}`;
+            }
 
-        if (data.role && data.role !== "all") {
-            params.append('role', data.role);
-        }
+            return {
+                Message: fullMessage,
+                "Date et Heure": dayjs(alert.created_at).format("DD/MM/YYYY HH:mm:ss")
+            };
+        });
 
-        if (data.type && data.type !== "all") {
-            params.append('type', data.type);
-        }
+        // Convertir en CSV
+        const ws = XLSX.utils.json_to_sheet(dataToExportCSV);
+        const csvOutput = XLSX.utils.sheet_to_csv(ws, { FS: ',', RS: '\n' });
 
-        if (data.action && data.action !== "all") {
-            params.append('action', data.action);
-        }
+        // Ajouter BOM UTF-8 pour Afficher les accents correctement
+        const csvWithBom = '\uFEFF' + csvOutput;
 
-        if (data.date) {
-            params.append('date', data.date);
-        }
-
-        if (data.nomserch) {
-            params.append('nomserch', data.nomserch);
-        }
-
-        if (data.start_date) {
-            params.append('start_date', data.start_date);
-        }
-
-        if (data.end_date) {
-            params.append('end_date', data.end_date);
-        }
-
-        const exportUrl = `${route('logs.export.csv')}?${params.toString()}`;
-
-        window.location.href = exportUrl;
-
-        // Message de succès
-        toast.success(`Exportation de ${filteredAlerts.length} alerte(s) au format CSV en cours...`);
+        const now = dayjs().format("YYYY-MM-DD_HH-mm-ss");
+        const blob = new Blob([csvWithBom], { type: 'text/csv;charset=utf-8;' });
+        saveAs(blob, `alertes_${now}.csv`);
     };
 
+
     const handleExport = () => {
-        if (filteredAlerts.length === 0) {
-            toast.error("Aucune alerte à exporter");
-            return;
-        }
+        const dataToExport = filteredAlerts.map((alert) => {
+            const user = users.find(user => user.id === alert.user_id);
+            const userRole = user?.role || "inconnu";
+            const userName = user?.name || "Utilisateur inconnu";
 
-        const params = new URLSearchParams();
+            // Créer le message complet selon le rôle
+            let fullMessage = "";
+            if (userRole === "admin") {
+                fullMessage = `L'admin ${userName} ${alert.message}`;
+            } else if (userRole === "manager") {
+                fullMessage = `Le manager ${userName} ${alert.message}`;
+            } else {
+                fullMessage = `${userName} ${alert.message}`;
+            }
 
-        if (data.role && data.role !== "all") {
-            params.append('role', data.role);
-        }
+            return {
+                Message: fullMessage,
+                "Date et Heure": dayjs(alert.created_at).format("DD/MM/YYYY HH:mm:ss")
+            };
+        });
 
-        if (data.type && data.type !== "all") {
-            params.append('type', data.type);
-        }
-
-        if (data.action && data.action !== "all") {
-            params.append('action', data.action);
-        }
-
-        if (data.date) {
-            params.append('date', data.date);
-        }
-
-        if (data.nomserch) {
-            params.append('nomserch', data.nomserch);
-        }
-
-        if (data.start_date) {
-            params.append('start_date', data.start_date);
-        }
-
-        if (data.end_date) {
-            params.append('end_date', data.end_date);
-        }
-
-        const exportUrl = `${route('logs.export')}?${params.toString()}`;
-
-        window.location.href = exportUrl;
-
-        // Message de succès
-        toast.success(`Exportation de ${filteredAlerts.length} alerte(s) en cours...`);
+        const ws = XLSX.utils.json_to_sheet(dataToExport);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Alertes');
+        const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        const now = dayjs().format("YYYY-MM-DD_HH-mm-ss");
+        saveAs(new Blob([buf], { type: 'application/octet-stream' }), `alertes_${now}.xlsx`);
     };
 
 

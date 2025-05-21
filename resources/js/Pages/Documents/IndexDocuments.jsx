@@ -22,6 +22,9 @@ import { MdEditDocument } from "react-icons/md";
 import { CiExport } from "react-icons/ci";
 import { TbFileTypeCsv } from "react-icons/tb";
 import { useWindowWidth } from "@/hooks/useWindowWidth.js";
+import { saveAs } from 'file-saver';
+import * as XLSX from 'xlsx';
+import dayjs from 'dayjs';
 
 
 export default function IndexDocuments({ auth,AccessTable, documents,usersAccess, sites, users, DocumentAccess, flash }) {
@@ -282,42 +285,35 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
             return;
         }
 
-        const params = new URLSearchParams();
+        const DocsToExport = filteredDocuments.map((doc) => {
+            // Recherche nom site et utilisateur
+            const siteName = sites.find(site => site.id === doc.site_id)?.name || "Non trouvé";
+            const uploadedByName = users.find(user => Number(user.id) === Number(doc.uploaded_by))?.name || "Non trouvé";
 
-        if (data.searchTerm) {
-            params.append('searchTerm', data.searchTerm);
-        }
+            return {
+                ID: doc.id,
+                Titre: doc.title,
+                Description: doc.description || "Non spécifié",
+                "Date d'expiration": doc.expiration_date
+                    ? dayjs(doc.expiration_date).format("DD/MM/YYYY")
+                    : "Non spécifiée",
+                "Site associé": siteName,
+                "Ajouté par": uploadedByName,
+                "Date de création": dayjs(doc.created_at).format("DD/MM/YYYY HH:mm"),
+            };
+        });
 
-        if (selectedSites.length > 0) {
-            params.append('siteIds', selectedSites.join(','));
-        }
+        const ws = XLSX.utils.json_to_sheet(DocsToExport);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Documents');
 
-        if (data.start_date) {
-            params.append('startDate', data.start_date);
-        }
+        const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        const now = dayjs().format("YYYY-MM-DD_HH-mm-ss");
+        saveAs(new Blob([buf], { type: 'application/octet-stream' }), `documents_${now}.xlsx`);
 
-        if (data.end_date) {
-            params.append('endDate', data.end_date);
-        }
-
-        if (data.exp_start_date) {
-            params.append('expStartDate', data.exp_start_date);
-        }
-
-        if (data.exp_end_date) {
-            params.append('expEndDate', data.exp_end_date);
-        }
-
-        if (data.document_type && data.document_type !== "all") {
-            params.append('documentType', data.document_type);
-        }
-
-        const exportUrl = `${route('documents.export')}?${params.toString()}`;
-
-        window.location.href = exportUrl;
-
-        toast.success(`Exportation de ${filteredDocuments.length} document(s) en cours...`);
+        toast.success(`Exportation de ${filteredDocuments.length} document(s) au format Excel`);
     };
+
 
     const handleExportCSV = () => {
         if (filteredDocuments.length === 0) {
@@ -325,37 +321,35 @@ export default function IndexDocuments({ auth,AccessTable, documents,usersAccess
             return;
         }
 
-        const params = new URLSearchParams();
+        const dataToExportCSV = filteredDocuments.map((document) => {
+            const siteName = sites.find(site => site.id === document.site_id)?.name || "Non trouvé";
+            const uploadedByName = users.find(user => Number(user.id) === Number(document.uploaded_by))?.name || "Utilisateur inconnu";
 
-        if (data.searchTerm) {
-            params.append('searchTerm', data.searchTerm);
-        }
+            return {
+                Id: document.id,
+                Titre: document.title,
+                Description: document.description || "Non spécifiée",
+                "Date d'expiration": document.expiration_date
+                    ? dayjs(document.expiration_date).format("DD/MM/YYYY")
+                    : "Non spécifiée",
+                "Site associé": siteName,
+                "Ajouté par": uploadedByName,
+                "Date de création": dayjs(document.created_at).format("DD/MM/YYYY HH:mm"),
+            };
+        });
 
-        if (selectedSites.length > 0) {
-            params.append('siteIds', selectedSites.join(','));
-        }
+        // Convertir en CSV
+        const ws = XLSX.utils.json_to_sheet(dataToExportCSV);
+        const csvOutput = XLSX.utils.sheet_to_csv(ws, { FS: ',', RS: '\n' });
 
-        if (data.start_date) {
-            params.append('startDate', data.start_date);
-        }
+        // Ajouter BOM UTF-8 pour Afficher les accents correctement
+        const csvWithBom = '\uFEFF' + csvOutput;
 
-        if (data.end_date) {
-            params.append('endDate', data.end_date);
-        }
+        const now = dayjs().format("YYYY-MM-DD_HH-mm-ss");
+        const blob = new Blob([csvWithBom], { type: 'text/csv;charset=utf-8;' });
+        saveAs(blob, `documents_${now}.csv`);
 
-        if (data.exp_start_date) {
-            params.append('expStartDate', data.exp_start_date);
-        }
-
-        if (data.exp_end_date) {
-            params.append('expEndDate', data.exp_end_date);
-        }
-
-        const exportUrl = `${route('documents.exportCSV')}?${params.toString()}`;
-
-        window.location.href = exportUrl;
-
-        toast.success(`Exportation de ${filteredDocuments.length} document(s) en cours...`);
+        toast.success(`Exportation de ${filteredDocuments.length} document(s) au format CSV`);
     };
 
     const getDocumentTypeLabel = (type) => {

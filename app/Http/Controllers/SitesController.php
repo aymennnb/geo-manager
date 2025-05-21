@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\SitesImport;
+use Illuminate\Support\Facades\Auth;
 
 
 class SitesController extends Controller
@@ -220,18 +221,33 @@ class SitesController extends Controller
     }
     public function map()
     {
+        $user = Auth::user();
+
         $sitesMaps = Sites::all();
-        $documents = Documents::all();
         $documentAccess = DocumentsAccess::select('id','document_id','user_id')->get();
         $surfaces = Surface::all();
         $locations = Location::all();
+        $users = User::all();
+        $alerts = Alerts::all();
+
+        if ($user->role === 'admin') {
+            $documents = Documents::all();
+        } else {
+            $accessibleDocumentIds = DocumentsAccess::where('user_id', $user->id)
+                ->pluck('document_id')
+                ->toArray();
+
+            $documents = Documents::whereIn('id', $accessibleDocumentIds)->get();
+        }
 
         return Inertia::render('Dashboard', [
             'sitesMaps' => $sitesMaps,
             'documents'=>$documents,
             'documentAccess'=>$documentAccess,
             'surfaces'=>$surfaces,
-            'locations'=>$locations
+            'locations'=>$locations,
+            'users'=>$users,
+            'alerts'=>$alerts
         ]);
     }
 

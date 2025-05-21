@@ -565,7 +565,7 @@ export default function IndexUsers({ auth,AccessTable, documents,users, flash })
                                         <th className="px-6 py-3 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                                         <th className="px-6 py-3 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider">Rôle</th>
                                         <th className="px-6 py-3 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider">Email Vérifié</th>
-                                        <th className="px-6 py-3 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider">Password</th>
+                                        {/*<th className="px-6 py-3 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider">Password</th>*/}
                                         <th className="px-6 py-3 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider">Création</th>
                                         <th className="px-6 py-3 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider">Mise à jour</th>
                                         <th className="px-6 py-3 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -619,21 +619,21 @@ export default function IndexUsers({ auth,AccessTable, documents,users, flash })
                                                     )}
                                                 </td>
                                                 <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">{user.email_verified_at ? "Oui" : "Non"}</td>
-                                                <td className="px-6 py-3 whitespace-nowrap text-sm">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => askResetPassword(user.id, user.name)}
-                                                        className="text-indigo-600 hover:text-indigo-900 px-2 py-1 rounded bg-indigo-100"
-                                                        title={
-                                                            user.role === "admin"
-                                                                ? `Réinitialisation du mot de passe de ${user.name} non autorisée`
-                                                                : `Réinitialiser le mot de passe de ${user.name}`
-                                                        }
-                                                        disabled={user.role === "admin"}
-                                                    >
-                                                        <MdOutlineLockReset/>{/*Réinitialiser*/}
-                                                    </button>
-                                                </td>
+                                                {/*<td className="px-6 py-3 whitespace-nowrap text-sm">*/}
+                                                {/*    <button*/}
+                                                {/*        type="button"*/}
+                                                {/*        onClick={() => askResetPassword(user.id, user.name)}*/}
+                                                {/*        className="text-indigo-600 hover:text-indigo-900 px-2 py-1 rounded bg-indigo-100"*/}
+                                                {/*        title={*/}
+                                                {/*            user.role === "admin"*/}
+                                                {/*                ? `Réinitialisation du mot de passe de ${user.name} non autorisée`*/}
+                                                {/*                : `Réinitialiser le mot de passe de ${user.name}`*/}
+                                                {/*        }*/}
+                                                {/*        disabled={user.role === "admin"}*/}
+                                                {/*    >*/}
+                                                {/*        <MdOutlineLockReset/>/!*Réinitialiser*!/*/}
+                                                {/*    </button>*/}
+                                                {/*</td>*/}
                                                 <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
                                                     {user.created_at
                                                         ? new Date(user.created_at).toLocaleString("fr-FR")
