@@ -3,6 +3,11 @@ import NavLink from "@/Components/NavLink";
 import { Toaster } from "react-hot-toast";
 import { router } from '@inertiajs/react';
 import LoadingSpinner from "@/Components/Loader";
+import { IoDocumentsSharp } from "react-icons/io5";
+import { FaMapLocation } from "react-icons/fa6";
+import { MdSpaceDashboard } from "react-icons/md";
+import { FaUsers } from "react-icons/fa";
+import { FaRegNewspaper } from "react-icons/fa";
 
 
 export default function Authenticated({ user, header, children }) {
@@ -79,16 +84,33 @@ export default function Authenticated({ user, header, children }) {
                     M-AUTOMOTIV
                 </div>
                 <nav className="flex-1 px-4 py-6 space-y-2 whitespace-nowrap">
+                    {(user.role === "admin" || user.role === "manager") ?
                     <NavLink href={route("dashboard")} active={route().current("dashboard")}>
-                        Maps
-                    </NavLink>
+                        <div className="flex items-center gap-2">
+                            <MdSpaceDashboard />
+                            <span>Dashboard</span>
+                        </div>
+                    </NavLink> :
+                        <NavLink href={route("dashboard")} active={route().current("dashboard")}>
+                            <div className="flex items-center gap-2">
+                                <FaMapLocation />
+                                <span>Maps</span>
+                            </div>
+                        </NavLink>
+                    }
                     {(user.role === "admin" || user.role === "manager") && (
                         <>
                             <NavLink href={route("sites")} active={route().current("sites")}>
-                                Sites
+                                <div className="flex items-center gap-2">
+                                    <FaMapLocation />
+                                    <span>Sites</span>
+                                </div>
                             </NavLink>
                             <NavLink href={route("documents")} active={route().current("documents")}>
-                                Documents
+                                <div className="flex items-center gap-2">
+                                    <IoDocumentsSharp />
+                                    <span>Documents</span>
+                                </div>
                             </NavLink>
                         </>
                     )}
@@ -96,10 +118,16 @@ export default function Authenticated({ user, header, children }) {
                     {user.role === "admin" && (
                         <>
                             <NavLink href={route("utilisateurs")} active={route().current("utilisateurs")}>
-                                Utilisateurs
+                                <div className="flex items-center gap-2">
+                                    <FaUsers />
+                                    <span>Utilisateurs</span>
+                                </div>
                             </NavLink>
                             <NavLink href={route("alerts")} active={route().current("alerts")}>
-                                Journaux
+                                <div className="flex items-center gap-2">
+                                    <FaRegNewspaper />
+                                    <span>Journaux</span>
+                                </div>
                             </NavLink>
                         </>
                     )}

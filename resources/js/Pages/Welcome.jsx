@@ -33,7 +33,12 @@ export default function Welcome({ auth }) {
                 {/* Header */}
                 <header className="bg-white shadow-sm">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-                        <div className={isMobile ? "text-xl font-bold text-orange-500" : "text-2xl font-bold text-orange-500"}>M-AUTOMOTIV</div>
+                        <div className={isMobile ? "text-xl font-bold text-orange-500" : "text-2xl font-bold text-orange-500"}><img  style={{
+                            maxHeight: "60px",
+                            maxWidth: isMobile ? "180px" : "none"  // 180px sur mobile, illimité sur PC
+                        }}
+                        src={`/storage/logo-m-automotiv-white.png`}
+                        /></div>
                         <nav className="flex items-center gap-4">
                             {auth ? (
                                 <Link
@@ -177,7 +182,7 @@ export default function Welcome({ auth }) {
                             <p className="text-sm text-gray-500 mt-1">Gestion et géolocalisation des sites et documents</p>
                         </div>
                         <div className="text-sm text-gray-500">
-                            © 2025 Nabaoui Aymen, Tous droits réservés.
+                            © 2025 M-AUTOMOTIV, Tous droits réservés.
                         </div>
                     </div>
                 </footer>

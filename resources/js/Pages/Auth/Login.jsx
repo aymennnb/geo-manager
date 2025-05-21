@@ -40,13 +40,21 @@ export default function Login({ status, canResetPassword }) {
             >
                 <div className="w-full max-w-sm">
                     <Head title="Log in" />
-
-                    <div className="mb-6">
+                    <h1 className="flex justify-center text-2xl font-bold text-gray-800 mb-1">
+                        Connexion
+                    </h1>
+                    <div className="mb-6 flex justify-center items-center">
+                        <div className={isMobile ? "text-xl font-bold text-orange-500" : "text-2xl font-bold text-orange-500"}><img  style={{
+                            maxHeight: "60px",
+                            maxWidth: isMobile ? "180px" : "none"
+                        }}
+                        src={`/storage/logo-m-automotiv-white-sans.png`}
+                        /></div>
                         <h1 className="text-2xl font-bold text-gray-800 mb-1">
-                            Prêt à explorer nos implantations ?
+                            {/*Prêt à explorer nos implantations ?*/}
                         </h1>
                         <p className="text-sm text-gray-600">
-                            Connectez-vous à votre compte pour consulter nos sites {!isMobile ? <br/> : null} <span className="text-orange-500">M-AUTOMOTIV</span>.
+                            Connectez-vous à votre compte pour consulter nos sites <span className="text-orange-500">M-AUTOMOTIV</span>.
                         </p>
                     </div>
 
