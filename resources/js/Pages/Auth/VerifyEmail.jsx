@@ -26,12 +26,6 @@ export default function VerifyEmail({ status }) {
                         </p>
                     </div>
 
-                    <div className="mb-4 text-sm text-gray-600">
-                        Merci de vous être inscrit ! Avant de commencer, pourriez-vous vérifier
-                        votre adresse email en cliquant sur le lien que nous venons de vous envoyer ?
-                        Si vous n'avez pas reçu l'email, nous vous en enverrons volontiers un autre.
-                    </div>
-
                     {status === 'verification-link-sent' && (
                         <div className="mb-4 p-2 bg-green-50 border border-green-200 rounded text-sm font-medium text-green-600">
                             Un nouveau lien de vérification a été envoyé à l'adresse email

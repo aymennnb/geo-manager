@@ -15,7 +15,7 @@ export default defineConfig({
         port: 5173,
         strictPort: true,
         hmr: {
-            host: '172.18.64.1',
+            host: '192.168.1.10',
         },
     },
 });

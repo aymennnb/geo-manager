@@ -24,7 +24,6 @@ class RoleMiddleware
 
         $user = Auth::user();
 
-        // Vérifier si le rôle de l'utilisateur est dans la liste des rôles autorisés
         if (in_array($user->role, $roles)) {
             return $next($request);
         }

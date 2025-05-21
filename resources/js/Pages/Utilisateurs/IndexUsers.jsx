@@ -133,7 +133,7 @@ export default function IndexUsers({ auth,AccessTable, documents,users, flash })
 
     useEffect(() => {
         if (users) {
-            setFilteredUsers(users.filter(user => user.id !== auth.user.id));
+            setFilteredUsers(users.filter(user => user.id !== auth.user.id && user.role !== "superadmin"));
         }
     }, [users, auth.user.id]);
 
@@ -608,11 +608,20 @@ export default function IndexUsers({ auth,AccessTable, documents,users, flash })
                                                                 ? `Changement du rôle de l'admin ${user.name} non autorisée`
                                                                 : `Changer le rôle ${user.role === "manager" ? "du manager" : "de l'utilisateur"} ${user.name}`
                                                         }
-                                                        disabled={user.role === "admin"}
+                                                        disabled={(user.role === "admin" && auth.user.role === "admin")}
                                                     >
-                                                        <option value="admin">Admin</option>
-                                                        <option value="manager">Manager</option>
-                                                        <option value="user">Utilisateur</option>
+                                                        {(auth.user.role === "admin" || auth.user.role === "superadmin") ?
+                                                            <>
+                                                                <option value="admin">Admin</option>
+                                                                <option value="manager">Manager</option>
+                                                                <option value="user">Utilisateur</option>
+                                                            </>
+                                                            :
+                                                            <>
+                                                                <option value="manager">Manager</option>
+                                                                <option value="user">Utilisateur</option>
+                                                            </>
+                                                        }
                                                     </select>
                                                     {errors.role && (
                                                         <div className="text-red-500 text-xs mt-1">{errors.role}</div>
@@ -647,18 +656,20 @@ export default function IndexUsers({ auth,AccessTable, documents,users, flash })
                                                 </td>
                                                 <td className="px-6 py-3 whitespace-nowrap text-right text-sm font-medium">
                                                     <div className="flex space-x-2 justify-center">
-                                                        <button
-                                                               onClick={() => {openAccessModal(user.id);setUserAccess(user.name)}}
-                                                               className="text-green-600 hover:text-green-900 px-2 py-1 rounded bg-green-100"
-                                                               title={
-                                                                   user.role === "admin"
-                                                                       ? `Géstion de l'accès aux documents pour l'admin ${user.name} non autorisée`
-                                                                       : `Gérer l'accès aux documents pour ${user.name}`
-                                                               }
-                                                               disabled={user.role === "admin"}
-                                                               >
-                                                               <FaFileShield />
-                                                        </button>
+                                                        {user.role !=="admin" && (
+                                                            <button
+                                                                onClick={() => {openAccessModal(user.id);setUserAccess(user.name)}}
+                                                                className="text-green-600 hover:text-green-900 px-2 py-1 rounded bg-green-100"
+                                                                title={
+                                                                    user.role === "admin"
+                                                                        ? `Géstion de l'accès aux documents pour l'admin ${user.name} non autorisée`
+                                                                        : `Gérer l'accès aux documents pour ${user.name}`
+                                                                }
+                                                                disabled={user.role === "admin"}
+                                                            >
+                                                                <FaFileShield />
+                                                            </button>
+                                                        )}
                                                         <button
                                                                onClick={() => openEditUser(user)}
                                                                className="text-yellow-600 hover:text-yellow-900 px-2 py-1 rounded bg-yellow-100"
@@ -667,7 +678,7 @@ export default function IndexUsers({ auth,AccessTable, documents,users, flash })
                                                                        ? `Modification des informations pour l'admin ${user.name} non autorisée`
                                                                        : `Modifier les informations de ${user.name}`
                                                                }
-                                                               disabled={user.role === "admin"}
+                                                               disabled={(user.role === "admin" && auth.user.role === "admin")}
                                                                >
                                                                <LiaUserEditSolid/>{/*Modifier*/}
                                                         </button>
@@ -679,7 +690,7 @@ export default function IndexUsers({ auth,AccessTable, documents,users, flash })
                                                                        ? `Suppression de l'admin ${user.name} non autorisée`
                                                                        : `Supprimer l'utilisateur ${user.name}`
                                                                }
-                                                               disabled={user.role === "admin"}
+                                                               disabled={(user.role === "admin" && auth.user.role === "admin")}
                                                                >
                                                                <AiOutlineUserDelete/>{/*Supprimer*/}
                                                         </button>

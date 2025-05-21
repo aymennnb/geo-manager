@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import NavLink from "@/Components/NavLink";
+import { Link } from "@inertiajs/react";
 import { Toaster } from "react-hot-toast";
 import { router } from '@inertiajs/react';
 import LoadingSpinner from "@/Components/Loader";
@@ -8,6 +9,7 @@ import { FaMapLocation } from "react-icons/fa6";
 import { MdSpaceDashboard } from "react-icons/md";
 import { FaUsers } from "react-icons/fa";
 import { FaRegNewspaper } from "react-icons/fa";
+import { FaUser, FaSignOutAlt } from "react-icons/fa";
 
 
 export default function Authenticated({ user, header, children }) {
@@ -98,7 +100,7 @@ export default function Authenticated({ user, header, children }) {
                             </div>
                         </NavLink>
                     }
-                    {(user.role === "admin" || user.role === "manager") && (
+                    {(user.role === "admin" || user.role === "superadmin" || user.role === "manager") && (
                         <>
                             <NavLink href={route("sites")} active={route().current("sites")}>
                                 <div className="flex items-center gap-2">
@@ -115,7 +117,7 @@ export default function Authenticated({ user, header, children }) {
                         </>
                     )}
 
-                    {user.role === "admin" && (
+                    {(user.role === "admin" || user.role === "superadmin") && (
                         <>
                             <NavLink href={route("utilisateurs")} active={route().current("utilisateurs")}>
                                 <div className="flex items-center gap-2">
@@ -153,22 +155,25 @@ export default function Authenticated({ user, header, children }) {
                     </div>
 
                     {showDropdown && (
-                        <div className="p-2.5 absolute bottom-16 left-4 w-48 bg-white text-gray-950 rounded shadow-lg z-50">
-                            <NavLink
+                        <div className="p-2.5 absolute bottom-16 left-4 w-5/6 bg-gray-100 text-gray-900 rounded shadow-lg z-50">
+                            <Link
                                 href={route("profile.edit")}
-                                className="block px-4 py-2 hover:bg-gray-100"
+                                className="flex items-center gap-2 w-full text-white bg-[#381452] px-4 py-2 rounded hover:bg-[#702c3c] hover:translate-x-1 transition transform duration-50"
                             >
-                                <span style={{color:'orange'}}>Profil</span>
-                            </NavLink>
-                            <NavLink
+                                <FaUser />
+                                <span>Profil</span>
+                            </Link>
+                            <Link
                                 href={route("logout")}
                                 method="post"
                                 as="button"
-                                className="block px-4 py-2 hover:bg-gray-100"
+                                className="flex items-center gap-2 w-full mt-1 px-4 py-2 rounded text-white bg-[#381452] hover:bg-[#702c3c] hover:translate-x-1 transition transform duration-50"
                             >
-                                <span style={{color:'orange'}}>Déconnexion</span>
-                            </NavLink>
+                                <FaSignOutAlt />
+                                <span>Déconnexion</span>
+                            </Link>
                         </div>
+
                     )}
                 </div>
             </aside>

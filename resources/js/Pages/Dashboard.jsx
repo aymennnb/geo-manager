@@ -292,7 +292,14 @@ export default function Dashboard({ auth, users, surfaces, locations, sitesMaps,
         });
 
     // Préparer les données pour le journal des activités
-    const recentAlertsData = stats.recentAlerts.map(alert => {
+    const recentAlertsData = stats.recentAlerts
+        // .filter(alert => {
+        //     if (alert.role !== "superadmin") {
+        //         return true;
+        //     }
+        //     return auth.user.role === "superadmin" && alert.user_id === auth.user.id;
+        // })
+        .map(alert => {
         const user = users.find(u => u.id === alert.user_id);
         const userRole = user?.role || 'inconnu';
         const userName = user?.name || 'Utilisateur inconnu';
@@ -527,7 +534,7 @@ export default function Dashboard({ auth, users, surfaces, locations, sitesMaps,
                                             </div>
 
                                             {/* Tableaux de données */}
-                                            {auth.user.role === "admin" && (
+                                            {(auth.user.role === "admin" || auth.user.role === "superadmin") && (
                                                 <SimpleTable
                                                     title="Utilisateurs par rôle"
                                                     headers={["Rôle", "Nombre"]}
@@ -546,7 +553,7 @@ export default function Dashboard({ auth, users, surfaces, locations, sitesMaps,
                                                 data={documentTypesTableData}
                                             />
 
-                                            {auth.user.role === "admin" && (
+                                            {(auth.user.role === "admin" || auth.user.role === "superadmin") && (
                                                 <SimpleTable
                                                     title="Journal des activités récentes"
                                                     headers={["Date", "Action"]}

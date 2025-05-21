@@ -37,7 +37,7 @@ Route::middleware(['auth','verified'])->group(function () {
         Route::post('create', 'create')->name('alert.create');
     });
 
-    Route::middleware('CheckRole:manager,admin')->group(function () {
+    Route::middleware('CheckRole:manager,admin,superadmin')->group(function () {
             Route::prefix('sites')->controller(SitesController::class)->group(function(){
                 Route::get('/','index')->name('sites');
                 Route::inertia('add','Sites/AddSite')->name('sites.add');
@@ -67,7 +67,7 @@ Route::middleware(['auth','verified'])->group(function () {
             });
     });
 
-    Route::middleware('CheckRole:admin')->group(function () {
+    Route::middleware('CheckRole:admin,superadmin')->group(function () {
         Route::prefix('utilisateurs')->controller(UserController::class)->group(function () {
             Route::get('/', 'index')->name('utilisateurs');
             Route::inertia('add', 'Utilisateurs/AddUser')->name('user.add');
