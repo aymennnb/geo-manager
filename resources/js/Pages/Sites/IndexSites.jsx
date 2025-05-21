@@ -137,13 +137,44 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
             return;
         }
 
+        // Trouver tous les documents liés aux sites sélectionnés
+        const linkedDocs = data.sites_ids
+            .flatMap(siteId => documents.filter(doc => doc.site_id === siteId))
+            // éviter doublons si plusieurs sites partagent mêmes docs (optionnel)
+            .reduce((acc, doc) => {
+                if (!acc.some(d => d.id === doc.id)) acc.push(doc);
+                return acc;
+            }, []);
+
+        if (linkedDocs.length > 0) {
+            const maxDocuments = 5;
+            const displayedDocuments = linkedDocs.slice(0, maxDocuments);
+            const remainingDocuments = linkedDocs.length - maxDocuments > 0;
+
+            const documentList = displayedDocuments
+                .map(doc => `• ${doc.title}`)
+                .join('\n');
+
+            const additionalMessage = remainingDocuments ? "\n...\n" : "";
+
+            toast.error(
+                `Impossible de supprimer certains sites car ils sont liés à ${linkedDocs.length} document${linkedDocs.length > 1 ? "s" : ""} :\n${documentList}${additionalMessage}\n\nVeuillez d'abord supprimer ces documents.`,
+                { duration: 10000 }
+            );
+
+            setShowSitesDelete(false);
+            return;
+        }
+
+        // Pas de documents liés, on peut supprimer les sites
         post(route('sites.SitesDelete'), {
             onSuccess: () => {
                 setData("sites_ids", []);
             }
         });
+
         setShowSitesDelete(false);
-    }
+    };
 
     const handleDeleteClick = (site) => {
         setSiteToDelete(site);
@@ -151,12 +182,33 @@ function IndexSites({ auth, sites, documents, locations,flash,users,surfaces}) {
     };
 
     const confirmDelete = () => {
-        if (siteToDelete) {
-            destroy(`/sites/delete/${siteToDelete.id}`);
+        if (!siteToDelete) return;
+
+        // Trouver les documents liés au site à supprimer
+        const linkedDocs = documents.filter(doc => doc.site_id === siteToDelete.id);
+
+        if (linkedDocs.length > 0) {
+            // Extraire les titres des documents liés
+            const linkedDocTitles = linkedDocs.map(doc => doc.title).join('\n- ');
+
+            toast.error(
+                `Impossible de supprimer le site ${siteToDelete.name} car il est lié à ${linkedDocs.length} document${linkedDocs.length > 1 ? "s" : ""}.\n\nVeuillez d'abord supprimer ${linkedDocs.length > 1 ? "ces documents" : "ce document"}.`,
+                {
+                    duration: 10000,
+                }
+            );
             setIsModalOpen(false);
             setSiteToDelete(null);
+            return;
         }
+
+        // Pas de documents liés, suppression possible
+        destroy(`/sites/delete/${siteToDelete.id}`);
+
+        setIsModalOpen(false);
+        setSiteToDelete(null);
     };
+
 
     const cancelDelete = () => {
         setIsModalOpen(false);
