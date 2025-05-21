@@ -83,7 +83,7 @@ export default function Authenticated({ user, header, children }) {
             {!isExemptPage && <LoadingSpinner isLoading={loading} size="sm" />}
             <aside className={`${isSidebarOpen ? 'w-64' : 'w-0'} bg-[#381454] text-white flex flex-col overflow-hidden`}>
                 <div className="text-center text-2xl font-bold text-[#ff6c04] py-6 border-b border-[#ff6c04] whitespace-nowrap">
-                    M-AUTOMOTIV
+                    M-LOCATION
                 </div>
                 <nav className="flex-1 px-4 py-6 space-y-2 whitespace-nowrap">
                     {(user.role === "admin" || user.role === "manager") ?

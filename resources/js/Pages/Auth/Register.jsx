@@ -192,7 +192,7 @@ export default function Register() {
 
                         {/* Logo ou texte sur l'image (optionnel) */}
                         <div className="absolute bottom-10 left-10 text-white">
-                            <h2 className="text-2xl font-bold text-orange-500">M-AUTOMOTIV</h2>
+                            <h2 className="text-2xl font-bold text-orange-500">M-LOCATION</h2>
                             <p className="text-sm text-orange-500">Découvrez nos sites</p>
                         </div>
                     </div>

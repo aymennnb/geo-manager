@@ -76,10 +76,10 @@ export default function Welcome({ auth }) {
                         transition={{ duration: 0.6 }}
                     >
                         <h1 className="text-4xl font-bold text-gray-800 mb-4">
-                            Gestion des Sites et Documents {isMobile ? <br/> : null}<span className="text-[#ff6c04]">M-AUTOMOTIV</span>
+                            Gestion des Sites et Documents {isMobile ? <br/> : null}<span className="text-[#ff6c04]">M-LOCATION</span>
                         </h1>
                         <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                            Localisez et gérez tous les sites M-AUTOMOTIV avec leurs documents associés grâce à notre application de géolocalisation intuitive.
+                            Localisez et gérez tous les sites de M-AUTOMOTIV avec leurs documents associés grâce à notre application de géolocalisation intuitive.
                         </p>
                     </motion.div>
 
@@ -178,7 +178,7 @@ export default function Welcome({ auth }) {
                 <footer className="bg-white border-t border-gray-200 py-8">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-center">
                         <div>
-                            <div className="text-xl font-bold text-orange-500">M-AUTOMOTIV</div>
+                            <div className="text-xl font-bold text-orange-500">M-LOCATION</div>
                             <p className="text-sm text-gray-500 mt-1">Gestion et géolocalisation des sites et documents</p>
                         </div>
                         <div className="text-sm text-gray-500">
